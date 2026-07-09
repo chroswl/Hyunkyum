@@ -2,6 +2,7 @@ export type Language = 'EN' | 'DE' | 'KO';
 
 export interface ScheduleItem {
   id: string;
+  order?: number;
   date: string; // YYYY-MM-DD
   title: {
     EN: string;
@@ -24,6 +25,7 @@ export interface ScheduleItem {
 
 export interface PortfolioItem {
   id: string;
+  order?: number;
   url: string;
   category: 'Portrait' | 'Stage' | 'Backstage';
   title?: {
@@ -35,6 +37,7 @@ export interface PortfolioItem {
 
 export interface VideoItem {
   id: string;
+  order?: number;
   youtubeId: string;
   title: {
     EN: string;
@@ -50,6 +53,7 @@ export interface VideoItem {
 
 export interface PressItem {
   id: string;
+  order?: number;
   source: string;
   rating?: number;
   quote: {
@@ -101,6 +105,7 @@ export interface ContactMessage {
 
 export interface PerformanceSlide {
   id: string;
+  order?: number;
   image: string;
   mediaType?: 'image' | 'video' | 'youtube';
   bgPosition?: string;

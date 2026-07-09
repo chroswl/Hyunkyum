@@ -270,8 +270,13 @@ export const fetchSchedule = async (): Promise<ScheduleItem[]> => {
     querySnapshot.forEach((doc) => {
       items.push({ ...doc.data(), id: doc.id } as ScheduleItem);
     });
-    // Sort by date ascending
-    return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Sort by custom order first, then by date ascending
+    return items.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
   } catch (error) {
     console.error("Error fetching schedule:", error);
     return initialSchedule;
@@ -311,7 +316,8 @@ export const fetchPortfolio = async (): Promise<PortfolioItem[]> => {
     querySnapshot.forEach((doc) => {
       items.push({ ...doc.data(), id: doc.id } as PortfolioItem);
     });
-    return items;
+    // Sort by custom order ascending
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error("Error fetching portfolio:", error);
     return initialPortfolio;
@@ -356,7 +362,8 @@ export const fetchVideos = async (): Promise<VideoItem[]> => {
     qSnapshot.forEach((doc) => {
       items.push({ ...doc.data(), id: doc.id } as VideoItem);
     });
-    return items;
+    // Sort by custom order ascending
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error("Error fetching videos:", error);
     return initialVideos;
@@ -425,8 +432,13 @@ export const fetchPress = async (): Promise<PressItem[]> => {
     qSnapshot.forEach((doc) => {
       items.push({ ...doc.data(), id: doc.id } as PressItem);
     });
-    // Sort by date descending
-    return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Sort by custom order first, then by date descending
+    return items.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
   } catch (error) {
     console.error("Error fetching press:", error);
     return initialPress;
@@ -661,7 +673,8 @@ export const fetchSelectedPerformances = async (): Promise<PerformanceSlide[]> =
     qSnapshot.forEach((doc) => {
       items.push({ ...doc.data(), id: doc.id } as PerformanceSlide);
     });
-    return items;
+    // Sort by custom order ascending
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error("Error fetching selected performances:", error);
     return initialSelectedPerformances;

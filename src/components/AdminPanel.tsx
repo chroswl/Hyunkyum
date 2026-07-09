@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, LogIn, LogOut, Plus, Edit, Trash2, Calendar, Image, MessageSquare, 
   Save, Check, AlertTriangle, ChevronRight, User as UserIcon, Link, ShieldAlert,
-  Tv, Award, Settings, Palette, FileText, Info, Upload
+  Tv, Award, Settings, Palette, FileText, Info, Upload, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { db, auth, loginWithGoogle, logout } from '../firebase';
 import { collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
@@ -600,6 +600,58 @@ export default function AdminPanel({
         }
       }
     });
+  };
+
+  const moveItemOrder = async (
+    collectionName: string,
+    itemsList: any[],
+    currentIndex: number,
+    direction: 'up' | 'down',
+    refreshFunc: () => void,
+    setLocalList?: React.Dispatch<React.SetStateAction<any[]>>
+  ) => {
+    if (direction === 'up' && currentIndex === 0) return;
+    if (direction === 'down' && currentIndex === itemsList.length - 1) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    setLoadingAction(true);
+
+    try {
+      // Ensure all items have an explicit order index
+      const updatedList = itemsList.map((item, idx) => ({
+        ...item,
+        order: item.order !== undefined ? item.order : idx
+      }));
+
+      // Swap the order value of current item and target item
+      const tempOrder = updatedList[currentIndex].order;
+      updatedList[currentIndex].order = updatedList[targetIndex].order;
+      updatedList[targetIndex].order = tempOrder;
+
+      // Optimistic UI update if setLocalList is provided
+      if (setLocalList) {
+        const sortedLocalList = [...updatedList].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setLocalList(sortedLocalList);
+      }
+
+      // Update both documents in Firestore
+      const itemA = updatedList[currentIndex];
+      const itemB = updatedList[targetIndex];
+
+      await Promise.all([
+        setDoc(doc(db, collectionName, itemA.id), itemA),
+        setDoc(doc(db, collectionName, itemB.id), itemB)
+      ]);
+
+      triggerAlert('success', 'Order updated successfully!');
+      refreshFunc();
+    } catch (err) {
+      console.error("Error updating item order:", err);
+      triggerAlert('error', 'Failed to save new order.');
+      refreshFunc();
+    } finally {
+      setLoadingAction(false);
+    }
   };
 
   if (!isOpen) return null;
