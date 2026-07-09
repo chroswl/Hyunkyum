@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "ScheduleItem": {
+      "title": "Performance Schedule Item",
+      "description": "Represents an opera performance, recital, concert, or gala event.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string", "enum": ["Opera", "Concert", "Recital", "Gala"] },
+        "title": { "type": "object" },
+        "role": { "type": "object" },
+        "location": { "type": "object" },
+        "link": { "type": "string" }
+      },
+      "required": ["date", "category", "title", "role", "location"]
+    },
+    "PortfolioItem": {
+      "title": "Portfolio Gallery Item",
+      "description": "Visual media piece showcasing professional stage acting or high-contrast portrait captures.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "category": { "type": "string", "enum": ["Portrait", "Stage", "Backstage"] },
+        "title": { "type": "object" }
+      },
+      "required": ["url", "category"]
+    },
+    "ContactMessage": {
+      "title": "Contact Inquiry Message",
+      "description": "Booking request or press query sent by an opera house agent, client, or concert planner.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email", "message", "createdAt"]
+    },
+    "PressItem": {
+      "title": "Press Review Item",
+      "description": "A professional media review from major publications.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "source": { "type": "string" },
+        "rating": { "type": "number" },
+        "quote": { "type": "object" },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "link": { "type": "string" },
+        "type": { "type": "string" }
+      },
+      "required": ["source", "quote", "date"]
+    },
+    "VideoItem": {
+      "title": "Video Showcase Item",
+      "description": "An opera performance highlight or audition video stored as a YouTube ID.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "youtubeId": { "type": "string" },
+        "title": { "type": "object" },
+        "role": { "type": "object" }
+      },
+      "required": ["youtubeId", "title"]
+    },
+    "ThemeSettings": {
+      "title": "Theme Color Configuration",
+      "description": "A set of customized display colors managed by the admin panel.",
+      "type": "object",
+      "properties": {
+        "bg": { "type": "string" },
+        "text": { "type": "string" },
+        "accent": { "type": "string" }
+      },
+      "required": ["bg", "text", "accent"]
+    },
+    "BiographySettings": {
+      "title": "Biography Narration Texts",
+      "description": "Translatable paragraphs representing biography intro and biography details.",
+      "type": "object",
+      "properties": {
+        "bioIntro": { "type": "object" },
+        "bioLong": { "type": "object" }
+      },
+      "required": ["bioIntro", "bioLong"]
+    },
+    "ContactSettings": {
+      "title": "Contact Information Configuration",
+      "description": "Official management contact records displayed publicly in the contact panel.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "management": { "type": "string" }
+      },
+      "required": ["email", "phone", "management"]
+    },
+    "PerformanceSlide": {
+      "title": "Selected Performance Slide",
+      "description": "Featured sliding performance shown in the main header hero carousel.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "image": { "type": "string" },
+        "bgPosition": { "type": "string" },
+        "production": { "type": "object" },
+        "role": { "type": "object" },
+        "house": { "type": "object" }
+      },
+      "required": ["image", "production", "role", "house"]
+    }
+  },
+  "firestore": {
+    "/schedule/{scheduleId}": {
+      "schema": "ScheduleItem",
+      "description": "Performance directories."
+    },
+    "/portfolio/{portfolioId}": {
+      "schema": "PortfolioItem",
+      "description": "Gallery portfolio pictures."
+    },
+    "/contacts/{contactId}": {
+      "schema": "ContactMessage",
+      "description": "Contact inquiries."
+    },
+    "/videos/{videoId}": {
+      "schema": "VideoItem",
+      "description": "Vocal/operatic videos."
+    },
+    "/press/{pressId}": {
+      "schema": "PressItem",
+      "description": "Press critiques."
+    },
+    "/settings/{settingsId}": {
+      "schema": { "$ref": "ThemeSettings" },
+      "description": "Global customization nodes."
+    },
+    "/selected_performances/{slideId}": {
+      "schema": "PerformanceSlide",
+      "description": "Home hero slides."
+    }
+  }
+}

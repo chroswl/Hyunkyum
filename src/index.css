@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Courier New", Courier, monospace;
+  --font-serif: "Courier New", Courier, monospace;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+/* Custom styles to enhance premium classic dark theme */
+html {
+  scroll-behavior: smooth;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Luxury accent text shadows and selections */
+::selection {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Continuously looping ultra-slow Ken Burns animation */
+@keyframes kenburns {
+  0% { transform: scale(1.01); }
+  50% { transform: scale(1.07); }
+  100% { transform: scale(1.01); }
+}
+
+.animate-kenburns {
+  animation: kenburns 22s ease-in-out infinite;
+}
+
+@keyframes scrollElegant {
+  0% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(10px);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+}
+
+.animate-scroll-elegant {
+  animation: scrollElegant 3.2s ease-in-out infinite;
+}
+
+/* Unified premium page section spacing */
+.page-section {
+  padding-top: 4.5rem; /* pt-18: comfortable, elegant clearance under the fixed navbar on mobile */
+  padding-bottom: 5.5rem; /* pb-22: premium bottom margin for beautiful vertical rhythm */
+  padding-left: 1.5rem; /* px-6: standardized page margins on mobile */
+  padding-right: 1.5rem;
+  border-top-width: 1px;
+  border-color: #0a0a0a; /* border-neutral-950 */
+}
+
+@media (min-width: 768px) {
+  .page-section {
+    padding-top: 6rem; /* pt-24: luxurious but balanced top spacing on desktop for breathability */
+    padding-bottom: 6.5rem; /* pb-26: balanced bottom spacing on desktop */
+    padding-left: 3rem; /* px-12: standardized page margins on desktop */
+    padding-right: 3rem;
+  }
+}
+
+

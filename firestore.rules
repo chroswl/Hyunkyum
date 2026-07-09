@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Schedule collection
+    match /schedule/{scheduleId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Portfolio collection
+    match /portfolio/{portfolioId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Videos collection
+    match /videos/{videoId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Press collection
+    match /press/{pressId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Global settings collection (Theme, Bio, Contact parameters)
+    match /settings/{settingsId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Selected performances hero slides collection
+    match /selected_performances/{slideId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Contacts (User messages) collection
+    match /contacts/{contactId} {
+      // Any guest can send an inquiry
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message', 'createdAt'])
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 100
+                    && request.resource.data.email is string && request.resource.data.email.size() <= 100
+                    && request.resource.data.message is string && request.resource.data.message.size() <= 2000;
+      
+      // Only authenticated admin can read or delete inquiries
+      allow read, delete: if isSignedIn();
+    }
+  }
+}

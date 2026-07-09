@@ -1,0 +1,6 @@
+{
+  "name": "Hyunkyum Kim Baritone",
+  "description": "Premium official website of Baritone & Opera Singer Hyunkyum Kim. Features a minimal classic layout, multilingual support, a responsive media portfolio, and an editable performance schedule powered by Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
