@@ -77,7 +77,7 @@ interface AdminPanelProps {
   refreshData: () => void;
 }
 
-type AdminTab = 'schedule' | 'portfolio' | 'press' | 'videos' | 'settings' | 'messages' | 'slides';
+type AdminTab = 'settings' | 'biography' | 'slides' | 'schedule' | 'portfolio' | 'press' | 'videos' | 'messages';
 
 export default function AdminPanel({ 
   currentLang, 
@@ -88,7 +88,7 @@ export default function AdminPanel({
   portfolioItems, 
   refreshData 
 }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('slides');
+  const [activeTab, setActiveTab] = useState<AdminTab>('settings');
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [pressItems, setPressItems] = useState<PressItem[]>([]);
@@ -698,7 +698,7 @@ export default function AdminPanel({
 
               {/* Toggle Content tabs */}
               <div className="flex flex-wrap gap-1">
-                {(['slides', 'schedule', 'portfolio', 'press', 'videos', 'messages', 'settings'] as AdminTab[]).map((tab) => (
+                {(['settings', 'biography', 'slides', 'schedule', 'portfolio', 'press', 'videos', 'messages'] as AdminTab[]).map((tab) => (
                   <button
                     key={tab}
                     id={`tab-admin-${tab}`}
@@ -723,10 +723,12 @@ export default function AdminPanel({
                     {tab === 'settings' && <Settings className="w-3 h-3" />}
                     {tab === 'messages' && <MessageSquare className="w-3 h-3" />}
                     {tab === 'slides' && <Image className="w-3 h-3 text-[#C9A227]" />}
+                    {tab === 'biography' && <FileText className="w-3 h-3 text-[#C9A227]" />}
                     <span>
                       {tab === 'messages' ? 'Inquiries' : 
                        tab === 'press' ? t.navPress : 
                        tab === 'slides' ? 'Hero Slides' : 
+                       tab === 'biography' ? 'Biography' :
                        tab}
                     </span>
                   </button>
@@ -1760,6 +1762,69 @@ export default function AdminPanel({
                         </div>
                       </div>
 
+                      {/* Sub-section 3: Contact & Management Details */}
+                      <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
+                        <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
+                          <Info className="w-4 h-4 text-[#C9A227] accent-color" />
+                          <h3 className="font-serif text-sm tracking-widest text-white uppercase">Contact Details & Management</h3>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Official Artist Email</label>
+                            <input
+                              type="email"
+                              value={contactSettings.email}
+                              onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
+                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Management Office Phone</label>
+                            <input
+                              type="text"
+                              value={contactSettings.phone}
+                              onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
+                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Agency / Management Label Name</label>
+                            <input
+                              type="text"
+                              value={contactSettings.management}
+                              onChange={(e) => setContactSettings({ ...contactSettings, management: e.target.value })}
+                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="button"
+                            onClick={saveContactSettingsAction}
+                            disabled={loadingAction}
+                            className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Update Contact Info</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: BIOGRAPHY */}
+              {activeTab === 'biography' && (
+                <div id="admin-biography-tab" className="space-y-8 pb-10">
+                  {loadingSettings ? (
+                    <div className="text-center py-10 text-neutral-500 text-xs">Loading application config...</div>
+                  ) : (
+                    <>
                       {/* Sub-section 2: Biography Text Editor */}
                       <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
                         <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
@@ -1929,57 +1994,6 @@ export default function AdminPanel({
                         </div>
                       </div>
 
-                      {/* Sub-section 3: Contact & Management Details */}
-                      <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
-                        <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
-                          <Info className="w-4 h-4 text-[#C9A227] accent-color" />
-                          <h3 className="font-serif text-sm tracking-widest text-white uppercase">Contact Details & Management</h3>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Official Artist Email</label>
-                            <input
-                              type="email"
-                              value={contactSettings.email}
-                              onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Management Office Phone</label>
-                            <input
-                              type="text"
-                              value={contactSettings.phone}
-                              onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Agency / Management Label Name</label>
-                            <input
-                              type="text"
-                              value={contactSettings.management}
-                              onChange={(e) => setContactSettings({ ...contactSettings, management: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end pt-2">
-                          <button
-                            type="button"
-                            onClick={saveContactSettingsAction}
-                            disabled={loadingAction}
-                            className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
-                          >
-                            <Save className="w-3.5 h-3.5" />
-                            <span>Update Contact Info</span>
-                          </button>
-                        </div>
-                      </div>
                     </>
                   )}
                 </div>
