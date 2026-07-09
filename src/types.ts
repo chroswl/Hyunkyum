@@ -81,6 +81,7 @@ export interface BiographySettings {
     DE: string;
     KO: string;
   };
+  bioImage?: string;
 }
 
 export interface ContactSettings {

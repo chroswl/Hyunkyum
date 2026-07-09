@@ -465,7 +465,8 @@ const DEFAULT_BIOGRAPHY: BiographySettings = {
     EN: "Known for his rich, warm timber and compelling stage presence, baritone Hyunkyum Kim has captivated audiences in major opera houses and concert halls. Highly expressive and vocally versatile, he brings deep intellectual interpretation and dramatic truth to characters ranging from the comedic Papageno in Die Zauberflöte to the dark, intense Rigoletto.",
     DE: "Bekannt für sein reiches, warmes Timbre und seine fesselnde Bühnenpräsenz hat der Bariton Hyunkyum Kim das Publikum in bedeutenden Opernhäusern und Konzertsälen begeistert. Äußerst ausdrucksstark und stimmlich vielseitig verleiht er Charakteren, vom komödiantischen Papageno in der Zauberflöte bis zum düsteren, intensiven Rigoletto, tiefe intellektuelle Interpretation und dramatische Wahrheit.",
     KO: "풍부하고 따뜻한 음색과 압도적인 무대 장악력으로 국내외 평단과 관객의 마음을 사로잡고 있습니다. 풍부한 표현력과 보컬의 유연성을 통해 마술피리의 유쾌한 파파게노부터 깊고 강렬한 리골레토에 이르기까지 깊이 있는 학구적 해석과 드라마틱한 진실함을 무대 위 캐릭터에 불어넣습니다."
-  }
+  },
+  bioImage: "/src/assets/images/hyunkyum_portrait_1783548337837.jpg"
 };
 
 const DEFAULT_CONTACT: ContactSettings = {

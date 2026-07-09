@@ -310,7 +310,7 @@ export default function App() {
                 <div className="absolute -inset-1.5 bg-gradient-to-r from-white/10 to-transparent rounded-sm blur-md opacity-30 group-hover:opacity-45 transition-all duration-700" />
                 <div className="relative border border-neutral-900 rounded-sm overflow-hidden bg-neutral-950">
                   <img 
-                    src="/src/assets/images/hyunkyum_portrait_1783548337837.jpg" 
+                    src={bio.bioImage || "/src/assets/images/hyunkyum_portrait_1783548337837.jpg"} 
                     alt="Portrait of Baritone Hyunkyum Kim" 
                     className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] hover:grayscale-0 transition-all duration-1000 scale-100 hover:scale-[1.02]"
                     referrerPolicy="no-referrer"

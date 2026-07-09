@@ -1015,7 +1015,7 @@ export default function AdminPanel({
                               className="w-full h-full object-cover" 
                               referrerPolicy="no-referrer"
                             />
-                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                               <span className="text-[9px] tracking-widest text-[#C9A227] font-sans uppercase font-bold accent-color">
                                 {item.category}
                               </span>
@@ -1853,6 +1853,69 @@ export default function AdminPanel({
                           </div>
                         </div>
 
+                        {/* Biography Image */}
+                        <div className="space-y-3 pt-2">
+                          <span className="text-[10px] tracking-wider text-[#C9A227] font-sans uppercase accent-color">Biography Image</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              {/* Computer File Upload Block */}
+                              <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={isUploadingFile}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    setIsUploadingFile(true);
+                                    try {
+                                      const base64 = await compressAndGetBase64(file);
+                                      setBioSettings({ ...bioSettings, bioImage: base64 });
+                                      triggerAlert('success', 'Biography image processed successfully!');
+                                    } catch (err) {
+                                      console.error("Upload error:", err);
+                                      triggerAlert('error', 'Failed to process local image.');
+                                    } finally {
+                                      setIsUploadingFile(false);
+                                    }
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                />
+                                <Upload className={`w-5 h-5 ${isUploadingFile ? 'animate-bounce text-[#C9A227]' : 'text-neutral-500 group-hover:text-[#C9A227]'} transition-colors`} />
+                                <div className="space-y-0.5">
+                                  <p className="text-[11px] text-neutral-300 font-sans font-medium">
+                                    {isUploadingFile ? 'Processing...' : 'Upload new image'}
+                                  </p>
+                                  <p className="text-[9px] text-neutral-500 font-sans">
+                                    Click or drag any photo file
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Raw Image URL</span>
+                                <input
+                                  type="text"
+                                  value={bioSettings.bioImage || ''}
+                                  onChange={(e) => setBioSettings({ ...bioSettings, bioImage: e.target.value })}
+                                  placeholder="https://..."
+                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-center items-center bg-neutral-900/30 rounded border border-neutral-800 p-2 overflow-hidden h-[180px]">
+                              {bioSettings.bioImage ? (
+                                <img src={bioSettings.bioImage} alt="Biography Preview" className="h-full w-auto object-cover rounded" />
+                              ) : (
+                                <div className="text-center text-neutral-600 space-y-1 p-4">
+                                  <Image className="w-8 h-8 mx-auto stroke-1" />
+                                  <p className="text-[10px] font-sans">No custom image selected.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex justify-end pt-2">
                           <button
                             type="button"
@@ -1861,7 +1924,7 @@ export default function AdminPanel({
                             className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
                           >
                             <Save className="w-3.5 h-3.5" />
-                            <span>Update Biography Texts</span>
+                            <span>Update Biography</span>
                           </button>
                         </div>
                       </div>
