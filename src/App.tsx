@@ -219,14 +219,40 @@ export default function App() {
         id="home" 
         className="relative h-screen flex items-center justify-center overflow-hidden"
       >
-        {/* Background opera stage image with continuous slow Ken Burns zoom */}
-        <div 
-          id="hero-bg"
-          className="absolute inset-0 bg-cover bg-center animate-kenburns"
-          style={{ 
-            backgroundImage: `url('${theme.homeBg || '/src/assets/images/opera_stage_1783548365279.jpg'}')` 
-          }}
-        />
+        {/* Background opera stage image or video */}
+        {theme.homeBgType === 'video' ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover animate-kenburns pointer-events-none"
+            src={theme.homeBg}
+          />
+        ) : theme.homeBgType === 'youtube' ? (
+          <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+            <iframe
+              className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70"
+              src={`https://www.youtube.com/embed/${(() => {
+                const match = theme.homeBg?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                return match ? match[1] : '';
+              })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${(() => {
+                const match = theme.homeBg?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                return match ? match[1] : '';
+              })()}`}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <div 
+            id="hero-bg"
+            className="absolute inset-0 bg-cover bg-center animate-kenburns"
+            style={{ 
+              backgroundImage: `url('${theme.homeBg || '/src/assets/images/opera_stage_1783548365279.jpg'}')` 
+            }}
+          />
+        )}
         {/* Dark classic curtain gradient overlay */}
         <div id="hero-overlay" className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/45 to-black" />
 

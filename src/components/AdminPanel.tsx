@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ImageCropperModal from './ImageCropperModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, LogIn, LogOut, Plus, Edit, Trash2, Calendar, Image, MessageSquare, 
@@ -127,6 +128,7 @@ export default function AdminPanel({
   const [editingVideo, setEditingVideo] = useState<Partial<VideoItem> | null>(null);
   const [editingPress, setEditingPress] = useState<Partial<PressItem> | null>(null);
   const [editingSlide, setEditingSlide] = useState<Partial<PerformanceSlide> | null>(null);
+  const [cropTarget, setCropTarget] = useState<{ src: string, aspect?: number, onCrop: (base64: string) => void } | null>(null);
 
   useEffect(() => {
     if (user && isOpen) {
@@ -217,6 +219,25 @@ export default function AdminPanel({
     }
   };
 
+
+  const handleImageCropUpload = (file: File | undefined, onCropSuccess: (base64: string) => void, aspect?: number) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        setCropTarget({ 
+          src: e.target.result, 
+          aspect, 
+          onCrop: (base64) => { 
+            onCropSuccess(base64); 
+            setCropTarget(null); 
+            triggerAlert('success', 'Image processed successfully!');
+          } 
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
   const handleLogin = async () => {
     try {
       await loginWithGoogle();
@@ -1059,20 +1080,11 @@ export default function AdminPanel({
                               type="file"
                               accept="image/*"
                               disabled={isUploadingFile}
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                setIsUploadingFile(true);
-                                try {
-                                  const base64 = await compressAndGetBase64(file);
+                              onChange={(e) => {
+                                handleImageCropUpload(e.target.files?.[0], (base64) => {
                                   setEditingPortfolio({ ...editingPortfolio, url: base64 });
-                                  triggerAlert('success', 'Image processed successfully!');
-                                } catch (err) {
-                                  console.error("Upload error:", err);
-                                  triggerAlert('error', 'Failed to process local image.');
-                                } finally {
-                                  setIsUploadingFile(false);
-                                }
+                                });
+                                e.target.value = '';
                               }}
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
@@ -1675,22 +1687,30 @@ export default function AdminPanel({
                               <div className="border border-dashed border-neutral-800 rounded bg-neutral-900/10 hover:bg-neutral-900/30 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                                 <input
                                   type="file"
-                                  accept="image/*"
+                                  accept="image/*,video/*"
                                   disabled={isUploadingFile}
-                                  onChange={async (e) => {
+                                  onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (!file) return;
-                                    setIsUploadingFile(true);
-                                    try {
-                                      const base64 = await compressAndGetBase64(file);
-                                      setThemeSettings({ ...themeSettings, homeBg: base64 });
-                                      triggerAlert('success', 'Home background processed successfully!');
-                                    } catch (err) {
-                                      console.error("Upload error:", err);
-                                      triggerAlert('error', 'Failed to process local image.');
-                                    } finally {
-                                      setIsUploadingFile(false);
+                                    if (file.type.startsWith('video/')) {
+                                      if (file.size > 800 * 1024) {
+                                        triggerAlert('error', 'Video file is too large! Maximum 800KB allowed. Use a URL instead.');
+                                        return;
+                                      }
+                                      const reader = new FileReader();
+                                      reader.onload = (re) => {
+                                        if (typeof re.target?.result === 'string') {
+                                          setThemeSettings({ ...themeSettings, homeBg: re.target.result, homeBgType: 'video' });
+                                          triggerAlert('success', 'Video processed successfully!');
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                    } else {
+                                      handleImageCropUpload(file, (base64) => {
+                                        setThemeSettings({ ...themeSettings, homeBg: base64, homeBgType: 'image' });
+                                      });
                                     }
+                                    e.target.value = '';
                                   }}
                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
@@ -1706,12 +1726,21 @@ export default function AdminPanel({
                               </div>
 
                               <div className="space-y-1">
-                                <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Raw Image URL</span>
+                                <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Image/Video URL (YouTube supported)</span>
                                 <input
                                   type="text"
-                                  placeholder="e.g. /src/assets/images/opera_stage_1783548365279.jpg or external url"
+                                  placeholder="Image URL, MP4 URL, or YouTube URL"
                                   value={themeSettings.homeBg || ''}
-                                  onChange={(e) => setThemeSettings({ ...themeSettings, homeBg: e.target.value })}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    let type: 'image' | 'video' | 'youtube' = 'image';
+                                    if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                                      type = 'youtube';
+                                    } else if (val.match(/\.(mp4|webm|ogg)$/i)) {
+                                      type = 'video';
+                                    }
+                                    setThemeSettings({ ...themeSettings, homeBg: val, homeBgType: type });
+                                  }}
                                   className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded px-3 py-2 text-xs text-white"
                                 />
                               </div>
@@ -1929,20 +1958,11 @@ export default function AdminPanel({
                                   type="file"
                                   accept="image/*"
                                   disabled={isUploadingFile}
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    setIsUploadingFile(true);
-                                    try {
-                                      const base64 = await compressAndGetBase64(file);
+                                  onChange={(e) => {
+                                    handleImageCropUpload(e.target.files?.[0], (base64) => {
                                       setBioSettings({ ...bioSettings, bioImage: base64 });
-                                      triggerAlert('success', 'Biography image processed successfully!');
-                                    } catch (err) {
-                                      console.error("Upload error:", err);
-                                      triggerAlert('error', 'Failed to process local image.');
-                                    } finally {
-                                      setIsUploadingFile(false);
-                                    }
+                                    }, 3 / 4); // specific aspect ratio for portrait
+                                    e.target.value = '';
                                   }}
                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
@@ -2079,20 +2099,11 @@ export default function AdminPanel({
                               type="file"
                               accept="image/*"
                               disabled={isUploadingFile}
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                setIsUploadingFile(true);
-                                try {
-                                  const base64 = await compressAndGetBase64(file);
+                              onChange={(e) => {
+                                handleImageCropUpload(e.target.files?.[0], (base64) => {
                                   setEditingSlide({ ...editingSlide, image: base64 });
-                                  triggerAlert('success', 'Image processed successfully!');
-                                } catch (err) {
-                                  console.error("Upload error:", err);
-                                  triggerAlert('error', 'Failed to process local image.');
-                                } finally {
-                                  setIsUploadingFile(false);
-                                }
+                                });
+                                e.target.value = '';
                               }}
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
@@ -2409,8 +2420,19 @@ export default function AdminPanel({
 
             </div>
           </div>
+
+        )}
+
+        {cropTarget && (
+          <ImageCropperModal
+            imageSrc={cropTarget.src}
+            aspect={cropTarget.aspect}
+            onCropDone={(base64) => cropTarget.onCrop(base64)}
+            onCropCancel={() => setCropTarget(null)}
+          />
         )}
       </motion.div>
     </div>
   );
 }
+

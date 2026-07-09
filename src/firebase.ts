@@ -452,7 +452,8 @@ const DEFAULT_THEME: ThemeSettings = {
   bg: "#000000",
   text: "#ffffff",
   accent: "#C9A227",
-  homeBg: "/src/assets/images/opera_stage_1783548365279.jpg"
+  homeBg: "/src/assets/images/opera_stage_1783548365279.jpg",
+  homeBgType: 'image'
 };
 
 const DEFAULT_BIOGRAPHY: BiographySettings = {

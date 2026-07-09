@@ -68,6 +68,7 @@ export interface ThemeSettings {
   text: string;
   accent: string;
   homeBg?: string;
+  homeBgType?: 'image' | 'video' | 'youtube';
 }
 
 export interface BiographySettings {
