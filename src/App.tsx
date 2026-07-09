@@ -64,7 +64,12 @@ export default function App() {
   useEffect(() => {
     // Listen for Auth changes
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+      if (firebaseUser && firebaseUser.email !== 'chroswl@gmail.com') {
+        auth.signOut();
+        setUser(null);
+      } else {
+        setUser(firebaseUser);
+      }
     });
 
     // Load initial Firestore data

@@ -45,6 +45,10 @@ export const googleProvider = new GoogleAuthProvider();
 export const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    if (result.user.email !== 'chroswl@gmail.com') {
+      await signOut(auth);
+      throw new Error('Unauthorized email address');
+    }
     return result.user;
   } catch (error) {
     console.error("Auth error:", error);

@@ -22,7 +22,7 @@ import {
   fetchSelectedPerformances, saveSelectedPerformance, deleteSelectedPerformance
 } from '../firebase';
 
-const compressAndGetBase64 = (file: File, maxWidth = 1600, quality = 0.82): Promise<string> => {
+const compressAndGetBase64 = (file: File, maxWidth = 1000, quality = 0.6): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
