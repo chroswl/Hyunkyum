@@ -2190,6 +2190,11 @@ export default function AdminPanel({
                                         playsInline
                                         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                                         src={editingSlide.image}
+                                        onCanPlay={(e) => {
+                                          e.currentTarget.play().catch((err) => {
+                                            console.log("Admin preview video autoplay prevented:", err);
+                                          });
+                                        }}
                                       />
                                     );
                                   } else if (previewMediaType === 'youtube') {
@@ -2200,8 +2205,11 @@ export default function AdminPanel({
                                           src={`https://www.youtube.com/embed/${(() => {
                                             const match = editingSlide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
                                             return match ? match[1] : '';
-                                          })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1`}
-                                          allow="autoplay; encrypted-media"
+                                          })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playlist=${(() => {
+                                            const match = editingSlide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                                            return match ? match[1] : '';
+                                          })()}`}
+                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                         />
                                       </div>
                                     );
