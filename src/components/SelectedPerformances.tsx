@@ -178,18 +178,30 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
           transition={{ duration: 1.4, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
-          {media.type === 'video' ? (
-  <video
-    autoPlay
-    loop
-    muted
-    playsInline
-    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-    src={media.src}
-    type="video/mp4"
-  />
-) : ...
+   {media.src.includes('drive.google.com') ? (
+            /* 구글 드라이브 전용 처리 */
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+              <iframe
+                src={`https://drive.google.com/file/d/${media.src.split('/d/')[1].split('/')[0]}/preview?autoplay=1&mute=1&loop=1&playlist=${media.src.split('/d/')[1].split('/')[0]}`}
+                className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                scrolling="no"
+              />
+              <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
+            </div>
+          ) : media.type === 'video' ? (
+            /* 일반 영상(MP4 등) 처리 */
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              src={media.src}
+            />
           ) : media.type === 'youtube' ? (
+            /* 유튜브 영상 처리 */
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
               <iframe
                 className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
@@ -197,10 +209,10 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
-              {/* Shield overlay to block any pointer hover/click interactions which can show YouTube HUD */}
               <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
             </div>
           ) : (
+            /* 이미지 처리 */
             <div 
               className="w-full h-full bg-cover"
               style={{ 
