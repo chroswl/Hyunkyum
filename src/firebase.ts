@@ -22,19 +22,20 @@ import {
 import { ScheduleItem, PortfolioItem, VideoItem, ContactMessage, PressItem, ThemeSettings, BiographySettings, ContactSettings, PerformanceSlide } from './types';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA9k_w8I9wHDei2YhcftqIjF5emVhlmdh0",
-  authDomain: "fluent-experience-t40ks.firebaseapp.com",
-  projectId: "fluent-experience-t40ks",
-  storageBucket: "fluent-experience-t40ks.firebasestorage.app",
-  messagingSenderId: "162190786344",
-  appId: "1:162190786344:web:327d560eddf1f145375a1d"
+  apiKey: "AIzaSyCC0bGIdDWaarO8orICqahXBr77WUBCAoI",
+  authDomain: "hyunkyum-kim-home.firebaseapp.com",
+  projectId: "hyunkyum-kim-home",
+  storageBucket: "hyunkyum-kim-home.firebasestorage.app",
+  messagingSenderId: "324689885969",
+  appId: "1:324689885969:web:cadd5b85dcb38a67b66ab0",
+  measurementId: "G-275E9CWL5E"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with custom databaseId
-export const db = getFirestore(app, "ai-studio-hyunkyumkimbarit-5b234ba9-597b-49a6-b9a8-a1618a84371f");
+// Initialize Firestore (using default database for the new project)
+export const db = getFirestore(app);
 
 
 export const auth = getAuth(app);
