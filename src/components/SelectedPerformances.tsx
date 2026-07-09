@@ -186,10 +186,11 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
               playsInline
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               src={media.src}
-              onCanPlay={(e) => {
-                e.currentTarget.play().catch((err) => {
-                  console.log("Slider video autoplay prevented:", err);
-                });
+              onLoadedMetadata={(e) => {
+                // 구글 드라이브 영상이 어드민에서 설정한 시작 시간(getMediaSource가 처리한 경우)을 지원하도록 함
+                if (media.type === 'video' && (media as any).start) {
+                  e.currentTarget.currentTime = (media as any).start;
+                }
               }}
             />
           ) : media.type === 'youtube' ? (
