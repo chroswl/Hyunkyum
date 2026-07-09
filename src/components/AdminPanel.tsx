@@ -2091,18 +2091,35 @@ export default function AdminPanel({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-3">
-                          <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Slide Image File / URL</label>
+                          <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Slide Image/Video File or URL</label>
                           
                           {/* Computer File Upload Block */}
                           <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="image/*,video/*"
                               disabled={isUploadingFile}
                               onChange={(e) => {
-                                handleImageCropUpload(e.target.files?.[0], (base64) => {
-                                  setEditingSlide({ ...editingSlide, image: base64 });
-                                });
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.type.startsWith('video/')) {
+                                  if (file.size > 800 * 1024) {
+                                    triggerAlert('error', 'Video file is too large! Maximum 800KB allowed. Use a URL instead.');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onload = (re) => {
+                                    if (typeof re.target?.result === 'string') {
+                                      setEditingSlide({ ...editingSlide, image: re.target.result, mediaType: 'video' });
+                                      triggerAlert('success', 'Video processed successfully!');
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                } else {
+                                  handleImageCropUpload(file, (base64) => {
+                                    setEditingSlide({ ...editingSlide, image: base64, mediaType: 'image' });
+                                  });
+                                }
                                 e.target.value = '';
                               }}
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -2110,22 +2127,31 @@ export default function AdminPanel({
                             <Upload className={`w-5 h-5 ${isUploadingFile ? 'animate-bounce text-[#C9A227]' : 'text-neutral-500 group-hover:text-[#C9A227]'} transition-colors`} />
                             <div className="space-y-0.5">
                               <p className="text-[11px] text-neutral-300 font-sans font-medium">
-                                {isUploadingFile ? 'Processing...' : 'Upload from Computer'}
+                                {isUploadingFile ? 'Processing...' : 'Upload Image/Video'}
                               </p>
                               <p className="text-[9px] text-neutral-500 font-sans">
-                                Click or drag any photo file
+                                Click or drag photo/video file
                               </p>
                             </div>
                           </div>
 
                           <div className="space-y-1">
-                            <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Raw Image URL</span>
+                            <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Raw Image/Video/YouTube URL</span>
                             <input
                               type="text"
                               required
-                              placeholder="e.g. /src/assets/images/my_photo.jpg or base64"
+                              placeholder="Image/Video MP4/YouTube URL"
                               value={editingSlide.image || ''}
-                              onChange={(e) => setEditingSlide({ ...editingSlide, image: e.target.value })}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                let type: 'image' | 'video' | 'youtube' = 'image';
+                                if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                                  type = 'youtube';
+                                } else if (val.match(/\.(mp4|webm|ogg)$/i)) {
+                                  type = 'video';
+                                }
+                                setEditingSlide({ ...editingSlide, image: val, mediaType: type });
+                              }}
                               className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
                             />
                           </div>
@@ -2139,7 +2165,7 @@ export default function AdminPanel({
                               onChange={(e) => setEditingSlide({ ...editingSlide, bgPosition: e.target.value })}
                               className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-1.5 text-xs text-white"
                             />
-                            <span className="text-[8px] text-neutral-500">Controls vertical alignment. E.g. \'center 35%\' keeps the singer\'s face in view.</span>
+                            <span className="text-[8px] text-neutral-500">Controls vertical alignment (only applies to static image slides).</span>
                           </div>
                         </div>
 
@@ -2149,13 +2175,48 @@ export default function AdminPanel({
                           <div className="flex-1 min-h-[180px] bg-neutral-900/20 border border-neutral-800 rounded-sm flex flex-col justify-end overflow-hidden relative group">
                             {editingSlide.image ? (
                               <>
-                                <div 
-                                  className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-300"
-                                  style={{ 
-                                    backgroundImage: `url(${editingSlide.image})`,
-                                    backgroundPosition: editingSlide.bgPosition || 'center'
-                                  }}
-                                />
+                                {(() => {
+                                  const previewMediaType = editingSlide.mediaType || (
+                                    editingSlide.image.includes('youtube.com') || editingSlide.image.includes('youtu.be') ? 'youtube' :
+                                    editingSlide.image.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image'
+                                  );
+
+                                  if (previewMediaType === 'video') {
+                                    return (
+                                      <video
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                        src={editingSlide.image}
+                                      />
+                                    );
+                                  } else if (previewMediaType === 'youtube') {
+                                    return (
+                                      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                                        <iframe
+                                          className="absolute top-1/2 left-1/2 w-[300%] h-[300%] min-w-[100%] min-h-[100%] -translate-x-1/2 -translate-y-1/2 opacity-70"
+                                          src={`https://www.youtube.com/embed/${(() => {
+                                            const match = editingSlide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                                            return match ? match[1] : '';
+                                          })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1`}
+                                          allow="autoplay; encrypted-media"
+                                        />
+                                      </div>
+                                    );
+                                  } else {
+                                    return (
+                                      <div 
+                                        className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-300"
+                                        style={{ 
+                                          backgroundImage: `url(${editingSlide.image})`,
+                                          backgroundPosition: editingSlide.bgPosition || 'center'
+                                        }}
+                                      />
+                                    );
+                                  }
+                                })()}
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 to-transparent" />
                                 <div className="absolute bottom-3 left-3 right-3 z-10">
                                   <span className="text-[8px] text-[#C9A227] bg-black/60 px-1 py-0.5 rounded font-sans tracking-widest uppercase">
@@ -2167,9 +2228,9 @@ export default function AdminPanel({
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => setEditingSlide({ ...editingSlide, image: '' })}
+                                  onClick={() => setEditingSlide({ ...editingSlide, image: '', mediaType: 'image' })}
                                   className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/95 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer z-10"
-                                  title="Clear Image"
+                                  title="Clear Content"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -2177,7 +2238,7 @@ export default function AdminPanel({
                             ) : (
                               <div className="h-full w-full flex flex-col items-center justify-center text-center text-neutral-600 space-y-1 p-4">
                                 <Image className="w-8 h-8 stroke-1" />
-                                <p className="text-[10px] font-sans">No slide image uploaded or selected.</p>
+                                <p className="text-[10px] font-sans">No slide image/video uploaded or selected.</p>
                               </div>
                             )}
                           </div>

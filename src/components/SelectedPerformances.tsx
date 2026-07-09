@@ -162,6 +162,10 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
   if (slides.length === 0) return null;
 
   const slide = slides[currentIdx] || slides[0];
+  const mediaType = slide.mediaType || (
+    slide.image && (slide.image.includes('youtube.com') || slide.image.includes('youtu.be')) ? 'youtube' :
+    slide.image && slide.image.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image'
+  );
 
   return (
     <div id="performances-slider-root" className="w-full relative h-[450px] md:h-[550px] bg-black overflow-hidden border-y border-neutral-900 flex flex-col justify-end">
@@ -173,13 +177,42 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
           animate={{ opacity: 0.8, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 1.4, ease: 'easeInOut' }}
-          className="absolute inset-0 bg-cover"
-          style={{ 
-            backgroundImage: `url('${slide.image}')`,
-            backgroundPosition: slide.bgPosition || 'center'
-          }}
-          referrerPolicy="no-referrer"
-        />
+          className="absolute inset-0"
+        >
+          {mediaType === 'video' ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              src={slide.image}
+            />
+          ) : mediaType === 'youtube' ? (
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+              <iframe
+                className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70"
+                src={`https://www.youtube.com/embed/${(() => {
+                  const match = slide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                  return match ? match[1] : '';
+                })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${(() => {
+                  const match = slide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                  return match ? match[1] : '';
+                })()}`}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <div 
+              className="w-full h-full bg-cover bg-center"
+              style={{ 
+                backgroundImage: `url('${slide.image}')`,
+                backgroundPosition: slide.bgPosition || 'center'
+              }}
+            />
+          )}
+        </motion.div>
       </AnimatePresence>
 
       {/* Elegant Dark Curtain Overlays */}

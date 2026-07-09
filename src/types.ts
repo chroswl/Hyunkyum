@@ -102,6 +102,7 @@ export interface ContactMessage {
 export interface PerformanceSlide {
   id: string;
   image: string;
+  mediaType?: 'image' | 'video' | 'youtube';
   bgPosition?: string;
   production: {
     EN: string;
