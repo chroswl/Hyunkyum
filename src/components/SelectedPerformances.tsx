@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ArrowRight, Play } from 'lucide-react';
 import { Language, PerformanceSlide } from '../types';
 import { fetchSelectedPerformances } from '../firebase';
+import { getMediaSource } from '../lib/mediaUtils';
 
 const PERFORMANCE_SLIDES: PerformanceSlide[] = [
   {
@@ -163,10 +164,7 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
   if (slides.length === 0) return null;
 
   const slide = slides[currentIdx] || slides[0];
-  const mediaType = slide.mediaType || (
-    slide.image && (slide.image.includes('youtube.com') || slide.image.includes('youtu.be')) ? 'youtube' :
-    slide.image && slide.image.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image'
-  );
+  const media = getMediaSource(slide.image || '', slide.mediaType);
 
   return (
     <div id="performances-slider-root" className="w-full relative h-[450px] md:h-[550px] bg-black overflow-hidden border-y border-neutral-900 flex flex-col justify-end">
@@ -180,40 +178,36 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
           transition={{ duration: 1.4, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
-          {mediaType === 'video' ? (
+          {media.type === 'video' ? (
             <video
               autoPlay
               loop
               muted
               playsInline
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-              src={slide.image}
+              src={media.src}
               onCanPlay={(e) => {
                 e.currentTarget.play().catch((err) => {
                   console.log("Slider video autoplay prevented:", err);
                 });
               }}
             />
-          ) : mediaType === 'youtube' ? (
+          ) : media.type === 'youtube' ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
               <iframe
                 className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
-                src={`https://www.youtube.com/embed/${(() => {
-                  const match = slide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                  return match ? match[1] : '';
-                })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1&playlist=${(() => {
-                  const match = slide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                  return match ? match[1] : '';
-                })()}`}
+                src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1${media.start ? `&start=${media.start}` : ''}&playlist=${media.ytId}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
+              {/* Shield overlay to block any pointer hover/click interactions which can show YouTube HUD */}
+              <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
             </div>
           ) : (
             <div 
-              className="w-full h-full bg-cover bg-center"
+              className="w-full h-full bg-cover"
               style={{ 
-                backgroundImage: `url('${slide.image}')`,
+                backgroundImage: `url('${media.src}')`,
                 backgroundPosition: slide.bgPosition || 'center'
               }}
             />

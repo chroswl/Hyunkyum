@@ -31,6 +31,7 @@ import SelectedPerformances from './components/SelectedPerformances';
 import PressSection from './components/PressSection';
 import { LegalModal } from './components/LegalModals';
 import Reveal from './components/Reveal';
+import { getMediaSource } from './lib/mediaUtils';
 
 export default function App() {
   const [currentLang, setLang] = useState<Language>('EN');
@@ -220,44 +221,49 @@ export default function App() {
         className="relative h-screen flex items-center justify-center overflow-hidden"
       >
         {/* Background opera stage image or video */}
-        {theme.homeBgType === 'video' ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover animate-kenburns pointer-events-none"
-            src={theme.homeBg}
-            onCanPlay={(e) => {
-              e.currentTarget.play().catch((err) => {
-                console.log("Home video autoplay prevented:", err);
-              });
-            }}
-          />
-        ) : theme.homeBgType === 'youtube' ? (
-          <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-            <iframe
-              className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
-              src={`https://www.youtube.com/embed/${(() => {
-                const match = theme.homeBg?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                return match ? match[1] : '';
-              })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1&playlist=${(() => {
-                const match = theme.homeBg?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                return match ? match[1] : '';
-              })()}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <div 
-            id="hero-bg"
-            className="absolute inset-0 bg-cover bg-center animate-kenburns"
-            style={{ 
-              backgroundImage: `url('${theme.homeBg || '/src/assets/images/opera_stage_1783548365279.jpg'}')` 
-            }}
-          />
-        )}
+        {(() => {
+          const media = getMediaSource(theme.homeBg || '', theme.homeBgType as any);
+          if (media.type === 'video') {
+            return (
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover animate-kenburns pointer-events-none"
+                src={media.src}
+                onCanPlay={(e) => {
+                  e.currentTarget.play().catch((err) => {
+                    console.log("Home video autoplay prevented:", err);
+                  });
+                }}
+              />
+            );
+          } else if (media.type === 'youtube') {
+            return (
+              <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                <iframe
+                  className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
+                  src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1${media.start ? `&start=${media.start}` : ''}&playlist=${media.ytId}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+                {/* Shield overlay to block any pointer hover/click interactions which can show YouTube HUD */}
+                <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
+              </div>
+            );
+          } else {
+            return (
+              <div 
+                id="hero-bg"
+                className="absolute inset-0 bg-cover bg-center animate-kenburns"
+                style={{ 
+                  backgroundImage: `url('${media.src || '/src/assets/images/opera_stage_1783548365279.jpg'}')` 
+                }}
+              />
+            );
+          }
+        })()}
         {/* Dark classic curtain gradient overlay */}
         <div id="hero-overlay" className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/45 to-black" />
 

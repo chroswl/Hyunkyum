@@ -14,6 +14,7 @@ import {
 } from '../types';
 import { translations } from '../translations';
 import { User } from 'firebase/auth';
+import { getMediaSource } from '../lib/mediaUtils';
 import { 
   fetchVideos, saveVideoItem, deleteVideoItem,
   fetchPress, savePressItem, deletePressItem,
@@ -2176,12 +2177,9 @@ export default function AdminPanel({
                             {editingSlide.image ? (
                               <>
                                 {(() => {
-                                  const previewMediaType = editingSlide.mediaType || (
-                                    editingSlide.image.includes('youtube.com') || editingSlide.image.includes('youtu.be') ? 'youtube' :
-                                    editingSlide.image.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image'
-                                  );
+                                  const media = getMediaSource(editingSlide.image || '', editingSlide.mediaType);
 
-                                  if (previewMediaType === 'video') {
+                                  if (media.type === 'video') {
                                     return (
                                       <video
                                         autoPlay
@@ -2189,7 +2187,7 @@ export default function AdminPanel({
                                         muted
                                         playsInline
                                         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                        src={editingSlide.image}
+                                        src={media.src}
                                         onCanPlay={(e) => {
                                           e.currentTarget.play().catch((err) => {
                                             console.log("Admin preview video autoplay prevented:", err);
@@ -2197,20 +2195,15 @@ export default function AdminPanel({
                                         }}
                                       />
                                     );
-                                  } else if (previewMediaType === 'youtube') {
+                                  } else if (media.type === 'youtube') {
                                     return (
                                       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
                                         <iframe
                                           className="absolute top-1/2 left-1/2 w-[300%] h-[300%] min-w-[100%] min-h-[100%] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
-                                          src={`https://www.youtube.com/embed/${(() => {
-                                            const match = editingSlide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                                            return match ? match[1] : '';
-                                          })()}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1&playlist=${(() => {
-                                            const match = editingSlide.image.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                                            return match ? match[1] : '';
-                                          })()}`}
+                                          src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1${media.start ? `&start=${media.start}` : ''}&playlist=${media.ytId}`}
                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                         />
+                                        <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
                                       </div>
                                     );
                                   } else {
@@ -2218,7 +2211,7 @@ export default function AdminPanel({
                                       <div 
                                         className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-300"
                                         style={{ 
-                                          backgroundImage: `url(${editingSlide.image})`,
+                                          backgroundImage: `url(${media.src})`,
                                           backgroundPosition: editingSlide.bgPosition || 'center'
                                         }}
                                       />
