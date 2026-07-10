@@ -859,6 +859,20 @@ export default function AdminPanel({
                             </div>
                             <div className="flex space-x-2">
                               <button
+                                disabled={index === 0}
+                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'up', refreshData, setLocalScheduleItems)}
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-white rounded transition-colors disabled:opacity-30"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                disabled={index === localScheduleItems.length - 1}
+                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'down', refreshData, setLocalScheduleItems)}
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-white rounded transition-colors disabled:opacity-30"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
                                 id={`admin-edit-schedule-${item.id}`}
                                 onClick={() => setEditingSchedule(item)}
                                 className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white rounded transition-colors cursor-pointer"
