@@ -405,7 +405,7 @@ export default function App() {
  className="space-y-5"
  >
  {t.timeline[activeTimelineTab].map((item: any, idx: number) => (
- <div key={idx} className="flex items-start space-x-4 group">
+ <div key={`${activeTimelineTab}-${item.year}-${idx}`} className="flex items-start space-x-4 group">
  <div className=" font-serif font-medium text-sm md:text-base tracking-wide whitespace-nowrap min-w-[100px] pt-0.5">
  {item.year}
  </div>
@@ -556,7 +556,7 @@ export default function App() {
  </span>
  <a 
  href={`mailto:${contact.email || 'info@hyunkyumbaritone.de'}`} 
- className="text-[16px] font-serif font-light hover: transition-colors duration-300 break-all"
+ className="text-[17px] font-serif font-light hover: transition-colors duration-300 break-all"
  >
  {contact.email || 'info@hyunkyumbaritone.de'}
  </a>

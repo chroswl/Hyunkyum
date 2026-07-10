@@ -69,47 +69,6 @@ const compressAndGetBase64 = (file: File, maxWidth = 1000, quality = 0.6): Promi
   });
 };
 
-const compressBase64Image = (base64Str: string, maxWidth = 1000, quality = 0.7): Promise<string> => {
-  return new Promise((resolve) => {
-    if (!base64Str || !base64Str.startsWith('data:image/')) {
-      resolve(base64Str);
-      return;
-    }
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-      
-      if (width > maxWidth || height > maxWidth) {
-        if (width > height) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        } else {
-          width = Math.round((width * maxWidth) / height);
-          height = maxWidth;
-        }
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-      
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(base64Str);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressed = canvas.toDataURL('image/jpeg', quality);
-      resolve(compressed);
-    };
-    img.onerror = () => {
-      resolve(base64Str);
-    };
-    img.src = base64Str;
-  });
-};
-
 interface AdminPanelProps {
   currentLang: Language;
   isOpen: boolean;
@@ -378,21 +337,12 @@ export default function AdminPanel({
     if (!editingPortfolio) return;
     setLoadingAction(true);
     try {
-      let finalUrl = editingPortfolio.url;
-      if (finalUrl && finalUrl.startsWith('data:image/')) {
-        try {
-          finalUrl = await compressBase64Image(finalUrl, 1000, 0.7);
-        } catch (err) {
-          console.error("Error compressing portfolio image:", err);
-        }
-      }
       const portfolioRef = collection(db, "portfolio");
-      const finalItem = { ...editingPortfolio, url: finalUrl };
       if (editingPortfolio.id) {
-        await updateDoc(doc(db, "portfolio", editingPortfolio.id), finalItem);
+        await updateDoc(doc(db, "portfolio", editingPortfolio.id), editingPortfolio);
         triggerAlert('success', t.adminUpdateSuccess);
       } else {
-        await addDoc(portfolioRef, finalItem);
+        await addDoc(portfolioRef, editingPortfolio);
         triggerAlert('success', t.adminAddSuccess);
 }
       setEditingPortfolio(null);
@@ -535,26 +485,17 @@ export default function AdminPanel({
   const saveThemeSettingsAction = async () => {
     setLoadingAction(true);
     try {
-      let finalTheme = { ...themeSettings };
-      if (finalTheme.homeBg && finalTheme.homeBg.startsWith('data:image/')) {
-        try {
-          finalTheme.homeBg = await compressBase64Image(finalTheme.homeBg, 1200, 0.7);
-        } catch (err) {
-          console.error("Error compressing home background:", err);
-        }
-      }
-      await saveThemeSettings(finalTheme);
-      setThemeSettings(finalTheme);
+      await saveThemeSettings(themeSettings);
       triggerAlert('success', 'Theme settings saved successfully!');
       
       // Dynamic apply theme CSS styles immediately to the DOM
       const rootStyle = document.documentElement.style;
-      rootStyle.setProperty('--color-bg', finalTheme.bg);
-      rootStyle.setProperty('--color-text', finalTheme.text);
-      rootStyle.setProperty('--color-accent', finalTheme.accent);
-      rootStyle.setProperty('--color-contact-bg', finalTheme.contactFormBg || '#0a0a0a');
+      rootStyle.setProperty('--color-bg', themeSettings.bg);
+      rootStyle.setProperty('--color-text', themeSettings.text);
+      rootStyle.setProperty('--color-accent', themeSettings.accent);
+      rootStyle.setProperty('--color-contact-bg', themeSettings.contactFormBg || '#0a0a0a');
       
-      window.dispatchEvent(new CustomEvent('themeChanged', { detail: finalTheme }));
+      window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeSettings }));
     } catch (err) {
       triggerAlert('error', 'Failed to save theme settings.');
     } finally {
@@ -565,18 +506,9 @@ export default function AdminPanel({
   const saveBiographySettingsAction = async () => {
     setLoadingAction(true);
     try {
-      let finalBio = { ...bioSettings };
-      if (finalBio.bioImage && finalBio.bioImage.startsWith('data:image/')) {
-        try {
-          finalBio.bioImage = await compressBase64Image(finalBio.bioImage, 1000, 0.7);
-        } catch (err) {
-          console.error("Error compressing bio image:", err);
-        }
-      }
-      await saveBiographySettings(finalBio);
-      setBioSettings(finalBio);
+      await saveBiographySettings(bioSettings);
       triggerAlert('success', 'Biography texts updated!');
-      window.dispatchEvent(new CustomEvent('bioChanged', { detail: finalBio }));
+      window.dispatchEvent(new CustomEvent('bioChanged', { detail: bioSettings }));
     } catch (err) {
       triggerAlert('error', 'Failed to save biography.');
     } finally {
@@ -636,15 +568,7 @@ export default function AdminPanel({
     if (!editingSlide) return;
     setLoadingAction(true);
     try {
-      let finalSlide = { ...editingSlide };
-      if (finalSlide.image && finalSlide.image.startsWith('data:image/')) {
-        try {
-          finalSlide.image = await compressBase64Image(finalSlide.image, 1200, 0.7);
-        } catch (err) {
-          console.error("Error compressing slide image:", err);
-        }
-      }
-      await saveSelectedPerformance(finalSlide as PerformanceSlide);
+      await saveSelectedPerformance(editingSlide as PerformanceSlide);
       triggerAlert('success', t.adminUpdateSuccess);
       setEditingSlide(null);
       fetchSlidesList();
@@ -950,20 +874,6 @@ export default function AdminPanel({
                                 <ChevronDown className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                disabled={index === 0}
-                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'up', refreshData, setLocalScheduleItems)}
-                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                disabled={index === localScheduleItems.length - 1}
-                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'down', refreshData, setLocalScheduleItems)}
-                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                              <button
                                 id={`admin-edit-schedule-${item.id}`}
                                 onClick={() => setEditingSchedule(item)}
                                 className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors cursor-pointer"
@@ -1217,20 +1127,6 @@ export default function AdminPanel({
                                   <ChevronDown className="w-3 h-3" />
                                 </button>
                                 <button
-                                  disabled={index === 0}
-                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'up', refreshData, setLocalPortfolioItems)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronUp className="w-3 h-3" />
-                                </button>
-                                <button
-                                  disabled={index === localPortfolioItems.length - 1}
-                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'down', refreshData, setLocalPortfolioItems)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronDown className="w-3 h-3" />
-                                </button>
-                                <button
                                   id={`admin-edit-portfolio-${item.id}`}
                                   onClick={() => setEditingPortfolio(item)}
                                   className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer"
@@ -1455,20 +1351,6 @@ export default function AdminPanel({
                                   <ChevronDown className="w-3 h-3" />
                                 </button>
                                 <button
-                                  disabled={index === 0}
-                                  onClick={() => moveItemOrder('press', pressItems, index, 'up', fetchPressList, setPressItems)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronUp className="w-3 h-3" />
-                                </button>
-                                <button
-                                  disabled={index === pressItems.length - 1}
-                                  onClick={() => moveItemOrder('press', pressItems, index, 'down', fetchPressList, setPressItems)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronDown className="w-3 h-3" />
-                                </button>
-                                <button
                                   id={`admin-edit-press-${item.id}`}
                                   onClick={() => setEditingPress(item)}
                                   className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors cursor-pointer"
@@ -1655,20 +1537,6 @@ export default function AdminPanel({
                                 </h4>
                               </div>
                               <div className="flex space-x-2">
-                                <button
-                                  disabled={index === 0}
-                                  onClick={() => moveItemOrder('video', videos, index, 'up', fetchVideosList, setVideos)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronUp className="w-3 h-3" />
-                                </button>
-                                <button
-                                  disabled={index === videos.length - 1}
-                                  onClick={() => moveItemOrder('video', videos, index, 'down', fetchVideosList, setVideos)}
-                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                  <ChevronDown className="w-3 h-3" />
-                                </button>
                                 <button
                                   disabled={index === 0}
                                   onClick={() => moveItemOrder('video', videos, index, 'up', fetchVideosList, setVideos)}
