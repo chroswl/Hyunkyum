@@ -102,6 +102,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Jean-Pierre"
               className="w-full bg-neutral-950 border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-white placeholder-neutral-700 transition-colors"
+              style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
             />
           </div>
           <div className="space-y-1.5">
@@ -117,6 +118,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. jp@example.com"
               className="w-full bg-neutral-950 border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-white placeholder-neutral-700 transition-colors"
+              style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
             />
           </div>
         </div>
@@ -135,6 +137,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="..."
             className="w-full bg-neutral-950 border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-white placeholder-neutral-700 transition-colors resize-none"
+            style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
           />
         </div>
 

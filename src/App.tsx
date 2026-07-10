@@ -170,6 +170,7 @@ export default function App() {
           --color-bg: ${theme.bg};
           --color-text: ${theme.text};
           --color-accent: ${theme.accent};
+          --color-contact-bg: ${theme.contactFormBg || '#0a0a0a'};
         }
         body, html, #app-container, #biography, #contact, #videos, #main-footer, #navbar-root, #press, #portfolio, #schedule {
           background-color: ${theme.bg} !important;
@@ -351,6 +352,7 @@ export default function App() {
                     alt="Portrait of Baritone Hyunkyum Kim" 
                     className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] hover:grayscale-0 transition-all duration-1000 scale-100 hover:scale-[1.02]"
                     referrerPolicy="no-referrer"
+                    onContextMenu={(e) => e.preventDefault()}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>

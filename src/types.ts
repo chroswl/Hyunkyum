@@ -73,6 +73,7 @@ export interface ThemeSettings {
   accent: string;
   homeBg?: string;
   homeBgType?: 'image' | 'video' | 'youtube';
+  contactFormBg?: string;
 }
 
 export interface BiographySettings {

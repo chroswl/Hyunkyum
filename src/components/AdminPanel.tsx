@@ -492,6 +492,7 @@ export default function AdminPanel({
       rootStyle.setProperty('--color-bg', themeSettings.bg);
       rootStyle.setProperty('--color-text', themeSettings.text);
       rootStyle.setProperty('--color-accent', themeSettings.accent);
+      rootStyle.setProperty('--color-contact-bg', themeSettings.contactFormBg || '#0a0a0a');
       
       window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeSettings }));
     } catch (err) {
@@ -843,7 +844,7 @@ export default function AdminPanel({
                       <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
                         {localScheduleItems.length === 0 ? (
                           <div className="p-8 text-center text-neutral-500 text-xs font-sans">No scheduled performances found.</div>
-                        ) : localScheduleItems.map((item) => (
+                        ) : localScheduleItems.map((item, index) => (
                           <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
                             <div className="space-y-1">
                               <span className="text-[10px] font-mono tracking-wider text-neutral-500 block">
@@ -1083,7 +1084,7 @@ export default function AdminPanel({
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {localPortfolioItems.map((item) => (
+                        {localPortfolioItems.map((item, index) => (
                           <div key={item.id} className="relative group rounded-sm overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square">
                             <img 
                               src={item.url} 
@@ -1295,7 +1296,7 @@ export default function AdminPanel({
                         <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
                           {pressItems.length === 0 ? (
                             <div className="p-8 text-center text-neutral-500 text-xs font-sans">No reviews created yet. Seeded defaults will show.</div>
-                          ) : pressItems.map((item) => (
+                          ) : pressItems.map((item, index) => (
                             <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
                               <div className="space-y-1">
                                 <span className="text-[10px] font-mono tracking-wider text-[#C9A227] block accent-color">
@@ -1482,7 +1483,7 @@ export default function AdminPanel({
                         <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
                           {videos.length === 0 ? (
                             <div className="p-8 text-center text-neutral-500 text-xs font-sans">No videos created yet. Seeded defaults will show.</div>
-                          ) : videos.map((item) => (
+                          ) : videos.map((item, index) => (
                             <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
                               <div className="space-y-1">
                                 <span className="text-[10px] font-mono tracking-wider text-[#C9A227] block accent-color">
@@ -1685,7 +1686,7 @@ export default function AdminPanel({
                         </div>
 
                         {/* Presets custom color picker */}
-                        <div className="grid grid-cols-3 gap-4 pt-2">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
                           <div className="space-y-1">
                             <span className="text-[10px] text-neutral-400 block font-sans">Background</span>
                             <div className="flex items-center space-x-2">
@@ -1720,6 +1721,18 @@ export default function AdminPanel({
                                 className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
                               />
                               <span className="text-[10px] font-mono">{themeSettings.accent}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-neutral-400 block font-sans">Contact Form Bg</span>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={themeSettings.contactFormBg || '#0a0a0a'}
+                                onChange={(e) => setThemeSettings({ ...themeSettings, contactFormBg: e.target.value })}
+                                className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+                              />
+                              <span className="text-[10px] font-mono">{themeSettings.contactFormBg || '#0a0a0a'}</span>
                             </div>
                           </div>
                         </div>

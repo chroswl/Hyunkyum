@@ -67,9 +67,10 @@ async function getCroppedImg(
   return canvas.toDataURL('image/jpeg', 0.8);
 }
 
-export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, aspect = 16 / 9 }: ImageCropperModalProps) {
+export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, aspect: initialAspect }: ImageCropperModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [aspect, setAspect] = useState(initialAspect || 1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -112,6 +113,25 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
         />
       </div>
       <div className="bg-neutral-900 p-4 pb-8 flex flex-col space-y-4">
+        {!initialAspect && (
+          <div className="flex justify-center space-x-2">
+            {[
+              { label: '1:1', value: 1 },
+              { label: '3:4', value: 3/4 },
+              { label: '4:3', value: 4/3 },
+              { label: '16:9', value: 16/9 },
+              { label: '9:16', value: 9/16 }
+            ].map(a => (
+              <button
+                key={a.label}
+                onClick={() => setAspect(a.value)}
+                className={`px-3 py-1.5 text-[10px] uppercase font-sans border rounded-sm transition-colors ${aspect === a.value ? 'bg-[#C9A227] text-black border-[#C9A227] font-bold' : 'text-neutral-400 border-neutral-700 hover:text-white'}`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex items-center space-x-4">
           <span className="text-white text-xs">Zoom</span>
           <input

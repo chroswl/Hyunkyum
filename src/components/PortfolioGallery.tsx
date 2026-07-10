@@ -89,6 +89,7 @@ export default function PortfolioGallery({ items, currentLang }: PortfolioGaller
                   className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                   loading="lazy"
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 
                 {/* Luxury gradient overlay */}
@@ -170,6 +171,7 @@ export default function PortfolioGallery({ items, currentLang }: PortfolioGaller
                 alt="Enlarged stage photography"
                 className="max-w-full max-h-[75vh] object-contain rounded-sm border border-neutral-900 shadow-2xl"
                 referrerPolicy="no-referrer"
+                onContextMenu={(e) => e.preventDefault()}
               />
               
               {/* Image Description Block */}

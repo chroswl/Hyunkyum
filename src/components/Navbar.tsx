@@ -16,6 +16,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const t = translations[currentLang];
 
   const menuItems = React.useMemo(() => {
@@ -171,18 +172,39 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
         {/* Mobile menu toggle & lang toggle */}
         <div className="flex items-center space-x-4 lg:hidden">
           {/* Quick Lang Select for Mobile */}
-          <button
-            id="mobile-lang-cycle"
-            onClick={() => {
-              const order: Language[] = ['EN', 'DE', 'KO'];
-              const nextIndex = (order.indexOf(currentLang) + 1) % order.length;
-              setLang(order[nextIndex]);
-            }}
-            className="text-[10px] tracking-wider border border-neutral-800 px-2 py-1 bg-neutral-950 text-neutral-300 rounded flex items-center space-x-1"
-          >
-            <Globe className="w-3 h-3 text-white" />
-            <span>{currentLang}</span>
-          </button>
+          <div className="relative">
+            <button
+              id="mobile-lang-cycle"
+              onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+              className="text-[10px] tracking-wider border border-neutral-800 px-2 py-1 bg-neutral-950 text-neutral-300 rounded flex items-center space-x-1"
+            >
+              <Globe className="w-3 h-3 text-white" />
+              <span>{currentLang}</span>
+            </button>
+            <AnimatePresence>
+              {isLangDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="absolute right-0 top-full mt-2 w-20 bg-neutral-950 border border-neutral-800 rounded shadow-xl overflow-hidden flex flex-col z-50"
+                >
+                  {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        setLang(lang);
+                        setIsLangDropdownOpen(false);
+                      }}
+                      className={`px-3 py-2 text-xs text-left ${currentLang === lang ? 'text-white bg-white/10' : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'}`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Hamburger */}
           <button 
