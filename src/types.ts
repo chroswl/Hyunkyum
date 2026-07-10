@@ -74,6 +74,28 @@ export interface ThemeSettings {
   homeBg?: string;
   homeBgType?: 'image' | 'video' | 'youtube';
   contactFormBg?: string;
+  // Font Customization
+  fontSans?: string;
+  fontSerif?: string;
+  fontMono?: string;
+  fontNavbar?: string;
+  // Color Customization
+  colorHeroSlideText?: string;
+  colorPerformancesText?: string;
+  colorContactText?: string;
+  // Home Main Text Customization
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroDescription?: string;
+  heroDiscover?: string;
+  heroTitleDE?: string;
+  heroSubtitleDE?: string;
+  heroDescriptionDE?: string;
+  heroDiscoverDE?: string;
+  heroTitleKO?: string;
+  heroSubtitleKO?: string;
+  heroDescriptionKO?: string;
+  heroDiscoverKO?: string;
 }
 
 export interface BiographySettings {

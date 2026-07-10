@@ -1329,7 +1329,7 @@ export default function AdminPanel({
                             <div key={item.id} className="p-4 flex justify-between items-center hover:bg-[var(--color-bg)] transition-all">
                               <div className="space-y-1">
                                 <span className="text-[10px] font-mono tracking-wider text-[#C9A227] block accent-color">
-                                  {item.source} • {item.date} • {item.type} {'★'.repeat(item.rating || 5)}
+                                  {item.source} • {item.date} • {item.type}
                                 </span>
                                 <h4 className="text-xs font-sans font-medium text-neutral-300 italic max-w-xl line-clamp-2">
                                   "{item.quote[currentLang] || item.quote['EN']}"
@@ -1390,20 +1390,7 @@ export default function AdminPanel({
                           />
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Rating Star (1-5)</label>
-                          <select
-                            value={editingPress.rating || 5}
-                            onChange={(e) => setEditingPress({ ...editingPress, rating: parseInt(e.target.value) })}
-                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
-                          >
-                            <option value={5}>★★★★★ (5 Stars)</option>
-                            <option value={4}>★★★★ (4 Stars)</option>
-                            <option value={3}>★★★ (3 Stars)</option>
-                            <option value={2}>★★ (2 Stars)</option>
-                            <option value={1}>★ (1 Star)</option>
-                          </select>
-                        </div>
+
 
                         <div className="space-y-1.5">
                           <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Publishing Date</label>
@@ -1790,6 +1777,296 @@ export default function AdminPanel({
                                 className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
                               />
                               <span className="text-[10px] font-mono">{themeSettings.contactFormBg || '#0a0a0a'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section Text Color Customizations */}
+                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+                            Section Text Colors Override (구역별 글씨 색상 오버라이드)
+                          </span>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-neutral-400 block font-sans">Hero Slide Text Color</span>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="color"
+                                  value={themeSettings.colorHeroSlideText || themeSettings.text}
+                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorHeroSlideText: e.target.value })}
+                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+                                />
+                                <span className="text-[10px] font-mono">{themeSettings.colorHeroSlideText || 'Default'}</span>
+                                {themeSettings.colorHeroSlideText && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setThemeSettings({ ...themeSettings, colorHeroSlideText: undefined })}
+                                    className="text-[9px] text-red-500 hover:underline ml-2"
+                                  >
+                                    Reset
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-neutral-400 block font-sans">PERFORMANCES (Videos) Text Color</span>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="color"
+                                  value={themeSettings.colorPerformancesText || themeSettings.text}
+                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorPerformancesText: e.target.value })}
+                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+                                />
+                                <span className="text-[10px] font-mono">{themeSettings.colorPerformancesText || 'Default'}</span>
+                                {themeSettings.colorPerformancesText && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setThemeSettings({ ...themeSettings, colorPerformancesText: undefined })}
+                                    className="text-[9px] text-red-500 hover:underline ml-2"
+                                  >
+                                    Reset
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-neutral-400 block font-sans">INQUIRIES (Contact) Text Color</span>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="color"
+                                  value={themeSettings.colorContactText || themeSettings.text}
+                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorContactText: e.target.value })}
+                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+                                />
+                                <span className="text-[10px] font-mono">{themeSettings.colorContactText || 'Default'}</span>
+                                {themeSettings.colorContactText && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setThemeSettings({ ...themeSettings, colorContactText: undefined })}
+                                    className="text-[9px] text-red-500 hover:underline ml-2"
+                                  >
+                                    Reset
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Font Settings */}
+                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+                            Font Families Configuration (사이트 글꼴 설정)
+                          </span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Sans-Serif Font (기본 / 본문 글꼴)</label>
+                              <select
+                                value={themeSettings.fontSans || 'Inter'}
+                                onChange={(e) => setThemeSettings({ ...themeSettings, fontSans: e.target.value })}
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)] font-sans"
+                              >
+                                <option value="Inter">Inter (Clean Sans, Standard)</option>
+                                <option value="Space Grotesk">Space Grotesk (Tech Modern)</option>
+                                <option value="Outfit">Outfit (Geometric Clean)</option>
+                                <option value="Montserrat">Montserrat (Classic Proportional)</option>
+                                <option value="Helvetica">Helvetica / Arial (System Standard)</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Serif Font (제목 / 하이라이트 글꼴)</label>
+                              <select
+                                value={themeSettings.fontSerif || 'Playfair Display'}
+                                onChange={(e) => setThemeSettings({ ...themeSettings, fontSerif: e.target.value })}
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)] font-sans"
+                              >
+                                <option value="Playfair Display">Playfair Display (Elegant Serif, Standard)</option>
+                                <option value="Cormorant Garamond">Cormorant Garamond (Graceful Editorial)</option>
+                                <option value="Cinzel">Cinzel (Dramatic Classical)</option>
+                                <option value="Georgia">Georgia (Classic Readable)</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Navbar Font (네비게이션 메뉴 글꼴)</label>
+                              <select
+                                value={themeSettings.fontNavbar || 'Inter'}
+                                onChange={(e) => setThemeSettings({ ...themeSettings, fontNavbar: e.target.value })}
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)] font-sans"
+                              >
+                                <option value="Inter">Inter (Clean Sans, Standard)</option>
+                                <option value="Space Grotesk">Space Grotesk (Tech Modern)</option>
+                                <option value="Outfit">Outfit (Geometric Clean)</option>
+                                <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+                                <option value="Montserrat">Montserrat (Classic Proportional)</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Monospace Font (코드 / 데이터 글꼴)</label>
+                              <select
+                                value={themeSettings.fontMono || 'JetBrains Mono'}
+                                onChange={(e) => setThemeSettings({ ...themeSettings, fontMono: e.target.value })}
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)] font-sans"
+                              >
+                                <option value="JetBrains Mono">JetBrains Mono (Technical, Standard)</option>
+                                <option value="Fira Code">Fira Code (Modern Dev)</option>
+                                <option value="Courier New">Courier New (Traditional Typewriter)</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Home Content Customizer */}
+                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+                            Home Main Screen Text Customization (메인 홈 첫화면 글씨 수정)
+                          </span>
+                          
+                          <div className="space-y-4 bg-black/10 p-4 rounded border border-neutral-900">
+                            {/* English */}
+                            <div className="space-y-3">
+                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">English (EN - Default)</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title</span>
+                                  <input
+                                    type="text"
+                                    placeholder="HYUNKYUM KIM"
+                                    value={themeSettings.heroTitle || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitle: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle</span>
+                                  <input
+                                    type="text"
+                                    placeholder="BARITONE"
+                                    value={themeSettings.heroSubtitle || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitle: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                <div className="md:col-span-8 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Opera Singer based in Germany"
+                                    value={themeSettings.heroDescription || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescription: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="md:col-span-4 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Discover"
+                                    value={themeSettings.heroDiscover || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscover: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* German */}
+                            <div className="space-y-3 pt-3 border-t border-neutral-900/60">
+                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">German (DE)</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title (German)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="HYUNKYUM KIM"
+                                    value={themeSettings.heroTitleDE || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitleDE: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle (German)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="BARITON"
+                                    value={themeSettings.heroSubtitleDE || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitleDE: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                <div className="md:col-span-8 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description (German)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Opernsänger ansässig in Deutschland"
+                                    value={themeSettings.heroDescriptionDE || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescriptionDE: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="md:col-span-4 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button (German)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Entdecken"
+                                    value={themeSettings.heroDiscoverDE || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscoverDE: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Korean */}
+                            <div className="space-y-3 pt-3 border-t border-neutral-900/60">
+                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">Korean (KO)</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title (Korean)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="바리톤 김현겸"
+                                    value={themeSettings.heroTitleKO || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitleKO: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle (Korean)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="바리톤"
+                                    value={themeSettings.heroSubtitleKO || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitleKO: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                <div className="md:col-span-8 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description (Korean)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="독일을 중심으로 활동하는 성악가 바리톤 김현겸"
+                                    value={themeSettings.heroDescriptionKO || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescriptionKO: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                                <div className="md:col-span-4 space-y-1">
+                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button (Korean)</span>
+                                  <input
+                                    type="text"
+                                    placeholder="더 알아보기"
+                                    value={themeSettings.heroDiscoverKO || ''}
+                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscoverKO: e.target.value })}
+                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+                                  />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>

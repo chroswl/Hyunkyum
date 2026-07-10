@@ -154,18 +154,68 @@ export default function App() {
  }
  };
 
+ // Hero text helpers
+ const getHeroTitle = () => {
+   if (currentLang === 'KO' && theme.heroTitleKO) return theme.heroTitleKO;
+   if (currentLang === 'DE' && theme.heroTitleDE) return theme.heroTitleDE;
+   if (theme.heroTitle) return theme.heroTitle;
+   return t.heroTitle;
+ };
+ const getHeroSubtitle = () => {
+   if (currentLang === 'KO' && theme.heroSubtitleKO) return theme.heroSubtitleKO;
+   if (currentLang === 'DE' && theme.heroSubtitleDE) return theme.heroSubtitleDE;
+   if (theme.heroSubtitle) return theme.heroSubtitle;
+   return t.heroSubtitle;
+ };
+ const getHeroDescription = () => {
+   if (currentLang === 'KO' && theme.heroDescriptionKO) return theme.heroDescriptionKO;
+   if (currentLang === 'DE' && theme.heroDescriptionDE) return theme.heroDescriptionDE;
+   if (theme.heroDescription) return theme.heroDescription;
+   return t.heroDescription;
+ };
+ const getHeroDiscover = () => {
+   if (currentLang === 'KO' && theme.heroDiscoverKO) return theme.heroDiscoverKO;
+   if (currentLang === 'DE' && theme.heroDiscoverDE) return theme.heroDiscoverDE;
+   if (theme.heroDiscover) return theme.heroDiscover;
+   return t.discoverBtn;
+ };
+
+ // Google Font Import String generator
+ const getGoogleFontImport = () => {
+   const fontsToLoad = [
+     theme.fontSans,
+     theme.fontSerif,
+     theme.fontMono,
+     theme.fontNavbar
+   ].filter(Boolean) as string[];
+   
+   const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'serif', 'sans-serif', 'monospace', 'system-ui', 'inherit'];
+   const uniqueGoogleFonts = Array.from(new Set(fontsToLoad))
+     .filter(f => f && !systemFonts.includes(f));
+   
+   if (uniqueGoogleFonts.length === 0) return '';
+   
+   const fontParams = uniqueGoogleFonts
+     .map(f => `family=${f.replace(/\s+/g, '+')}:wght@300;400;500;600;700`)
+     .join('&');
+   
+   return `@import url('https://fonts.googleapis.com/css2?${fontParams}&display=swap');`;
+ };
+
  // Timeline category definitions
  const timelineTabs = [
  { id: 'education', label: t.eduTitle, icon: <BookOpen className="w-4 h-4" /> },
  { id: 'awards', label: t.awardsTitle, icon: <Trophy className="w-4 h-4" /> },
  { id: 'roles', label: t.rolesTitle, icon: <Compass className="w-4 h-4" /> },
  { id: 'concert', label: t.concertTitle, icon: <Star className="w-4 h-4" /> }
-];
+ ];
 
  return (
  <div id="app-container" className="min-h-screen bg-transparent font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme.bg, color: theme.text }}>
  {/* Dynamic Theme Color Injection overrides */}
  <style>{`
+ ${getGoogleFontImport()}
+
  :root {
  --color-bg: ${theme.bg};
  --color-text: ${theme.text};
@@ -176,6 +226,48 @@ export default function App() {
  background-color: ${theme.bg} !important;
  color: ${theme.text} !important;
  }
+ 
+ /* Fonts overrides */
+ ${theme.fontSans ? `body, html, #app-container, .font-sans, p, span, input, textarea, button, select { font-family: "${theme.fontSans}", sans-serif !important; }` : ''}
+ ${theme.fontSerif ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: "${theme.fontSerif}", serif !important; }` : ''}
+ ${theme.fontMono ? `.font-mono { font-family: "${theme.fontMono}", monospace !important; }` : ''}
+ ${theme.fontNavbar ? `#navbar-root, .navbar-item, .nav-link, .nav-font { font-family: "${theme.fontNavbar}", sans-serif !important; }` : ''}
+
+ /* Slider (Selected Performances) text label color override */
+ ${theme.colorHeroSlideText ? `
+   #perf-slide-section .text-neutral-400, 
+   #perf-slide-section .text-neutral-300, 
+   #perf-slide-section span, 
+   #perf-slide-section p {
+     color: ${theme.colorHeroSlideText} !important;
+   }
+ ` : ''}
+
+ /* Videos/Performances section text colors override */
+ ${theme.colorPerformancesText ? `
+   #videos, 
+   #videos h2, 
+   #videos h3, 
+   #videos h4, 
+   #videos p, 
+   #videos span {
+     color: ${theme.colorPerformancesText} !important;
+   }
+ ` : ''}
+
+ /* Contact/Inquiries section text colors override */
+ ${theme.colorContactText ? `
+   #contact, 
+   #contact h2, 
+   #contact h3, 
+   #contact p, 
+   #contact span, 
+   #contact label, 
+   #contact a {
+     color: ${theme.colorContactText} !important;
+   }
+ ` : ''}
+
  .accent-color {
  color: ${theme.accent} !important;
  }
@@ -276,7 +368,7 @@ export default function App() {
  transition={{ duration: 1 }}
  className=" font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold"
  >
- {t.heroSubtitle}
+ {getHeroSubtitle()}
  </motion.p>
  
  <motion.h1 
@@ -285,7 +377,7 @@ export default function App() {
  transition={{ duration: 1.2, delay: 0.2 }}
  className="text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none"
  >
- {t.heroTitle}
+ {getHeroTitle()}
  </motion.h1>
 
  <motion.p 
@@ -294,7 +386,7 @@ export default function App() {
  transition={{ duration: 1, delay: 0.4 }}
  className=" font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl mx-auto uppercase pt-6"
  >
- {t.heroDescription}
+ {getHeroDescription()}
  </motion.p>
 
  <motion.div
@@ -308,7 +400,7 @@ export default function App() {
  onClick={() => scrollToSection('biography')}
  className="group px-8 py-3.5 border border-black/10 hover:text-black hover:bg-white font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
  >
- <span>{t.discoverBtn}</span>
+ <span>{getHeroDiscover()}</span>
  <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform group-hover:text-black" />
  </button>
  </motion.div>
@@ -375,16 +467,16 @@ export default function App() {
  <Reveal delay={0.35}>
  {/* Timelines tab navigation */}
  <div id="timeline-tabs-container" className="space-y-6 pt-4">
- <div className="flex flex-wrap border-b border-black/10 pb-2 gap-1">
+ <div className="flex flex-wrap border-b border-current/10 pb-2 gap-1">
  {timelineTabs.map((tab) => (
  <button
  key={tab.id}
  id={`timeline-tab-btn-${tab.id}`}
  onClick={() => setActiveTimelineTab(tab.id as any)}
- className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-sans tracking-wider uppercase transition-all rounded-sm cursor-pointer ${
+ className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-sans tracking-wider uppercase transition-all rounded-sm cursor-pointer focus:outline-none focus:ring-0 select-none ${
  activeTimelineTab === tab.id
- ? ' font-bold bg-transparent/5 border border-black/10 border-b-transparent -mb-[9px] relative z-10'
- : ' hover: hover:bg-transparent/5/20'
+ ? 'font-bold bg-current/5 border border-current/15 border-b-transparent -mb-[9px] relative z-10'
+ : 'opacity-60 hover:opacity-100 hover:bg-current/5'
  }`}
  >
  {tab.icon}
@@ -394,7 +486,7 @@ export default function App() {
  </div>
 
  {/* Timeline Items lists */}
- <div id="timeline-content-area" className="bg-transparent/5/30 p-6 rounded-sm border border-black/10/80 min-h-[160px]">
+ <div id="timeline-content-area" className="bg-current/5 p-6 rounded-sm border border-current/10 min-h-[160px]">
  <AnimatePresence mode="wait">
  <motion.div
  key={activeTimelineTab}

@@ -68,20 +68,8 @@ export default function PressSection({ currentLang }: PressSectionProps) {
  <div className="absolute top-0 left-0 w-[1px] h-0 group-hover:h-full bg-gradient-to-b from-white to-transparent transition-all duration-700" />
 
  <div className="space-y-6">
- {/* Stars and Type Tag */}
- <div className="flex justify-between items-center">
- <div className="flex space-x-1">
- {Array.from({ length: 5 }).map((_, i) => (
- <Star 
- key={i} 
- className={`w-3.5 h-3.5 ${
- i < rating 
- ? ' fill-neutral-300/20' 
- : ''
- }`} 
- />
- ))}
- </div>
+ {/* Type Tag */}
+ <div className="flex justify-end items-center">
  <span className="text-[9px] font-mono tracking-widest uppercase">
  {item.type || 'Review'}
  </span>
