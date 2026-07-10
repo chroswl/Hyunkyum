@@ -7,6 +7,10 @@
 }
 
 /* Custom styles to enhance premium classic dark theme */
+:root {
+  --color-bg: #000000;
+  --color-text: #ffffff;
+}
 html {
   scroll-behavior: smooth;
   background-color: #000000;

@@ -167,7 +167,7 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
   const media = getMediaSource(slide.image || '', slide.mediaType);
 
   return (
-    <div id="performances-slider-root" className="w-full relative h-[450px] md:h-[550px] bg-black overflow-hidden border-y border-neutral-900 flex flex-col justify-end">
+    <div id="performances-slider-root" className="w-full relative h-[450px] md:h-[550px] bg-[var(--color-bg)] overflow-hidden border-y border-neutral-900 flex flex-col justify-end">
       {/* Background Slides with Zoom animation */}
       <AnimatePresence>
         <motion.div
@@ -192,6 +192,16 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
                 });
               }}
             />
+          ) : media.type === 'drive' ? (
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+              <iframe
+                className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
+                src={`${media.src}?autoplay=1&mute=1&controls=0&loop=1`}
+                allow="autoplay"
+                allowFullScreen
+              />
+              <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
+            </div>
           ) : media.type === 'youtube' ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
               <iframe
@@ -230,7 +240,7 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
             Selected Performances
           </span>
           <div className="space-y-1">
-            <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-white uppercase tracking-wider">
+            <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text)] uppercase tracking-wider">
               {slide.production[currentLang]}
             </h3>
             <p className="font-serif text-sm md:text-base text-neutral-300 tracking-wide">
@@ -252,21 +262,21 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
                 id={`slider-tick-${idx}`}
                 onClick={() => setCurrentIdx(idx)}
                 className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${
-                  currentIdx === idx ? 'w-8 bg-white' : 'w-2 bg-neutral-800 hover:bg-neutral-600'
+                  currentIdx === idx ? 'w-8 bg-white' : 'w-2 bg-[var(--color-bg)] hover:bg-[var(--color-bg)]'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
           </div>
 
-          <div className="h-6 w-[1px] bg-neutral-800" />
+          <div className="h-6 w-[1px] bg-[var(--color-bg)]" />
 
           {/* Navigation Arrows */}
           <div className="flex space-x-2">
             <button
               id="slider-prev-btn"
               onClick={handlePrev}
-              className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer accent-hover-border"
+              className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border"
               aria-label="Previous Performance Slide"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -274,7 +284,7 @@ export default function SelectedPerformances({ currentLang, slides: propSlides }
             <button
               id="slider-next-btn"
               onClick={handleNext}
-              className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer accent-hover-border"
+              className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border"
               aria-label="Next Performance Slide"
             >
               <ArrowRight className="w-4 h-4" />

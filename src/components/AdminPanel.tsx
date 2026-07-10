@@ -43,7 +43,7 @@ const compressAndGetBase64 = (file: File, maxWidth = 1000, quality = 0.6): Promi
         } else if (height > maxWidth) {
           width = Math.round((width * maxWidth) / height);
           height = maxWidth;
-        }
+}
         
         canvas.width = width;
         canvas.height = height;
@@ -52,7 +52,7 @@ const compressAndGetBase64 = (file: File, maxWidth = 1000, quality = 0.6): Promi
         if (!ctx) {
           resolve(event.target?.result as string);
           return;
-        }
+}
         ctx.drawImage(img, 0, 0, width, height);
         
         // Output as highly efficient progressive jpeg
@@ -66,6 +66,47 @@ const compressAndGetBase64 = (file: File, maxWidth = 1000, quality = 0.6): Promi
     reader.onerror = (err) => {
       reject(err);
     };
+  });
+};
+
+const compressBase64Image = (base64Str: string, maxWidth = 1000, quality = 0.7): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!base64Str || !base64Str.startsWith('data:image/')) {
+      resolve(base64Str);
+      return;
+    }
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth || height > maxWidth) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxWidth) / height);
+          height = maxWidth;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64Str);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressed);
+    };
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+    img.src = base64Str;
   });
 };
 
@@ -138,7 +179,7 @@ export default function AdminPanel({
       if (activeTab === 'press') fetchPressList();
       if (activeTab === 'settings') fetchAllSettings();
       if (activeTab === 'slides') fetchSlidesList();
-    }
+}
   }, [user, activeTab, isOpen]);
 
   // Load all settings on mount if user is logged in
@@ -146,7 +187,7 @@ export default function AdminPanel({
     if (user && isOpen) {
       fetchAllSettings();
       fetchSlidesList();
-    }
+}
   }, [user, isOpen]);
 
   const fetchSlidesList = async () => {
@@ -158,7 +199,7 @@ export default function AdminPanel({
       console.error("Error loading selected performances:", error);
     } finally {
       setLoadingSlides(false);
-    }
+}
   };
 
   const fetchMessages = async () => {
@@ -175,7 +216,7 @@ export default function AdminPanel({
       console.error("Error fetching messages:", error);
     } finally {
       setLoadingMessages(false);
-    }
+}
   };
 
   const fetchVideosList = async () => {
@@ -187,7 +228,7 @@ export default function AdminPanel({
       console.error("Error loading videos:", error);
     } finally {
       setLoadingVideos(false);
-    }
+}
   };
 
   const fetchPressList = async () => {
@@ -199,7 +240,7 @@ export default function AdminPanel({
       console.error("Error loading press reviews:", error);
     } finally {
       setLoadingPress(false);
-    }
+}
   };
 
   const fetchAllSettings = async () => {
@@ -217,7 +258,7 @@ export default function AdminPanel({
       console.error("Error loading CMS settings:", error);
     } finally {
       setLoadingSettings(false);
-    }
+}
   };
 
 
@@ -233,12 +274,13 @@ export default function AdminPanel({
             onCropSuccess(base64); 
             setCropTarget(null); 
             triggerAlert('success', 'Image processed successfully!');
-          } 
+          }
         });
       }
     };
     reader.readAsDataURL(file);
   };
+
   const handleLogin = async () => {
     try {
       await loginWithGoogle();
@@ -246,7 +288,7 @@ export default function AdminPanel({
       refreshData();
     } catch (err) {
       triggerAlert('error', 'Login failed. Please verify credentials.');
-    }
+}
   };
 
   const handleLogout = async () => {
@@ -255,7 +297,7 @@ export default function AdminPanel({
       triggerAlert('success', 'Logged out successfully!');
     } catch (err) {
       triggerAlert('error', 'Logout failed.');
-    }
+}
   };
 
   const triggerAlert = (type: 'success' | 'error', text: string) => {
@@ -287,7 +329,7 @@ export default function AdminPanel({
       } else {
         await addDoc(scheduleRef, editingSchedule);
         triggerAlert('success', t.adminAddSuccess);
-      }
+}
       setEditingSchedule(null);
       refreshData();
     } catch (error) {
@@ -295,7 +337,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Error saving performance.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deleteSchedule = async (id: string) => {
@@ -317,8 +359,8 @@ export default function AdminPanel({
           setLocalScheduleItems(scheduleItems);
         } finally {
           setLoadingAction(false);
-        }
-      }
+}
+}
     });
   };
 
@@ -327,7 +369,7 @@ export default function AdminPanel({
     setEditingPortfolio({
       url: '',
       category: 'Portrait',
-      title: { EN: '', DE: '', KO: '' }
+      title: { EN: '', DE: '', KO: ''}
     });
   };
 
@@ -336,14 +378,23 @@ export default function AdminPanel({
     if (!editingPortfolio) return;
     setLoadingAction(true);
     try {
+      let finalUrl = editingPortfolio.url;
+      if (finalUrl && finalUrl.startsWith('data:image/')) {
+        try {
+          finalUrl = await compressBase64Image(finalUrl, 1000, 0.7);
+        } catch (err) {
+          console.error("Error compressing portfolio image:", err);
+        }
+      }
       const portfolioRef = collection(db, "portfolio");
+      const finalItem = { ...editingPortfolio, url: finalUrl };
       if (editingPortfolio.id) {
-        await updateDoc(doc(db, "portfolio", editingPortfolio.id), editingPortfolio);
+        await updateDoc(doc(db, "portfolio", editingPortfolio.id), finalItem);
         triggerAlert('success', t.adminUpdateSuccess);
       } else {
-        await addDoc(portfolioRef, editingPortfolio);
+        await addDoc(portfolioRef, finalItem);
         triggerAlert('success', t.adminAddSuccess);
-      }
+}
       setEditingPortfolio(null);
       refreshData();
     } catch (error) {
@@ -351,7 +402,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Error saving photo.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deletePortfolio = async (id: string) => {
@@ -373,8 +424,8 @@ export default function AdminPanel({
           setLocalPortfolioItems(portfolioItems);
         } finally {
           setLoadingAction(false);
-        }
-      }
+}
+}
     });
   };
 
@@ -383,7 +434,7 @@ export default function AdminPanel({
     setEditingVideo({
       youtubeId: '',
       title: { EN: '', DE: '', KO: '' },
-      role: { EN: '', DE: '', KO: '' }
+      role: { EN: '', DE: '', KO: ''}
     });
   };
 
@@ -402,7 +453,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Error saving video.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deleteVideo = async (id: string) => {
@@ -423,8 +474,8 @@ export default function AdminPanel({
           fetchVideosList();
         } finally {
           setLoadingAction(false);
-        }
-      }
+}
+}
     });
   };
 
@@ -455,7 +506,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Error saving press review.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deletePress = async (id: string) => {
@@ -475,8 +526,8 @@ export default function AdminPanel({
           fetchPressList();
         } finally {
           setLoadingAction(false);
-        }
-      }
+}
+}
     });
   };
 
@@ -484,35 +535,53 @@ export default function AdminPanel({
   const saveThemeSettingsAction = async () => {
     setLoadingAction(true);
     try {
-      await saveThemeSettings(themeSettings);
+      let finalTheme = { ...themeSettings };
+      if (finalTheme.homeBg && finalTheme.homeBg.startsWith('data:image/')) {
+        try {
+          finalTheme.homeBg = await compressBase64Image(finalTheme.homeBg, 1200, 0.7);
+        } catch (err) {
+          console.error("Error compressing home background:", err);
+        }
+      }
+      await saveThemeSettings(finalTheme);
+      setThemeSettings(finalTheme);
       triggerAlert('success', 'Theme settings saved successfully!');
       
       // Dynamic apply theme CSS styles immediately to the DOM
       const rootStyle = document.documentElement.style;
-      rootStyle.setProperty('--color-bg', themeSettings.bg);
-      rootStyle.setProperty('--color-text', themeSettings.text);
-      rootStyle.setProperty('--color-accent', themeSettings.accent);
-      rootStyle.setProperty('--color-contact-bg', themeSettings.contactFormBg || '#0a0a0a');
+      rootStyle.setProperty('--color-bg', finalTheme.bg);
+      rootStyle.setProperty('--color-text', finalTheme.text);
+      rootStyle.setProperty('--color-accent', finalTheme.accent);
+      rootStyle.setProperty('--color-contact-bg', finalTheme.contactFormBg || '#0a0a0a');
       
-      window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeSettings }));
+      window.dispatchEvent(new CustomEvent('themeChanged', { detail: finalTheme }));
     } catch (err) {
       triggerAlert('error', 'Failed to save theme settings.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const saveBiographySettingsAction = async () => {
     setLoadingAction(true);
     try {
-      await saveBiographySettings(bioSettings);
+      let finalBio = { ...bioSettings };
+      if (finalBio.bioImage && finalBio.bioImage.startsWith('data:image/')) {
+        try {
+          finalBio.bioImage = await compressBase64Image(finalBio.bioImage, 1000, 0.7);
+        } catch (err) {
+          console.error("Error compressing bio image:", err);
+        }
+      }
+      await saveBiographySettings(finalBio);
+      setBioSettings(finalBio);
       triggerAlert('success', 'Biography texts updated!');
-      window.dispatchEvent(new CustomEvent('bioChanged', { detail: bioSettings }));
+      window.dispatchEvent(new CustomEvent('bioChanged', { detail: finalBio }));
     } catch (err) {
       triggerAlert('error', 'Failed to save biography.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const saveContactSettingsAction = async () => {
@@ -525,7 +594,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Failed to save contact info.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deleteMessage = async (id: string) => {
@@ -542,8 +611,8 @@ export default function AdminPanel({
           console.error("Error deleting inquiry:", err);
           triggerAlert('error', 'Error deleting inquiry.');
           fetchMessages();
-        }
-      }
+}
+}
     });
   };
 
@@ -558,7 +627,7 @@ export default function AdminPanel({
       bgPosition: 'center',
       production: { EN: '', DE: '', KO: '' },
       role: { EN: '', DE: '', KO: '' },
-      house: { EN: '', DE: '', KO: '' }
+      house: { EN: '', DE: '', KO: ''}
     });
   };
 
@@ -567,7 +636,15 @@ export default function AdminPanel({
     if (!editingSlide) return;
     setLoadingAction(true);
     try {
-      await saveSelectedPerformance(editingSlide as PerformanceSlide);
+      let finalSlide = { ...editingSlide };
+      if (finalSlide.image && finalSlide.image.startsWith('data:image/')) {
+        try {
+          finalSlide.image = await compressBase64Image(finalSlide.image, 1200, 0.7);
+        } catch (err) {
+          console.error("Error compressing slide image:", err);
+        }
+      }
+      await saveSelectedPerformance(finalSlide as PerformanceSlide);
       triggerAlert('success', t.adminUpdateSuccess);
       setEditingSlide(null);
       fetchSlidesList();
@@ -577,7 +654,7 @@ export default function AdminPanel({
       triggerAlert('error', 'Error saving slide.');
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   const deleteSlide = async (id: string) => {
@@ -598,8 +675,8 @@ export default function AdminPanel({
           fetchSlidesList();
         } finally {
           setLoadingAction(false);
-        }
-      }
+}
+}
     });
   };
 
@@ -633,7 +710,7 @@ export default function AdminPanel({
       if (setLocalList) {
         const sortedLocalList = [...updatedList].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         setLocalList(sortedLocalList);
-      }
+}
 
       // Update both documents in Firestore
       const itemA = updatedList[currentIndex];
@@ -652,33 +729,33 @@ export default function AdminPanel({
       refreshFunc();
     } finally {
       setLoadingAction(false);
-    }
+}
   };
 
   if (!isOpen) return null;
 
   return (
-    <div id="admin-panel-backdrop" className="fixed inset-0 z-110 bg-black/80 backdrop-blur-sm flex justify-end">
+    <div id="admin-panel-backdrop" className="fixed inset-0 z-110 bg-[var(--color-bg)]/80 backdrop-blur-sm flex justify-end">
       <motion.div
         id="admin-drawer-container"
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'tween', duration: 0.35 }}
-        className="w-full max-w-3xl bg-neutral-950 border-l border-neutral-900 h-screen flex flex-col relative"
+        className="w-full max-w-3xl bg-[var(--color-bg)] border-l border-neutral-900 h-screen flex flex-col relative"
       >
         {/* Header bar */}
-        <div className="p-6 border-b border-neutral-900 flex justify-between items-center bg-black/40 animate-none">
+        <div className="p-6 border-b border-neutral-900 flex justify-between items-center bg-[var(--color-bg)]/40 animate-none">
           <div className="flex items-center space-x-2.5">
             <div className="w-2.5 h-2.5 bg-[#C9A227] rounded-full animate-pulse accent-bg" />
-            <h2 className="font-serif text-lg tracking-[0.1em] text-white uppercase">
+            <h2 className="font-serif text-lg tracking-[0.1em] text-[var(--color-text)] uppercase">
               {t.adminTitle}
             </h2>
           </div>
           <button
             id="close-admin-panel"
             onClick={onClose}
-            className="p-1.5 border border-neutral-800 hover:border-neutral-500 rounded text-neutral-400 hover:text-white transition-all cursor-pointer accent-hover-border"
+            className="p-1.5 border border-neutral-800 hover:border-neutral-500 rounded text-neutral-400 hover:text-[var(--color-text)] transition-all cursor-pointer accent-hover-border"
           >
             <X className="w-5 h-5" />
           </button>
@@ -708,24 +785,24 @@ export default function AdminPanel({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-130 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+              className="absolute inset-0 z-130 bg-[var(--color-bg)]/60 backdrop-blur-sm flex items-center justify-center p-6"
             >
-              <div className="bg-neutral-900 border border-neutral-800 p-6 rounded shadow-2xl max-w-sm w-full space-y-5 text-center">
+              <div className="bg-[var(--color-bg)] border border-neutral-800 p-6 rounded shadow-2xl max-w-sm w-full space-y-5 text-center">
                 <AlertTriangle className="w-10 h-10 text-rose-400 mx-auto" />
                 <div className="space-y-1">
-                  <h4 className="text-sm font-serif tracking-wider text-white">Confirm Deletion</h4>
+                  <h4 className="text-sm font-serif tracking-wider text-[var(--color-text)]">Confirm Deletion</h4>
                   <p className="text-xs text-neutral-400 font-sans leading-relaxed">{confirmPrompt.message}</p>
                 </div>
                 <div className="flex space-x-3 pt-2">
                   <button
                     onClick={() => setConfirmPrompt(null)}
-                    className="flex-1 py-2.5 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs tracking-wider uppercase transition-colors font-sans"
+                    className="flex-1 py-2.5 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs tracking-wider uppercase transition-colors font-sans"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={confirmPrompt.onConfirm}
-                    className="flex-1 py-2.5 bg-rose-500/20 hover:bg-rose-500/80 text-rose-400 hover:text-white border border-rose-500/30 hover:border-rose-500 rounded text-xs tracking-wider uppercase font-semibold transition-colors font-sans"
+                    className="flex-1 py-2.5 bg-rose-500/20 hover:bg-rose-500/80 text-rose-400 hover:text-[var(--color-text)] border border-rose-500/30 hover:border-rose-500 rounded text-xs tracking-wider uppercase font-semibold transition-colors font-sans"
                   >
                     Delete
                   </button>
@@ -738,11 +815,11 @@ export default function AdminPanel({
         {/* Non-Authenticated State (Sign-In page) */}
         {!user ? (
           <div id="admin-login-wrapper" className="flex-1 flex flex-col justify-center items-center p-8 max-w-md mx-auto text-center space-y-6">
-            <div className="w-16 h-16 border border-neutral-800 bg-neutral-900/20 rounded-full flex items-center justify-center text-[#C9A227] mb-2 accent-color">
+            <div className="w-16 h-16 border border-neutral-800 bg-[var(--color-bg)] rounded-full flex items-center justify-center text-[#C9A227] mb-2 accent-color">
               <ShieldAlert className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-serif text-xl tracking-wide text-white mb-2">
+              <h3 className="font-serif text-xl tracking-wide text-[var(--color-text)] mb-2">
                 Authorized Access Only
               </h3>
               <p className="text-xs text-neutral-500 leading-relaxed font-sans">
@@ -763,8 +840,8 @@ export default function AdminPanel({
           /* Authenticated Admin Dashboard (CRUD control) */
           <div id="admin-dashboard-container" className="flex-1 flex flex-col min-h-0">
             {/* Top Auth User Indicator & Tabs */}
-            <div className="p-4 border-b border-neutral-900 bg-neutral-950/60 flex flex-wrap justify-between items-center gap-3">
-              <div className="flex items-center space-x-2.5 bg-neutral-900 px-3 py-1.5 rounded-sm">
+            <div className="p-4 border-b border-neutral-900 bg-[var(--color-bg)] flex flex-wrap justify-between items-center gap-3">
+              <div className="flex items-center space-x-2.5 bg-[var(--color-bg)] px-3 py-1.5 rounded-sm">
                 <UserIcon className="w-3.5 h-3.5 text-[#C9A227] accent-color" />
                 <span className="text-xs text-neutral-300 font-sans tracking-wide">
                   {user.displayName || user.email}
@@ -788,7 +865,7 @@ export default function AdminPanel({
                     className={`px-3 py-1.5 text-[10px] uppercase font-semibold font-sans tracking-wider rounded-sm flex items-center space-x-1 border transition-colors ${
                       activeTab === tab 
                         ? 'border-[#C9A227]/40 bg-[#C9A227]/10 text-[#C9A227] accent-color' 
-                        : 'border-transparent text-neutral-400 hover:text-white'
+                        : 'border-transparent text-neutral-400 hover:text-[var(--color-text)]'
                     }`}
                   >
                     {tab === 'schedule' && <Calendar className="w-3 h-3" />}
@@ -813,7 +890,7 @@ export default function AdminPanel({
               <button
                 id="admin-logout-btn"
                 onClick={handleLogout}
-                className="px-2.5 py-1 text-[10px] border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 rounded transition-all cursor-pointer font-sans"
+                className="px-2.5 py-1 text-[10px] border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] hover:border-neutral-500 rounded transition-all cursor-pointer font-sans"
               >
                 {t.logout}
               </button>
@@ -841,16 +918,16 @@ export default function AdminPanel({
                         </button>
                       </div>
 
-                      <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
+                      <div className="divide-y divide-neutral-900 border border-neutral-900 bg-[var(--color-bg)] rounded-sm">
                         {localScheduleItems.length === 0 ? (
                           <div className="p-8 text-center text-neutral-500 text-xs font-sans">No scheduled performances found.</div>
                         ) : localScheduleItems.map((item, index) => (
-                          <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
+                          <div key={item.id} className="p-4 flex justify-between items-center hover:bg-[var(--color-bg)] transition-all">
                             <div className="space-y-1">
                               <span className="text-[10px] font-mono tracking-wider text-neutral-500 block">
                                 {item.date} • {item.category}
                               </span>
-                              <h4 className="text-sm font-sans font-medium text-white">
+                              <h4 className="text-sm font-sans font-medium text-[var(--color-text)]">
                                 {item.title[currentLang] || item.title['EN']}
                               </h4>
                               <p className="text-xs text-neutral-400">
@@ -861,21 +938,35 @@ export default function AdminPanel({
                               <button
                                 disabled={index === 0}
                                 onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'up', refreshData, setLocalScheduleItems)}
-                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-white rounded transition-colors disabled:opacity-30"
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
                               >
                                 <ChevronUp className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 disabled={index === localScheduleItems.length - 1}
                                 onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'down', refreshData, setLocalScheduleItems)}
-                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-white rounded transition-colors disabled:opacity-30"
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                disabled={index === 0}
+                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'up', refreshData, setLocalScheduleItems)}
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                disabled={index === localScheduleItems.length - 1}
+                                onClick={() => moveItemOrder('schedule', localScheduleItems, index, 'down', refreshData, setLocalScheduleItems)}
+                                className="p-1.5 border border-neutral-800 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors disabled:opacity-30"
                               >
                                 <ChevronDown className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 id={`admin-edit-schedule-${item.id}`}
                                 onClick={() => setEditingSchedule(item)}
-                                className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white rounded transition-colors cursor-pointer"
+                                className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors cursor-pointer"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
@@ -893,7 +984,7 @@ export default function AdminPanel({
                     </div>
                   ) : (
                     /* Schedule Editor form */
-                    <form id="schedule-edit-form" onSubmit={saveSchedule} className="space-y-4 bg-neutral-950 p-5 rounded-sm border border-neutral-900">
+                    <form id="schedule-edit-form" onSubmit={saveSchedule} className="space-y-4 bg-[var(--color-bg)] p-5 rounded-sm border border-neutral-900">
                       <h4 className="text-sm font-serif tracking-wider text-[#C9A227] uppercase accent-color">
                         {editingSchedule.id ? 'Edit Performance' : 'New Performance Schedule'}
                       </h4>
@@ -906,7 +997,7 @@ export default function AdminPanel({
                             required
                             value={editingSchedule.date || ''}
                             onChange={(e) => setEditingSchedule({ ...editingSchedule, date: e.target.value })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           />
                         </div>
 
@@ -915,7 +1006,7 @@ export default function AdminPanel({
                           <select
                             value={editingSchedule.category || 'Opera'}
                             onChange={(e) => setEditingSchedule({ ...editingSchedule, category: e.target.value as any })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           >
                             <option value="Opera">Opera</option>
                             <option value="Concert">Concert</option>
@@ -928,7 +1019,7 @@ export default function AdminPanel({
                       {/* Translatable Titles */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Performance Title</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             required
@@ -936,9 +1027,9 @@ export default function AdminPanel({
                             value={editingSchedule.title?.EN || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              title: { ...editingSchedule.title!, EN: e.target.value }
+                              title: { ...editingSchedule.title!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -946,9 +1037,9 @@ export default function AdminPanel({
                             value={editingSchedule.title?.DE || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              title: { ...editingSchedule.title!, DE: e.target.value }
+                              title: { ...editingSchedule.title!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -956,9 +1047,9 @@ export default function AdminPanel({
                             value={editingSchedule.title?.KO || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              title: { ...editingSchedule.title!, KO: e.target.value }
+                              title: { ...editingSchedule.title!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -966,7 +1057,7 @@ export default function AdminPanel({
                       {/* Translatable Roles */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Roles / Description</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             required
@@ -974,9 +1065,9 @@ export default function AdminPanel({
                             value={editingSchedule.role?.EN || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              role: { ...editingSchedule.role!, EN: e.target.value }
+                              role: { ...editingSchedule.role!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -984,9 +1075,9 @@ export default function AdminPanel({
                             value={editingSchedule.role?.DE || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              role: { ...editingSchedule.role!, DE: e.target.value }
+                              role: { ...editingSchedule.role!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -994,9 +1085,9 @@ export default function AdminPanel({
                             value={editingSchedule.role?.KO || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              role: { ...editingSchedule.role!, KO: e.target.value }
+                              role: { ...editingSchedule.role!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1004,7 +1095,7 @@ export default function AdminPanel({
                       {/* Translatable Locations */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Locations</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             required
@@ -1012,9 +1103,9 @@ export default function AdminPanel({
                             value={editingSchedule.location?.EN || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              location: { ...editingSchedule.location!, EN: e.target.value }
+                              location: { ...editingSchedule.location!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1022,9 +1113,9 @@ export default function AdminPanel({
                             value={editingSchedule.location?.DE || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              location: { ...editingSchedule.location!, DE: e.target.value }
+                              location: { ...editingSchedule.location!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1032,9 +1123,9 @@ export default function AdminPanel({
                             value={editingSchedule.location?.KO || ''}
                             onChange={(e) => setEditingSchedule({
                               ...editingSchedule,
-                              location: { ...editingSchedule.location!, KO: e.target.value }
+                              location: { ...editingSchedule.location!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1042,7 +1133,7 @@ export default function AdminPanel({
                       {/* Optional Ticket link */}
                       <div className="space-y-1.5">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Ticket/Details URL Link</label>
-                        <div className="flex items-center space-x-2 bg-neutral-900 border border-neutral-800 rounded-sm px-3 py-2 text-xs text-white">
+                        <div className="flex items-center space-x-2 bg-[var(--color-bg)] border border-neutral-800 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]">
                           <Link className="w-4 h-4 text-[#C9A227] shrink-0 accent-color" />
                           <input
                             type="url"
@@ -1060,7 +1151,7 @@ export default function AdminPanel({
                           type="button"
                           id="cancel-schedule-edit"
                           onClick={() => setEditingSchedule(null)}
-                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
+                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
                         >
                           {t.adminCancel}
                         </button>
@@ -1099,7 +1190,7 @@ export default function AdminPanel({
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {localPortfolioItems.map((item, index) => (
-                          <div key={item.id} className="relative group rounded-sm overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square">
+                          <div key={item.id} className="relative group rounded-sm overflow-hidden border border-neutral-900 bg-[var(--color-bg)] aspect-square">
                             <img 
                               src={item.url} 
                               alt="Portfolio small thumb" 
@@ -1112,16 +1203,44 @@ export default function AdminPanel({
                               </span>
                               <div className="flex justify-end space-x-1.5">
                                 <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'up', refreshData, setLocalPortfolioItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === localPortfolioItems.length - 1}
+                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'down', refreshData, setLocalPortfolioItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'up', refreshData, setLocalPortfolioItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === localPortfolioItems.length - 1}
+                                  onClick={() => moveItemOrder('portfolio', localPortfolioItems, index, 'down', refreshData, setLocalPortfolioItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
                                   id={`admin-edit-portfolio-${item.id}`}
                                   onClick={() => setEditingPortfolio(item)}
-                                  className="p-1 border border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-white rounded hover:border-neutral-500 cursor-pointer"
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer"
                                 >
                                   <Edit className="w-3 h-3" />
                                 </button>
                                 <button
                                   id={`admin-delete-portfolio-${item.id}`}
                                   onClick={() => deletePortfolio(item.id)}
-                                  className="p-1 border border-rose-500/30 bg-neutral-900 text-rose-400 hover:text-rose-300 rounded hover:border-rose-500 cursor-pointer"
+                                  className="p-1 border border-rose-500/30 bg-[var(--color-bg)] text-rose-400 hover:text-rose-300 rounded hover:border-rose-500 cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
@@ -1133,7 +1252,7 @@ export default function AdminPanel({
                     </div>
                   ) : (
                     /* Portfolio Editor form */
-                    <form id="portfolio-edit-form" onSubmit={savePortfolio} className="space-y-4 bg-neutral-950 p-5 rounded-sm border border-neutral-900">
+                    <form id="portfolio-edit-form" onSubmit={savePortfolio} className="space-y-4 bg-[var(--color-bg)] p-5 rounded-sm border border-neutral-900">
                       <h4 className="text-sm font-serif tracking-wider text-[#C9A227] uppercase accent-color">
                         {editingPortfolio.id ? 'Edit Portfolio Photo' : 'New Portfolio Photo'}
                       </h4>
@@ -1143,7 +1262,7 @@ export default function AdminPanel({
                           <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Image File Upload / URL</label>
                           
                           {/* Computer File Upload Block */}
-                          <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+                          <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-[var(--color-bg)] hover:bg-[var(--color-bg)] transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                             <input
                               type="file"
                               accept="image/*"
@@ -1175,7 +1294,7 @@ export default function AdminPanel({
                               placeholder="e.g. https://images.unsplash.com/... or base64"
                               value={editingPortfolio.url || ''}
                               onChange={(e) => setEditingPortfolio({ ...editingPortfolio, url: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                             />
                           </div>
                         </div>
@@ -1183,7 +1302,7 @@ export default function AdminPanel({
                         {/* Image Preview Block */}
                         <div className="space-y-1.5 flex flex-col">
                           <span className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Image Preview</span>
-                          <div className="flex-1 min-h-[150px] bg-neutral-900/20 border border-neutral-800 rounded-sm flex items-center justify-center overflow-hidden p-2 relative">
+                          <div className="flex-1 min-h-[150px] bg-[var(--color-bg)] border border-neutral-800 rounded-sm flex items-center justify-center overflow-hidden p-2 relative">
                             {editingPortfolio.url ? (
                               <>
                                 <img
@@ -1195,7 +1314,7 @@ export default function AdminPanel({
                                 <button
                                   type="button"
                                   onClick={() => setEditingPortfolio({ ...editingPortfolio, url: '' })}
-                                  className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/90 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                                  className="absolute top-2 right-2 p-1 bg-[var(--color-bg)]/60 hover:bg-[var(--color-bg)]/90 text-neutral-400 hover:text-[var(--color-text)] rounded-full transition-colors cursor-pointer"
                                   title="Clear Image"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -1216,7 +1335,7 @@ export default function AdminPanel({
                         <select
                           value={editingPortfolio.category || 'Portrait'}
                           onChange={(e) => setEditingPortfolio({ ...editingPortfolio, category: e.target.value as any })}
-                          className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                          className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                         >
                           <option value="Portrait">Portrait</option>
                           <option value="Stage">Stage</option>
@@ -1227,16 +1346,16 @@ export default function AdminPanel({
                       {/* Photo Description text */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Photo Description / Title</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             placeholder="EN Description"
                             value={editingPortfolio.title?.EN || ''}
                             onChange={(e) => setEditingPortfolio({
                               ...editingPortfolio,
-                              title: { ...editingPortfolio.title!, EN: e.target.value }
+                              title: { ...editingPortfolio.title!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1244,9 +1363,9 @@ export default function AdminPanel({
                             value={editingPortfolio.title?.DE || ''}
                             onChange={(e) => setEditingPortfolio({
                               ...editingPortfolio,
-                              title: { ...editingPortfolio.title!, DE: e.target.value }
+                              title: { ...editingPortfolio.title!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1254,9 +1373,9 @@ export default function AdminPanel({
                             value={editingPortfolio.title?.KO || ''}
                             onChange={(e) => setEditingPortfolio({
                               ...editingPortfolio,
-                              title: { ...editingPortfolio.title!, KO: e.target.value }
+                              title: { ...editingPortfolio.title!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1267,7 +1386,7 @@ export default function AdminPanel({
                           type="button"
                           id="cancel-portfolio-edit"
                           onClick={() => setEditingPortfolio(null)}
-                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
+                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
                         >
                           {t.adminCancel}
                         </button>
@@ -1307,11 +1426,11 @@ export default function AdminPanel({
                       {loadingPress ? (
                         <div className="text-center py-10 text-neutral-500 text-xs">Loading press reviews...</div>
                       ) : (
-                        <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
+                        <div className="divide-y divide-neutral-900 border border-neutral-900 bg-[var(--color-bg)] rounded-sm">
                           {pressItems.length === 0 ? (
                             <div className="p-8 text-center text-neutral-500 text-xs font-sans">No reviews created yet. Seeded defaults will show.</div>
                           ) : pressItems.map((item, index) => (
-                            <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
+                            <div key={item.id} className="p-4 flex justify-between items-center hover:bg-[var(--color-bg)] transition-all">
                               <div className="space-y-1">
                                 <span className="text-[10px] font-mono tracking-wider text-[#C9A227] block accent-color">
                                   {item.source} • {item.date} • {item.type} {'★'.repeat(item.rating || 5)}
@@ -1322,9 +1441,37 @@ export default function AdminPanel({
                               </div>
                               <div className="flex space-x-2">
                                 <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('press', pressItems, index, 'up', fetchPressList, setPressItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === pressItems.length - 1}
+                                  onClick={() => moveItemOrder('press', pressItems, index, 'down', fetchPressList, setPressItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('press', pressItems, index, 'up', fetchPressList, setPressItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === pressItems.length - 1}
+                                  onClick={() => moveItemOrder('press', pressItems, index, 'down', fetchPressList, setPressItems)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
                                   id={`admin-edit-press-${item.id}`}
                                   onClick={() => setEditingPress(item)}
-                                  className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white rounded transition-colors cursor-pointer"
+                                  className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors cursor-pointer"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
@@ -1343,7 +1490,7 @@ export default function AdminPanel({
                     </div>
                   ) : (
                     /* Press Review Editor Form */
-                    <form id="press-edit-form" onSubmit={savePress} className="space-y-4 bg-neutral-950 p-5 rounded-sm border border-neutral-900">
+                    <form id="press-edit-form" onSubmit={savePress} className="space-y-4 bg-[var(--color-bg)] p-5 rounded-sm border border-neutral-900">
                       <h4 className="text-sm font-serif tracking-wider text-[#C9A227] uppercase accent-color">
                         {editingPress.id ? 'Edit Review' : 'New Press Review / Article'}
                       </h4>
@@ -1357,7 +1504,7 @@ export default function AdminPanel({
                             placeholder="e.g. Opera Magazine"
                             value={editingPress.source || ''}
                             onChange={(e) => setEditingPress({ ...editingPress, source: e.target.value })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           />
                         </div>
 
@@ -1366,7 +1513,7 @@ export default function AdminPanel({
                           <select
                             value={editingPress.rating || 5}
                             onChange={(e) => setEditingPress({ ...editingPress, rating: parseInt(e.target.value) })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           >
                             <option value={5}>★★★★★ (5 Stars)</option>
                             <option value={4}>★★★★ (4 Stars)</option>
@@ -1383,7 +1530,7 @@ export default function AdminPanel({
                             required
                             value={editingPress.date || ''}
                             onChange={(e) => setEditingPress({ ...editingPress, date: e.target.value })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1391,7 +1538,7 @@ export default function AdminPanel({
                       {/* Translatable Quotes */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Highlight Quote / Review Excerpt</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <textarea
                             required
                             rows={2}
@@ -1399,27 +1546,27 @@ export default function AdminPanel({
                             value={editingPress.quote?.EN || ''}
                             onChange={(e) => setEditingPress({
                               ...editingPress,
-                              quote: { ...editingPress.quote!, EN: e.target.value }
+                              quote: { ...editingPress.quote!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-2 text-xs text-white resize-none"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                           />
                           <textarea
                             placeholder="DE Translation"
                             value={editingPress.quote?.DE || ''}
                             onChange={(e) => setEditingPress({
                               ...editingPress,
-                              quote: { ...editingPress.quote!, DE: e.target.value }
+                              quote: { ...editingPress.quote!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-2 text-xs text-white resize-none"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                           />
                           <textarea
                             placeholder="KO 번역"
                             value={editingPress.quote?.KO || ''}
                             onChange={(e) => setEditingPress({
                               ...editingPress,
-                              quote: { ...editingPress.quote!, KO: e.target.value }
+                              quote: { ...editingPress.quote!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-2 text-xs text-white resize-none"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                           />
                         </div>
                       </div>
@@ -1432,7 +1579,7 @@ export default function AdminPanel({
                             placeholder="e.g. Richard Morrison"
                             value={editingPress.author || ''}
                             onChange={(e) => setEditingPress({ ...editingPress, author: e.target.value })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           />
                         </div>
 
@@ -1443,7 +1590,7 @@ export default function AdminPanel({
                             placeholder="https://..."
                             value={editingPress.link || ''}
                             onChange={(e) => setEditingPress({ ...editingPress, link: e.target.value })}
-                            className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1454,7 +1601,7 @@ export default function AdminPanel({
                           type="button"
                           id="cancel-press-edit"
                           onClick={() => setEditingPress(null)}
-                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
+                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
                         >
                           {t.adminCancel}
                         </button>
@@ -1494,24 +1641,52 @@ export default function AdminPanel({
                       {loadingVideos ? (
                         <div className="text-center py-10 text-neutral-500 text-xs">Loading videos...</div>
                       ) : (
-                        <div className="divide-y divide-neutral-900 border border-neutral-900 bg-neutral-950/40 rounded-sm">
+                        <div className="divide-y divide-neutral-900 border border-neutral-900 bg-[var(--color-bg)] rounded-sm">
                           {videos.length === 0 ? (
                             <div className="p-8 text-center text-neutral-500 text-xs font-sans">No videos created yet. Seeded defaults will show.</div>
                           ) : videos.map((item, index) => (
-                            <div key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-900/20 transition-all">
+                            <div key={item.id} className="p-4 flex justify-between items-center hover:bg-[var(--color-bg)] transition-all">
                               <div className="space-y-1">
                                 <span className="text-[10px] font-mono tracking-wider text-[#C9A227] block accent-color">
                                   YouTube ID: {item.youtubeId}
                                 </span>
-                                <h4 className="text-xs font-sans font-medium text-white">
+                                <h4 className="text-xs font-sans font-medium text-[var(--color-text)]">
                                   {item.title[currentLang] || item.title['EN']}
                                 </h4>
                               </div>
                               <div className="flex space-x-2">
                                 <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('video', videos, index, 'up', fetchVideosList, setVideos)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === videos.length - 1}
+                                  onClick={() => moveItemOrder('video', videos, index, 'down', fetchVideosList, setVideos)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === 0}
+                                  onClick={() => moveItemOrder('video', videos, index, 'up', fetchVideosList, setVideos)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  disabled={index === videos.length - 1}
+                                  onClick={() => moveItemOrder('video', videos, index, 'down', fetchVideosList, setVideos)}
+                                  className="p-1 border border-neutral-700 bg-[var(--color-bg)] text-neutral-400 hover:text-[var(--color-text)] rounded hover:border-neutral-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
                                   id={`admin-edit-video-${item.id}`}
                                   onClick={() => setEditingVideo(item)}
-                                  className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-white rounded transition-colors cursor-pointer"
+                                  className="p-1.5 border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] rounded transition-colors cursor-pointer"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
@@ -1530,27 +1705,27 @@ export default function AdminPanel({
                     </div>
                   ) : (
                     /* Video Editor form */
-                    <form id="video-edit-form" onSubmit={saveVideo} className="space-y-4 bg-neutral-950 p-5 rounded-sm border border-neutral-900">
+                    <form id="video-edit-form" onSubmit={saveVideo} className="space-y-4 bg-[var(--color-bg)] p-5 rounded-sm border border-neutral-900">
                       <h4 className="text-sm font-serif tracking-wider text-[#C9A227] uppercase accent-color">
                         {editingVideo.id ? 'Edit Video Link' : 'Add New Video'}
                       </h4>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">YouTube Video ID (11 chars)</label>
+                        <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">YouTube Video ID or Video URL (e.g., Google Drive)</label>
                         <input
                           type="text"
                           required
-                          placeholder="e.g. dQw4w9WgXcQ"
+                          placeholder="e.g. dQw4w9WgXcQ or https://..."
                           value={editingVideo.youtubeId || ''}
                           onChange={(e) => setEditingVideo({ ...editingVideo, youtubeId: e.target.value })}
-                          className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                          className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                         />
                       </div>
 
                       {/* Translatable Titles */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Video Title</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             required
@@ -1558,9 +1733,9 @@ export default function AdminPanel({
                             value={editingVideo.title?.EN || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              title: { ...editingVideo.title!, EN: e.target.value }
+                              title: { ...editingVideo.title!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1568,9 +1743,9 @@ export default function AdminPanel({
                             value={editingVideo.title?.DE || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              title: { ...editingVideo.title!, DE: e.target.value }
+                              title: { ...editingVideo.title!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1578,9 +1753,9 @@ export default function AdminPanel({
                             value={editingVideo.title?.KO || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              title: { ...editingVideo.title!, KO: e.target.value }
+                              title: { ...editingVideo.title!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1588,16 +1763,16 @@ export default function AdminPanel({
                       {/* Translatable Roles */}
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Opera Role / Concert Solo (Optional)</label>
-                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-black/25">
+                        <div className="grid grid-cols-1 gap-2 border border-neutral-900 p-3 rounded bg-[var(--color-bg)]/25">
                           <input
                             type="text"
                             placeholder="EN Role (e.g. Papageno)"
                             value={editingVideo.role?.EN || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              role: { ...editingVideo.role!, EN: e.target.value }
+                              role: { ...editingVideo.role!, EN: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1605,9 +1780,9 @@ export default function AdminPanel({
                             value={editingVideo.role?.DE || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              role: { ...editingVideo.role!, DE: e.target.value }
+                              role: { ...editingVideo.role!, DE: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                           <input
                             type="text"
@@ -1615,9 +1790,9 @@ export default function AdminPanel({
                             value={editingVideo.role?.KO || ''}
                             onChange={(e) => setEditingVideo({
                               ...editingVideo,
-                              role: { ...editingVideo.role!, KO: e.target.value }
+                              role: { ...editingVideo.role!, KO: e.target.value}
                             })}
-                            className="w-full bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-white"
+                            className="w-full bg-[var(--color-bg)] border border-neutral-800 px-3 py-1.5 text-xs text-[var(--color-text)]"
                           />
                         </div>
                       </div>
@@ -1628,7 +1803,7 @@ export default function AdminPanel({
                           type="button"
                           id="cancel-video-edit"
                           onClick={() => setEditingVideo(null)}
-                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
+                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs tracking-wider uppercase transition-colors cursor-pointer font-sans"
                         >
                           {t.adminCancel}
                         </button>
@@ -1654,10 +1829,10 @@ export default function AdminPanel({
                   ) : (
                     <>
                       {/* Sub-section 1: Theme Customizer */}
-                      <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
+                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
                         <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
                           <Palette className="w-4 h-4 text-[#C9A227] accent-color" />
-                          <h3 className="font-serif text-sm tracking-widest text-white uppercase">Theme Layout Color Schemes</h3>
+                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Theme Layout Color Schemes</h3>
                         </div>
 
                         {/* Presets Grid */}
@@ -1667,7 +1842,7 @@ export default function AdminPanel({
                             <button
                               type="button"
                               onClick={() => selectThemePreset({ bg: '#000000', text: '#ffffff', accent: '#C9A227' })}
-                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-black flex items-center justify-between text-[10px] uppercase tracking-wider text-white"
+                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-[var(--color-bg)] flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
                             >
                               <span>Gold Accent</span>
                               <div className="w-2.5 h-2.5 rounded-full bg-[#C9A227]" />
@@ -1675,7 +1850,7 @@ export default function AdminPanel({
                             <button
                               type="button"
                               onClick={() => selectThemePreset({ bg: '#0B0B0B', text: '#f3f4f6', accent: '#A1A1AA' })}
-                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-zinc-950 flex items-center justify-between text-[10px] uppercase tracking-wider text-white"
+                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-zinc-950 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
                             >
                               <span>Silver Accent</span>
                               <div className="w-2.5 h-2.5 rounded-full bg-[#A1A1AA]" />
@@ -1683,7 +1858,7 @@ export default function AdminPanel({
                             <button
                               type="button"
                               onClick={() => selectThemePreset({ bg: '#0A0103', text: '#fafafa', accent: '#800020' })}
-                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-red-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-white"
+                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-red-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
                             >
                               <span>Burgundy Accent</span>
                               <div className="w-2.5 h-2.5 rounded-full bg-[#800020]" />
@@ -1691,7 +1866,7 @@ export default function AdminPanel({
                             <button
                               type="button"
                               onClick={() => selectThemePreset({ bg: '#020617', text: '#f8fafc', accent: '#1E3A8A' })}
-                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-blue-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-white"
+                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-blue-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
                             >
                               <span>Dark Blue Accent</span>
                               <div className="w-2.5 h-2.5 rounded-full bg-[#1E3A8A]" />
@@ -1764,7 +1939,7 @@ export default function AdminPanel({
                               </span>
                               
                               {/* Computer File Upload Block */}
-                              <div className="border border-dashed border-neutral-800 rounded bg-neutral-900/10 hover:bg-neutral-900/30 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+                              <div className="border border-dashed border-neutral-800 rounded bg-[var(--color-bg)] hover:bg-[var(--color-bg)] transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                                 <input
                                   type="file"
                                   accept="image/*,video/*"
@@ -1776,20 +1951,20 @@ export default function AdminPanel({
                                       if (file.size > 800 * 1024) {
                                         triggerAlert('error', 'Video file is too large! Maximum 800KB allowed. Use a URL instead.');
                                         return;
-                                      }
+}
                                       const reader = new FileReader();
                                       reader.onload = (re) => {
                                         if (typeof re.target?.result === 'string') {
                                           setThemeSettings({ ...themeSettings, homeBg: re.target.result, homeBgType: 'video' });
                                           triggerAlert('success', 'Video processed successfully!');
-                                        }
+}
                                       };
                                       reader.readAsDataURL(file);
                                     } else {
                                       handleImageCropUpload(file, (base64) => {
                                         setThemeSettings({ ...themeSettings, homeBg: base64, homeBgType: 'image' });
                                       });
-                                    }
+}
                                     e.target.value = '';
                                   }}
                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -1818,10 +1993,10 @@ export default function AdminPanel({
                                       type = 'youtube';
                                     } else if (val.match(/\.(mp4|webm|ogg)$/i)) {
                                       type = 'video';
-                                    }
+}
                                     setThemeSettings({ ...themeSettings, homeBg: val, homeBgType: type });
                                   }}
-                                  className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded px-3 py-2 text-xs text-white"
+                                  className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-3 py-2 text-xs text-[var(--color-text)]"
                                 />
                               </div>
                             </div>
@@ -1829,7 +2004,7 @@ export default function AdminPanel({
                             {/* Image Preview Block */}
                             <div className="space-y-1.5 flex flex-col">
                               <span className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Background Image Preview</span>
-                              <div className="flex-1 min-h-[150px] bg-neutral-900/20 border border-neutral-800 rounded flex items-center justify-center overflow-hidden p-2 relative">
+                              <div className="flex-1 min-h-[150px] bg-[var(--color-bg)] border border-neutral-800 rounded flex items-center justify-center overflow-hidden p-2 relative">
                                 {themeSettings.homeBg ? (
                                   <>
                                     <img
@@ -1841,7 +2016,7 @@ export default function AdminPanel({
                                     <button
                                       type="button"
                                       onClick={() => setThemeSettings({ ...themeSettings, homeBg: '/src/assets/images/opera_stage_1783548365279.jpg' })}
-                                      className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/90 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                                      className="absolute top-2 right-2 p-1 bg-[var(--color-bg)]/60 hover:bg-[var(--color-bg)]/90 text-neutral-400 hover:text-[var(--color-text)] rounded-full transition-colors cursor-pointer"
                                       title="Reset to Default"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -1872,10 +2047,10 @@ export default function AdminPanel({
                       </div>
 
                       {/* Sub-section 3: Contact & Management Details */}
-                      <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
+                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
                         <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
                           <Info className="w-4 h-4 text-[#C9A227] accent-color" />
-                          <h3 className="font-serif text-sm tracking-widest text-white uppercase">Contact Details & Management</h3>
+                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Contact Details & Management</h3>
                         </div>
 
                         <div className="space-y-3">
@@ -1885,7 +2060,7 @@ export default function AdminPanel({
                               type="email"
                               value={contactSettings.email}
                               onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                             />
                           </div>
 
@@ -1895,7 +2070,7 @@ export default function AdminPanel({
                               type="text"
                               value={contactSettings.phone}
                               onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                             />
                           </div>
 
@@ -1905,7 +2080,82 @@ export default function AdminPanel({
                               type="text"
                               value={contactSettings.management}
                               onChange={(e) => setContactSettings({ ...contactSettings, management: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="button"
+                            onClick={saveContactSettingsAction}
+                            disabled={loadingAction}
+                            className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Update Contact Info</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: BIOGRAPHY */}
+              {activeTab === 'biography' && (
+                <div id="admin-biography-tab" className="space-y-8 pb-10">
+                  {loadingSettings ? (
+                    <div className="text-center py-10 text-neutral-500 text-xs">Loading application config...</div>
+                  ) : (
+                    <>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: BIOGRAPHY */}
+              {activeTab === 'biography' && (
+                <div id="admin-biography-tab" className="space-y-8 pb-10">
+                  {loadingSettings ? (
+                    <div className="text-center py-10 text-neutral-500 text-xs">Loading application config...</div>
+                  ) : (
+                    <>
+                      {/* Sub-section 3: Contact & Management Details */}
+                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
+                        <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
+                          <Info className="w-4 h-4 text-[#C9A227] accent-color" />
+                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Contact Details & Management</h3>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Official Artist Email</label>
+                            <input
+                              type="email"
+                              value={contactSettings.email}
+                              onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Management Office Phone</label>
+                            <input
+                              type="text"
+                              value={contactSettings.phone}
+                              onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Agency / Management Label Name</label>
+                            <input
+                              type="text"
+                              value={contactSettings.management}
+                              onChange={(e) => setContactSettings({ ...contactSettings, management: e.target.value })}
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                             />
                           </div>
                         </div>
@@ -1935,10 +2185,10 @@ export default function AdminPanel({
                   ) : (
                     <>
                       {/* Sub-section 2: Biography Text Editor */}
-                      <div className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
+                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
                         <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
                           <FileText className="w-4 h-4 text-[#C9A227] accent-color" />
-                          <h3 className="font-serif text-sm tracking-widest text-white uppercase">Biography Narratives</h3>
+                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Biography Narratives</h3>
                         </div>
 
                         {/* Intro texts */}
@@ -1952,9 +2202,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioIntro.EN}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioIntro: { ...bioSettings.bioIntro, EN: e.target.value }
+                                  bioIntro: { ...bioSettings.bioIntro, EN: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1964,9 +2214,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioIntro.DE}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioIntro: { ...bioSettings.bioIntro, DE: e.target.value }
+                                  bioIntro: { ...bioSettings.bioIntro, DE: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1976,9 +2226,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioIntro.KO}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioIntro: { ...bioSettings.bioIntro, KO: e.target.value }
+                                  bioIntro: { ...bioSettings.bioIntro, KO: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                           </div>
@@ -1995,9 +2245,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioLong.EN}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioLong: { ...bioSettings.bioLong, EN: e.target.value }
+                                  bioLong: { ...bioSettings.bioLong, EN: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                             <div className="space-y-1">
@@ -2007,9 +2257,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioLong.DE}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioLong: { ...bioSettings.bioLong, DE: e.target.value }
+                                  bioLong: { ...bioSettings.bioLong, DE: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                             <div className="space-y-1">
@@ -2019,9 +2269,9 @@ export default function AdminPanel({
                                 value={bioSettings.bioLong.KO}
                                 onChange={(e) => setBioSettings({
                                   ...bioSettings,
-                                  bioLong: { ...bioSettings.bioLong, KO: e.target.value }
+                                  bioLong: { ...bioSettings.bioLong, KO: e.target.value}
                                 })}
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white resize-none"
+                                className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)] resize-none"
                               />
                             </div>
                           </div>
@@ -2033,7 +2283,7 @@ export default function AdminPanel({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
                               {/* Computer File Upload Block */}
-                              <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+                              <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-[var(--color-bg)] hover:bg-[var(--color-bg)] transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -2064,11 +2314,11 @@ export default function AdminPanel({
                                   value={bioSettings.bioImage || ''}
                                   onChange={(e) => setBioSettings({ ...bioSettings, bioImage: e.target.value })}
                                   placeholder="https://..."
-                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-xs text-white"
+                                  className="w-full bg-[var(--color-bg)] border border-neutral-800 rounded px-3 py-2 text-xs text-[var(--color-text)]"
                                 />
                               </div>
                             </div>
-                            <div className="flex justify-center items-center bg-neutral-900/30 rounded border border-neutral-800 p-2 overflow-hidden h-[180px]">
+                            <div className="flex justify-center items-center bg-[var(--color-bg)] rounded border border-neutral-800 p-2 overflow-hidden h-[180px]">
                               {bioSettings.bioImage ? (
                                 <img src={bioSettings.bioImage} alt="Biography Preview" className="h-full w-auto object-cover rounded" />
                               ) : (
@@ -2118,14 +2368,14 @@ export default function AdminPanel({
                   {loadingMessages ? (
                     <div className="text-center py-10 text-neutral-500 text-xs font-sans">Loading inquiries...</div>
                   ) : messages.length === 0 ? (
-                    <div className="text-center py-16 border border-neutral-900 bg-neutral-950/40 rounded-sm">
+                    <div className="text-center py-16 border border-neutral-900 bg-[var(--color-bg)] rounded-sm">
                       <MessageSquare className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
                       <p className="text-sm text-neutral-500 tracking-wider font-sans">No customer inquiries recorded.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {messages.map((msg) => (
-                        <div key={msg.id} className="bg-neutral-950 p-4 border border-neutral-900 rounded-sm relative space-y-2">
+                        <div key={msg.id} className="bg-[var(--color-bg)] p-4 border border-neutral-900 rounded-sm relative space-y-2">
                           <button
                             id={`delete-msg-btn-${msg.id}`}
                             onClick={() => deleteMessage(msg.id!)}
@@ -2137,11 +2387,11 @@ export default function AdminPanel({
                             <span className="text-[10px] text-neutral-500 font-mono">
                               {new Date(msg.createdAt).toLocaleString()}
                             </span>
-                            <h4 className="text-xs md:text-sm font-sans font-medium text-white">
+                            <h4 className="text-xs md:text-sm font-sans font-medium text-[var(--color-text)]">
                               {msg.name} ({msg.email})
                             </h4>
                           </div>
-                          <p className="text-xs text-neutral-300 bg-black/30 p-3 rounded font-sans leading-relaxed whitespace-pre-wrap">
+                          <p className="text-xs text-neutral-300 bg-[var(--color-bg)]/30 p-3 rounded font-sans leading-relaxed whitespace-pre-wrap">
                             {msg.message}
                           </p>
                         </div>
@@ -2155,7 +2405,7 @@ export default function AdminPanel({
               {activeTab === 'slides' && (
                 <div id="admin-slides-tab" className="space-y-6">
                   {editingSlide ? (
-                    <form onSubmit={saveSlide} className="space-y-4 border border-neutral-900 bg-neutral-950 p-5 rounded">
+                    <form onSubmit={saveSlide} className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
                       <div className="flex justify-between items-center border-b border-neutral-900 pb-3">
                         <h3 className="font-serif text-sm tracking-widest text-[#C9A227] uppercase">
                           {editingSlide.id ? 'Edit Hero Performance' : 'Add New Hero Performance'}
@@ -2163,7 +2413,7 @@ export default function AdminPanel({
                         <button
                           type="button"
                           onClick={() => setEditingSlide(null)}
-                          className="text-neutral-400 hover:text-white text-xs cursor-pointer animate-none"
+                          className="text-neutral-400 hover:text-[var(--color-text)] text-xs cursor-pointer animate-none"
                         >
                           Cancel
                         </button>
@@ -2174,7 +2424,7 @@ export default function AdminPanel({
                           <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Slide Image/Video File or URL</label>
                           
                           {/* Computer File Upload Block */}
-                          <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+                          <div className="border border-dashed border-neutral-800 rounded-sm p-4 bg-[var(--color-bg)] hover:bg-[var(--color-bg)] transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
                             <input
                               type="file"
                               accept="image/*,video/*"
@@ -2186,20 +2436,20 @@ export default function AdminPanel({
                                   if (file.size > 800 * 1024) {
                                     triggerAlert('error', 'Video file is too large! Maximum 800KB allowed. Use a URL instead.');
                                     return;
-                                  }
+}
                                   const reader = new FileReader();
                                   reader.onload = (re) => {
                                     if (typeof re.target?.result === 'string') {
                                       setEditingSlide({ ...editingSlide, image: re.target.result, mediaType: 'video' });
                                       triggerAlert('success', 'Video processed successfully!');
-                                    }
+}
                                   };
                                   reader.readAsDataURL(file);
                                 } else {
                                   handleImageCropUpload(file, (base64) => {
                                     setEditingSlide({ ...editingSlide, image: base64, mediaType: 'image' });
                                   });
-                                }
+}
                                 e.target.value = '';
                               }}
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -2229,10 +2479,10 @@ export default function AdminPanel({
                                   type = 'youtube';
                                 } else if (val.match(/\.(mp4|webm|ogg)$/i)) {
                                   type = 'video';
-                                }
+}
                                 setEditingSlide({ ...editingSlide, image: val, mediaType: type });
                               }}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
                             />
                           </div>
 
@@ -2243,7 +2493,7 @@ export default function AdminPanel({
                               placeholder="e.g. center, center 35%, top"
                               value={editingSlide.bgPosition || 'center'}
                               onChange={(e) => setEditingSlide({ ...editingSlide, bgPosition: e.target.value })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-1.5 text-xs text-[var(--color-text)]"
                             />
                             <span className="text-[8px] text-neutral-500">Controls vertical alignment (only applies to static image slides).</span>
                           </div>
@@ -2252,7 +2502,7 @@ export default function AdminPanel({
                         {/* Slide Preview Block */}
                         <div className="space-y-1.5 flex flex-col">
                           <span className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Live Hero Slide Preview</span>
-                          <div className="flex-1 min-h-[180px] bg-neutral-900/20 border border-neutral-800 rounded-sm flex flex-col justify-end overflow-hidden relative group">
+                          <div className="flex-1 min-h-[180px] bg-[var(--color-bg)] border border-neutral-800 rounded-sm flex flex-col justify-end overflow-hidden relative group">
                             {editingSlide.image ? (
                               <>
                                 {(() => {
@@ -2295,21 +2545,21 @@ export default function AdminPanel({
                                         }}
                                       />
                                     );
-                                  }
+}
                                 })()}
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 to-transparent" />
                                 <div className="absolute bottom-3 left-3 right-3 z-10">
-                                  <span className="text-[8px] text-[#C9A227] bg-black/60 px-1 py-0.5 rounded font-sans tracking-widest uppercase">
+                                  <span className="text-[8px] text-[#C9A227] bg-[var(--color-bg)]/60 px-1 py-0.5 rounded font-sans tracking-widest uppercase">
                                     Preview Mode
                                   </span>
-                                  <h4 className="text-xs font-serif text-white tracking-wide mt-1">
+                                  <h4 className="text-xs font-serif text-[var(--color-text)] tracking-wide mt-1">
                                     Hero Performance Preview
                                   </h4>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => setEditingSlide({ ...editingSlide, image: '', mediaType: 'image' })}
-                                  className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/95 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer z-10"
+                                  className="absolute top-2 right-2 p-1 bg-[var(--color-bg)]/60 hover:bg-[var(--color-bg)]/95 text-neutral-400 hover:text-[var(--color-text)] rounded-full transition-colors cursor-pointer z-10"
                                   title="Clear Content"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -2337,9 +2587,9 @@ export default function AdminPanel({
                               value={editingSlide.production?.EN || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                production: { EN: e.target.value, DE: editingSlide.production?.DE || '', KO: editingSlide.production?.KO || '' }
+                                production: { EN: e.target.value, DE: editingSlide.production?.DE || '', KO: editingSlide.production?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2350,9 +2600,9 @@ export default function AdminPanel({
                               value={editingSlide.production?.DE || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                production: { DE: e.target.value, EN: editingSlide.production?.EN || '', KO: editingSlide.production?.KO || '' }
+                                production: { DE: e.target.value, EN: editingSlide.production?.EN || '', KO: editingSlide.production?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2363,9 +2613,9 @@ export default function AdminPanel({
                               value={editingSlide.production?.KO || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                production: { KO: e.target.value, EN: editingSlide.production?.EN || '', DE: editingSlide.production?.DE || '' }
+                                production: { KO: e.target.value, EN: editingSlide.production?.EN || '', DE: editingSlide.production?.DE || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                         </div>
@@ -2383,9 +2633,9 @@ export default function AdminPanel({
                               value={editingSlide.role?.EN || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                role: { EN: e.target.value, DE: editingSlide.role?.DE || '', KO: editingSlide.role?.KO || '' }
+                                role: { EN: e.target.value, DE: editingSlide.role?.DE || '', KO: editingSlide.role?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2396,9 +2646,9 @@ export default function AdminPanel({
                               value={editingSlide.role?.DE || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                role: { DE: e.target.value, EN: editingSlide.role?.EN || '', KO: editingSlide.role?.KO || '' }
+                                role: { DE: e.target.value, EN: editingSlide.role?.EN || '', KO: editingSlide.role?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2409,9 +2659,9 @@ export default function AdminPanel({
                               value={editingSlide.role?.KO || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                role: { KO: e.target.value, EN: editingSlide.role?.EN || '', DE: editingSlide.role?.DE || '' }
+                                role: { KO: e.target.value, EN: editingSlide.role?.EN || '', DE: editingSlide.role?.DE || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                         </div>
@@ -2429,9 +2679,9 @@ export default function AdminPanel({
                               value={editingSlide.house?.EN || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                house: { EN: e.target.value, DE: editingSlide.house?.DE || '', KO: editingSlide.house?.KO || '' }
+                                house: { EN: e.target.value, DE: editingSlide.house?.DE || '', KO: editingSlide.house?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2442,9 +2692,9 @@ export default function AdminPanel({
                               value={editingSlide.house?.DE || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                house: { DE: e.target.value, EN: editingSlide.house?.EN || '', KO: editingSlide.house?.KO || '' }
+                                house: { DE: e.target.value, EN: editingSlide.house?.EN || '', KO: editingSlide.house?.KO || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                           <div className="space-y-1">
@@ -2455,9 +2705,9 @@ export default function AdminPanel({
                               value={editingSlide.house?.KO || ''}
                               onChange={(e) => setEditingSlide({
                                 ...editingSlide,
-                                house: { KO: e.target.value, EN: editingSlide.house?.EN || '', DE: editingSlide.house?.DE || '' }
+                                house: { KO: e.target.value, EN: editingSlide.house?.EN || '', DE: editingSlide.house?.DE || ''}
                               })}
-                              className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-2.5 py-1.5 text-xs text-[var(--color-text)]"
                             />
                           </div>
                         </div>
@@ -2467,7 +2717,7 @@ export default function AdminPanel({
                         <button
                           type="button"
                           onClick={() => setEditingSlide(null)}
-                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-white text-xs font-semibold uppercase cursor-pointer"
+                          className="px-4 py-2 border border-neutral-800 hover:border-neutral-600 rounded text-neutral-400 hover:text-[var(--color-text)] text-xs font-semibold uppercase cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -2500,15 +2750,15 @@ export default function AdminPanel({
                       {loadingSlides ? (
                         <div className="text-center py-10 text-neutral-500 text-xs font-sans">Loading slides...</div>
                       ) : slides.length === 0 ? (
-                        <div className="text-center py-12 border border-neutral-900 bg-neutral-950/40 rounded-sm">
+                        <div className="text-center py-12 border border-neutral-900 bg-[var(--color-bg)] rounded-sm">
                           <Image className="w-10 h-10 text-neutral-600 mx-auto mb-3 animate-none" />
                           <p className="text-sm text-neutral-500 tracking-wider font-sans">No custom performances. Using fallback defaults.</p>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {slides.map((s) => (
-                            <div key={s.id} className="bg-neutral-950 border border-neutral-900 rounded overflow-hidden flex flex-col relative group">
-                              <div className="h-32 w-full bg-neutral-900 relative">
+                          {slides.map((s, index) => (
+                            <div key={s.id} className="bg-[var(--color-bg)] border border-neutral-900 rounded overflow-hidden flex flex-col relative group">
+                              <div className="h-32 w-full bg-[var(--color-bg)] relative">
                                 <img
                                   src={s.image}
                                   alt={s.production[currentLang]}
@@ -2517,10 +2767,10 @@ export default function AdminPanel({
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 to-transparent" />
                                 <div className="absolute bottom-3 left-3 right-3">
-                                  <span className="text-[9px] text-[#C9A227] bg-black/50 px-1.5 py-0.5 rounded font-sans tracking-widest uppercase">
+                                  <span className="text-[9px] text-[#C9A227] bg-[var(--color-bg)]/50 px-1.5 py-0.5 rounded font-sans tracking-widest uppercase">
                                     {s.role[currentLang]}
                                   </span>
-                                  <h4 className="text-sm font-serif text-white tracking-wide mt-1 line-clamp-1">
+                                  <h4 className="text-sm font-serif text-[var(--color-text)] tracking-wide mt-1 line-clamp-1">
                                     {s.production[currentLang]}
                                   </h4>
                                 </div>
@@ -2531,11 +2781,25 @@ export default function AdminPanel({
                                   {s.house[currentLang]}
                                 </p>
 
-                                <div className="flex justify-end space-x-2 border-t border-neutral-900 pt-3">
+                                                                <div className="flex justify-end space-x-2 border-t border-neutral-900 pt-3">
+                                  <button
+                                    disabled={index === 0}
+                                    onClick={() => moveItemOrder('selected_performances', slides, index, 'up', fetchSlidesList, setSlides)}
+                                    className="p-1.5 text-neutral-400 hover:text-[var(--color-text)] transition-all cursor-pointer hover:bg-[var(--color-bg)] rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                  >
+                                    <ChevronUp className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    disabled={index === slides.length - 1}
+                                    onClick={() => moveItemOrder('selected_performances', slides, index, 'down', fetchSlidesList, setSlides)}
+                                    className="p-1.5 text-neutral-400 hover:text-[var(--color-text)] transition-all cursor-pointer hover:bg-[var(--color-bg)] rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                  >
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  </button>
                                   <button
                                     id={`edit-slide-btn-${s.id}`}
                                     onClick={() => setEditingSlide(s)}
-                                    className="p-1.5 text-neutral-400 hover:text-[#C9A227] transition-all cursor-pointer hover:bg-neutral-900/60 rounded"
+                                    className="p-1.5 text-neutral-400 hover:text-[#C9A227] transition-all cursor-pointer hover:bg-[var(--color-bg)] rounded"
                                     title="Edit Slide"
                                   >
                                     <Edit className="w-3.5 h-3.5" />
@@ -2543,7 +2807,7 @@ export default function AdminPanel({
                                   <button
                                     id={`delete-slide-btn-${s.id}`}
                                     onClick={() => deleteSlide(s.id!)}
-                                    className="p-1.5 text-neutral-400 hover:text-rose-400 transition-all cursor-pointer hover:bg-neutral-900/60 rounded"
+                                    className="p-1.5 text-neutral-400 hover:text-rose-400 transition-all cursor-pointer hover:bg-[var(--color-bg)] rounded"
                                     title="Delete Slide"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -2558,12 +2822,9 @@ export default function AdminPanel({
                   )}
                 </div>
               )}
-
             </div>
           </div>
-
         )}
-
         {cropTarget && (
           <ImageCropperModal
             imageSrc={cropTarget.src}
@@ -2576,4 +2837,3 @@ export default function AdminPanel({
     </div>
   );
 }
-

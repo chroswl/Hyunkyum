@@ -35,15 +35,16 @@ export function getYouTubeParams(url: string): { id: string; start: number } {
 /**
  * Checks if a URL is a Google Drive share link and returns the file ID.
  */
-export function getGoogleDriveParams(url: string): { isDrive: boolean; id: string; streamUrl: string } {
-  if (!url) return { isDrive: false, id: '', streamUrl: '' };
+export function getGoogleDriveParams(url: string): { isDrive: boolean; id: string; previewUrl: string; streamUrl: string } {
+  if (!url) return { isDrive: false, id: '', previewUrl: '', streamUrl: '' };
 
   const isDrive = url.includes('drive.google.com');
   const fileIdMatch = url.match(/\/file\/d\/([^\/]+)/) || url.match(/[?&]id=([^&]+)/);
   const id = fileIdMatch ? fileIdMatch[1] : '';
+  const previewUrl = id ? `https://drive.google.com/file/d/${id}/preview` : '';
   const streamUrl = id ? `https://docs.google.com/uc?export=download&id=${id}` : '';
 
-  return { isDrive, id, streamUrl };
+  return { isDrive, id, previewUrl, streamUrl };
 }
 
 /**
@@ -54,8 +55,11 @@ export function getMediaSource(url: string, explicitType?: 'image' | 'video' | '
 
   const drive = getGoogleDriveParams(url);
   if (drive.isDrive) {
-    // Google Drive videos can be directly streamed via native video element using the streamUrl!
-    return { type: 'video' as const, src: drive.streamUrl };
+    if (explicitType === 'video') {
+      return { type: 'video' as const, src: drive.streamUrl };
+    }
+    // Google Drive videos should be embedded via iframe for reliable playback (avoids virus scan blocks)
+    return { type: 'drive' as const, src: drive.previewUrl };
   }
 
   const yt = getYouTubeParams(url);

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Tv, Disc, Award } from 'lucide-react';
+import { Play, Tv, Disc, Award, Video } from 'lucide-react';
 import { VideoItem, Language } from '../types';
 import { translations } from '../translations';
+import { getMediaSource } from '../lib/mediaUtils';
 
 interface VideoPlayerProps {
   items: VideoItem[];
@@ -35,9 +36,9 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
 
   if (items.length === 0 || !activeVideo) {
     return (
-      <div id="video-player-loading" className="w-full py-24 text-center border border-neutral-900 rounded bg-neutral-950/20 animate-pulse">
+      <div id="video-player-loading" className="w-full py-24 text-center border border-neutral-900 rounded bg-[var(--color-bg)] animate-pulse">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-[1px] bg-neutral-800" />
+          <div className="w-12 h-[1px] bg-[var(--color-bg)]" />
           <span className="text-[10px] tracking-[0.3em] text-neutral-400 uppercase font-sans">
             Loading Repertoire Videos...
           </span>
@@ -46,21 +47,27 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
     );
   }
 
+  const media = getMediaSource(activeVideo.youtubeId);
+  const isYouTube = media.type === 'youtube' && media.ytId;
+
   return (
     <div id="video-player-root" className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Left Column: Main Theater Screen (8 cols) */}
       <div id="video-screen-container" className="lg:col-span-8 space-y-4">
-        <div className="relative aspect-video w-full bg-neutral-950 rounded-sm overflow-hidden border border-neutral-900 group shadow-2xl">
+        <div className="relative aspect-video w-full bg-[var(--color-bg)] rounded-sm overflow-hidden border border-neutral-900 group shadow-2xl">
           {/* Immersive Theater overlay when not active */}
           {!isPlaying ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url('https://img.youtube.com/vi/${activeVideo.youtubeId}/maxresdefault.jpg')` }}>
-              <div className="absolute inset-0 bg-black/75 transition-all duration-500 group-hover:bg-black/70" />
+            <div 
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cover bg-center" 
+              style={isYouTube ? { backgroundImage: `url('https://img.youtube.com/vi/${media.ytId}/maxresdefault.jpg')` } : { backgroundColor: '#111' }}
+            >
+              <div className="absolute inset-0 bg-[var(--color-bg)]/75 transition-all duration-500 group-hover:bg-[var(--color-bg)]/70" />
               <motion.button
                 id="play-button"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsPlaying(true)}
-                className="relative z-10 w-16 h-16 md:w-20 md:h-20 bg-white hover:bg-neutral-200 rounded-full flex items-center justify-center text-black shadow-lg cursor-pointer transition-all duration-300"
+                className="relative z-10 w-16 h-16 md:w-20 md:h-20 bg-white hover:bg-[var(--color-bg)] rounded-full flex items-center justify-center text-black shadow-lg cursor-pointer transition-all duration-300"
                 aria-label="Play Performance Video"
               >
                 <Play className="w-8 h-8 fill-black translate-x-0.5" />
@@ -69,7 +76,7 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
                 <span className="text-[10px] tracking-[0.3em] text-neutral-400 uppercase font-semibold block mb-1">
                   {t.watchNow}
                 </span>
-                <h3 className="text-lg md:text-xl font-serif font-light text-white tracking-wide">
+                <h3 className="text-lg md:text-xl font-serif font-light text-[var(--color-text)] tracking-wide">
                   {activeVideo.title[currentLang] || activeVideo.title['EN']}
                 </h3>
                 {activeVideo.role && (
@@ -80,14 +87,34 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
               </div>
             </div>
           ) : (
-            <iframe
-              id="youtube-iframe"
-              src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-              title={activeVideo.title[currentLang] || activeVideo.title['EN']}
-              className="absolute inset-0 w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            isYouTube ? (
+              <iframe
+                id="youtube-iframe"
+                src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&rel=0&modestbranding=1${media.start ? `&start=${media.start}` : ''}`}
+                title={activeVideo.title[currentLang] || activeVideo.title['EN']}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : media.type === 'drive' ? (
+              <iframe
+                id="drive-iframe"
+                src={media.src}
+                title={activeVideo.title[currentLang] || activeVideo.title['EN']}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="autoplay"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                src={media.src}
+                autoPlay
+                controls
+                playsInline
+                className="absolute inset-0 w-full h-full object-contain bg-[var(--color-bg)]"
+                onEnded={() => setIsPlaying(false)}
+              />
+            )
           )}
         </div>
       </div>
@@ -110,8 +137,8 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
                 }}
                 className={`w-full text-left p-4 rounded-sm border transition-all duration-300 flex items-start space-x-3.5 group cursor-pointer ${
                   isSelected
-                    ? 'bg-neutral-900 border-white text-white shadow-md'
-                    : 'bg-neutral-950 border-neutral-900 text-neutral-400 hover:bg-neutral-900/40 hover:border-neutral-800 hover:text-white'
+                    ? 'bg-[var(--color-bg)] border-white text-[var(--color-text)] shadow-md'
+                    : 'bg-[var(--color-bg)] border-neutral-900 text-neutral-400 hover:bg-[var(--color-bg)] hover:border-neutral-800 hover:text-[var(--color-text)]'
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
@@ -119,7 +146,7 @@ export default function VideoPlayer({ items, currentLang }: VideoPlayerProps) {
                 </div>
                 <div className="space-y-1">
                   <h4 className={`text-xs md:text-sm font-sans tracking-wide transition-colors ${
-                    isSelected ? 'text-white font-bold' : 'text-neutral-300 group-hover:text-white'
+                    isSelected ? 'text-[var(--color-text)] font-bold' : 'text-neutral-300 group-hover:text-[var(--color-text)]'
                   }`}>
                     {video.title[currentLang] || video.title['EN']}
                   </h4>
