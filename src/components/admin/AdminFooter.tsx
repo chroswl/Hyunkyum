@@ -6,11 +6,13 @@ import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertyTextarea } from './PropertyFields';
 import { translations } from '../../translations';
 import { Instagram, Youtube, Facebook, Twitter, Lock, Mail } from 'lucide-react';
+import { LegalModal } from '../LegalModals';
 
 export default function AdminFooter({ currentLang }: { currentLang: Language }) {
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
   const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [openModal, setOpenModal] = useState<'impressum' | 'privacy' | null>(null);
 
   useEffect(() => {
     fetchThemeSettings().then(data => {
@@ -142,9 +144,9 @@ export default function AdminFooter({ currentLang }: { currentLang: Language }) 
             )}
           </div>
           <div className="flex items-center space-x-3 opacity-60">
-            <span className="uppercase tracking-widest text-[9px]">Impressum</span>
+            <button onClick={() => setOpenModal('impressum')} className="uppercase tracking-widest text-[9px] hover:text-white">Impressum</button>
             <span>|</span>
-            <span className="uppercase tracking-widest text-[9px]">Privacy Policy</span>
+            <button onClick={() => setOpenModal('privacy')} className="uppercase tracking-widest text-[9px] hover:text-white">Privacy Policy</button>
           </div>
         </div>
 
@@ -167,6 +169,15 @@ export default function AdminFooter({ currentLang }: { currentLang: Language }) 
           </div>
         </div>
       </div>
+      {openModal && (
+        <LegalModal
+          isOpen={!!openModal}
+          onClose={() => setOpenModal(null)}
+          type={openModal}
+          currentLang={currentLang}
+          theme={theme}
+        />
+      )}
     </div>
   );
 

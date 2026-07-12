@@ -34,7 +34,7 @@ export default function AdminLayout({
            </div>
         </div>
         <div className="flex-1 overflow-hidden bg-neutral-950 p-6 flex flex-col relative items-center justify-center">
-           <div className="w-full h-full flex flex-col bg-black border border-neutral-900 rounded-lg overflow-hidden shadow-2xl relative max-w-[1400px]">
+           <div className="w-full h-full flex flex-col bg-black border border-neutral-900 rounded-lg overflow-hidden shadow-2xl relative">
               {preview}
            </div>
         </div>

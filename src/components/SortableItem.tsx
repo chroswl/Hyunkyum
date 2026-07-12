@@ -9,10 +9,11 @@ interface SortableItemProps {
   className?: string;
   handleClassName?: string;
   handleType?: 'icon' | 'full';
+  onClick?: () => void;
 }
 
 export const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
-  ({ id, children, className, handleClassName, handleType = 'icon' }, _ref) => {
+  ({ id, children, className, handleClassName, handleType = 'icon', onClick }, _ref) => {
     const {
       attributes,
       listeners,
@@ -37,6 +38,7 @@ export const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
           {...attributes} 
           {...listeners} 
           className={`${className || ''} ${isDragging ? 'opacity-50 shadow-2xl scale-105 z-50' : ''}`}
+          onClick={onClick}
         >
           {children}
         </div>
@@ -48,6 +50,7 @@ export const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
         ref={setNodeRef} 
         style={style} 
         className={`${className || ''} ${isDragging ? 'opacity-50 shadow-2xl scale-[1.02] z-50 bg-neutral-900/50' : ''}`}
+        onClick={onClick}
       >
         <button 
           type="button"
