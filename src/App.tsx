@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
- ChevronDown, MapPin, Calendar, Mail, Phone, Instagram, Youtube, 
- BookOpen, Trophy, Compass, Star, Lock, Info, ExternalLink
+ ChevronDown, ChevronUp, MapPin, Calendar, Mail, Phone, Instagram, Youtube, 
+ Lock, Info, ExternalLink,
+ Sliders, AlignCenter, AlignLeft, AlignRight, Save, Edit3, X, Facebook, Twitter
 } from 'lucide-react';
 import { Language, ScheduleItem, PortfolioItem, VideoItem, ThemeSettings, BiographySettings, ContactSettings, PressItem, PerformanceSlide } from './types';
 import { translations } from './translations';
@@ -16,7 +17,8 @@ import {
  fetchThemeSettings,
  fetchBiographySettings,
  fetchContactSettings,
- fetchSelectedPerformances
+ fetchSelectedPerformances,
+ saveThemeSettings
 } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
@@ -25,20 +27,59 @@ import Navbar from './components/Navbar';
 import PortfolioGallery from './components/PortfolioGallery';
 import VideoPlayer from './components/VideoPlayer';
 import ScheduleSection from './components/ScheduleSection';
-import ContactForm from './components/ContactForm';
+import ContactSection from './components/ContactSection';
 import AdminPanel from './components/AdminPanel';
+import BiographySection from './components/BiographySection';
 import SelectedPerformances from './components/SelectedPerformances';
 import PressSection from './components/PressSection';
 import { LegalModal } from './components/LegalModals';
 import Reveal from './components/Reveal';
+import HeroEditorPanel from './components/HeroEditorPanel';
 import { getMediaSource } from './lib/mediaUtils';
 
+const getInitialLang = (): Language => {
+  try {
+    const saved = localStorage.getItem('preferredLang');
+    if (saved === 'EN' || saved === 'DE' || saved === 'KO') {
+      return saved as Language;
+    }
+    
+    const browserLangs = navigator.languages || [navigator.language];
+    for (let lang of browserLangs) {
+      if (!lang) continue;
+      const lowerLang = lang.toLowerCase();
+      if (lowerLang.startsWith('de')) {
+        localStorage.setItem('preferredLang', 'DE');
+        return 'DE';
+      }
+      if (lowerLang.startsWith('ko')) {
+        localStorage.setItem('preferredLang', 'KO');
+        return 'KO';
+      }
+    }
+    
+    localStorage.setItem('preferredLang', 'EN');
+  } catch (e) {
+    // Ignore localStorage errors in restricted iframes
+  }
+  return 'EN';
+};
+
 export default function App() {
- const [currentLang, setLang] = useState<Language>('EN');
+ const [currentLang, setLangState] = useState<Language>(getInitialLang);
+
+ const setLang = (lang: Language) => {
+   setLangState(lang);
+   try {
+     localStorage.setItem('preferredLang', lang);
+   } catch (e) {}
+ };
  const [user, setUser] = useState<User | null>(null);
  const [isAdminOpen, setIsAdminOpen] = useState(false);
- const [activeTimelineTab, setActiveTimelineTab] = useState<'education' | 'awards' | 'roles' | 'concert'>('education');
- const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'impressum' | 'privacy' }>({ isOpen: false, type: 'impressum' });
+ 
+ const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(false);
+ const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'impressum' | 'privacy' }>({ isOpen: false, type: 'impressum' });
 
  // Database States
  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
@@ -47,9 +88,33 @@ export default function App() {
  const [pressItems, setPressItems] = useState<PressItem[]>([]);
  const [isLoading, setIsLoading] = useState(true);
  const [slides, setSlides] = useState<PerformanceSlide[]>([]);
+ const [activeEditSection, setActiveEditSection] = useState<'none' | 'hero' | 'slides' | 'biography' | 'press' | 'gallery' | 'videos' | 'schedule'>('none');
 
  // Dynamic CMS States with default placeholders
  const [theme, setTheme] = useState<ThemeSettings>({ bg: '#000000', text: '#ffffff', accent: '#ffffff' });
+  const initialThemeRef = useRef<ThemeSettings | null>(null);
+ const [isEditingHeroText, setIsEditingHeroText] = useState(false);
+ const [heroEditorMessage, setHeroEditorMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+ const [isHeroEditorExpanded, setIsHeroEditorExpanded] = useState(() => {
+   const saved = sessionStorage.getItem('heroEditorExpanded');
+   return saved ? JSON.parse(saved) : true;
+ });
+ useEffect(() => {
+   sessionStorage.setItem('heroEditorExpanded', JSON.stringify(isHeroEditorExpanded));
+ }, [isHeroEditorExpanded]);
+
+ const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+   const saved = sessionStorage.getItem('heroEditorSections');
+   return saved ? JSON.parse(saved) : {};
+ });
+ const toggleSection = (id: string) => {
+   setExpandedSections(prev => {
+     const next = { ...prev, [id]: !prev[id] };
+     sessionStorage.setItem('heroEditorSections', JSON.stringify(next));
+     return next;
+   });
+ };
+
  const [bio, setBio] = useState<BiographySettings>({
  bioIntro: { EN: '', DE: '', KO: '' },
  bioLong: { EN: '', DE: '', KO: '' }
@@ -99,8 +164,70 @@ export default function App() {
  };
  }, []);
 
- const loadAllData = async () => {
- setIsLoading(true);
+ useEffect(() => {
+  const video = heroVideoRef.current;
+  if (!video) return;
+
+  // Force muted on mount/update
+  video.muted = true;
+  video.defaultMuted = true;
+
+  const playVideo = () => {
+    video.play()
+      .then(() => {
+        setIsHeroVideoPlaying(true);
+      })
+      .catch((err) => {
+        console.log("Autoplay prevented, waiting for interaction:", err);
+      });
+  };
+
+  // Try playing immediately
+  playVideo();
+
+  // Re-try on any user interaction with the window/document
+  const handleInteraction = () => {
+    if (video.paused) {
+      video.play()
+        .then(() => {
+          setIsHeroVideoPlaying(true);
+          removeInteractionListeners();
+        })
+        .catch((err) => {
+          console.log("Interaction play failed:", err);
+        });
+    } else {
+      setIsHeroVideoPlaying(true);
+      removeInteractionListeners();
+    }
+  };
+
+  const removeInteractionListeners = () => {
+    window.removeEventListener('click', handleInteraction);
+    window.removeEventListener('touchstart', handleInteraction);
+    window.removeEventListener('scroll', handleInteraction);
+  };
+
+  const handlePlayEvent = () => {
+    setIsHeroVideoPlaying(true);
+  };
+
+  video.addEventListener('playing', handlePlayEvent);
+  video.addEventListener('play', handlePlayEvent);
+
+  window.addEventListener('click', handleInteraction, { passive: true });
+  window.addEventListener('touchstart', handleInteraction, { passive: true });
+  window.addEventListener('scroll', handleInteraction, { passive: true });
+
+  return () => {
+    removeInteractionListeners();
+    video.removeEventListener('playing', handlePlayEvent);
+    video.removeEventListener('play', handlePlayEvent);
+  };
+ }, [theme.homeBg, theme.homeBgType]);
+
+ const loadAllData = async (showLoadingScreen = true) => {
+ if (showLoadingScreen) setIsLoading(true);
  try {
  const [sch, port, vids, press, themeData, bioData, contactData, sld] = await Promise.all([
  fetchSchedule(),
@@ -117,13 +244,14 @@ export default function App() {
  setVideoItems(vids);
  setPressItems(press);
  setTheme(themeData);
+        initialThemeRef.current = themeData;
  setBio(bioData);
  setContact(contactData);
  setSlides(sld);
  } catch (error) {
  console.error("Error loading database content:", error);
  } finally {
- setIsLoading(false);
+ if (showLoadingScreen) setIsLoading(false);
  }
  };
 
@@ -203,12 +331,27 @@ export default function App() {
  };
 
  // Timeline category definitions
- const timelineTabs = [
- { id: 'education', label: t.eduTitle, icon: <BookOpen className="w-4 h-4" /> },
- { id: 'awards', label: t.awardsTitle, icon: <Trophy className="w-4 h-4" /> },
- { id: 'roles', label: t.rolesTitle, icon: <Compass className="w-4 h-4" /> },
- { id: 'concert', label: t.concertTitle, icon: <Star className="w-4 h-4" /> }
- ];
+ 
+
+ if (isLoading) {
+  return (
+   <div 
+    id="loading-container" 
+    className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white font-sans"
+    style={{ backgroundColor: theme.bg || "#000000", color: theme.text || "#ffffff" }}
+   >
+    <div className="relative flex flex-col items-center">
+     <div className="w-16 h-16 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: theme.accent || "#C9A227", borderTopColor: "transparent" }} />
+     <h1 className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
+      HYUNKYUM KIM
+     </h1>
+     <p className="text-xs tracking-wider opacity-60 uppercase font-mono">
+      Loading...
+     </p>
+    </div>
+   </div>
+  );
+ }
 
  return (
  <div id="app-container" className="min-h-screen bg-transparent font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme.bg, color: theme.text }}>
@@ -222,23 +365,61 @@ export default function App() {
  --color-accent: ${theme.accent};
  --color-contact-bg: ${theme.contactFormBg || '#0a0a0a'};
  }
+ 
+ /* Apply Background Color to Public Website Sections */
  body, html, #app-container, #biography, #contact, #videos, #main-footer, #navbar-root, #press, #portfolio, #schedule {
  background-color: ${theme.bg} !important;
- color: ${theme.text} !important;
  }
- 
- /* Fonts overrides */
- ${theme.fontSans ? `body, html, #app-container, .font-sans, p, span, input, textarea, button, select { font-family: "${theme.fontSans}", sans-serif !important; }` : ''}
- ${theme.fontSerif ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: "${theme.fontSerif}", serif !important; }` : ''}
- ${theme.fontMono ? `.font-mono { font-family: "${theme.fontMono}", monospace !important; }` : ''}
- ${theme.fontNavbar ? `#navbar-root, .navbar-item, .nav-link, .nav-font { font-family: "${theme.fontNavbar}", sans-serif !important; }` : ''}
+
+ /* Global website text color overrides (Applying theme.text to all public sections and items) */
+ #navbar-root, #navbar-root *,
+ #home, #home *,
+ #biography, #biography *,
+ #press, #press *,
+ #portfolio, #portfolio *,
+ #videos, #videos *,
+ #schedule, #schedule *,
+ #contact, #contact *,
+ #main-footer, #main-footer *,
+ #app-container, #app-container * {
+   color: ${theme.text};
+ }
+
+ /* Specific Sticky Navbar Styling with Opacity/Blur and Custom Scroll Background */
+ #navbar-root {
+   background-color: ${theme.bg ? `${theme.bg}e6` : 'rgba(0,0,0,0.85)'} !important; /* e6 is ~90% opacity */
+   backdrop-filter: blur(12px);
+   border-color: ${theme.text}1a !important; /* light 10% opacity border */
+ }
+ #desktop-menu button, .nav-link {
+   color: ${theme.text} !important;
+   opacity: 0.65;
+   transition: all 0.3s ease;
+ }
+ #desktop-menu button:hover, .nav-link:hover {
+   opacity: 1 !important;
+ }
+ #desktop-menu button[id^="nav-link-"].text-white, .nav-link.text-white {
+   opacity: 1 !important;
+   font-weight: 700 !important;
+ }
+
+ /* Unified Font Override (Applies website-wide unified font except for the Admin Panel) */
+ ${theme.fontSans ? `
+   body, html, #app-container, #navbar-root, .navbar-item, .nav-link, .nav-font, p, span, h1, h2, h3, h4, h5, h6, input, textarea, button, select, a, li, label, .font-sans, .font-serif, .font-mono { 
+     font-family: "${theme.fontSans}", sans-serif !important; 
+   }
+ ` : ''}
 
  /* Slider (Selected Performances) text label color override */
  ${theme.colorHeroSlideText ? `
-   #perf-slide-section .text-neutral-400, 
-   #perf-slide-section .text-neutral-300, 
-   #perf-slide-section span, 
-   #perf-slide-section p {
+   #performances-slider-root,
+   #performances-slider-root h3,
+   #performances-slider-root p,
+   #performances-slider-root span,
+   #performances-slider-root div,
+   #performances-slider-root button,
+   #performances-slider-root svg {
      color: ${theme.colorHeroSlideText} !important;
    }
  ` : ''}
@@ -298,6 +479,16 @@ export default function App() {
  ::-webkit-scrollbar-thumb:hover {
  background: ${theme.accent} !important;
  }
+
+ /* EXCLUDE ADMIN PANEL - COMPLETELY PROTECT IT FROM OVERRIDES */
+ .admin-panel-exclude, 
+ .admin-panel-exclude *, 
+ [id^="admin-"], 
+ [id^="admin-"] *, 
+ #admin-panel-backdrop, 
+ #admin-panel-backdrop * {
+   font-family: 'Inter', sans-serif !important;
+ }
  `}</style>
 
  {/* 1. STICKY NAVBAR */}
@@ -306,23 +497,89 @@ export default function App() {
  setLang={setLang} 
  user={user}
  onAdminToggle={() => setIsAdminOpen(true)}
+	theme={theme}
  />
 
  {/* 2. HERO / HOME SECTION */}
  <section 
  id="home" 
- className="relative h-screen flex items-center justify-center overflow-hidden"
+ className={`relative h-screen flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'} overflow-hidden`}
  >
+  {user && (activeEditSection === 'none' || activeEditSection === 'hero') && (
+    <div className="absolute top-24 left-6 right-6 z-50 flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 border border-white/10 rounded-lg">
+      <div className="flex items-center space-x-3">
+        <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+          ADMIN ACCESS
+        </span>
+      </div>
+      <div className="flex items-center space-x-3">
+        {activeEditSection !== 'hero' ? (
+          <button
+            type="button"
+            onClick={() => setActiveEditSection('hero')}
+            className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+            <span>Edit Hero</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setActiveEditSection('none')}
+            className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+          >
+            <X className="w-3 h-3" />
+            <span>Exit Edit Mode</span>
+          </button>
+        )}
+      </div>
+    </div>
+  )}
+
+  {user && activeEditSection === 'hero' && !isAdminOpen && (
+    <HeroEditorPanel 
+      theme={theme}
+      setTheme={setTheme}
+      isEditingText={isEditingHeroText}
+      setIsEditingText={setIsEditingHeroText}
+      onSave={async () => {
+        try {
+          await saveThemeSettings(theme);
+          initialThemeRef.current = theme;
+          window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
+          setActiveEditSection('none');
+          setIsEditingHeroText(false);
+        } catch (err) {
+          console.error("Failed to save theme:", err);
+        }
+      }}
+      onReset={() => {
+        if (initialThemeRef.current) {
+          setTheme(initialThemeRef.current);
+        }
+      }}
+      initialTheme={initialThemeRef.current}
+    />
+  )}
+
  {/* Background opera stage image or video */}
  {(() => {
  const media = getMediaSource(theme.homeBg || '', theme.homeBgType as any);
  if (media.type === 'video') {
  return (
+ <div className="absolute inset-0 w-full h-full pointer-events-none">
  <video
+ ref={(el) => {
+   heroVideoRef.current = el;
+   if (el) {
+     el.muted = true;
+   }
+ }}
  autoPlay
  loop
  muted
  playsInline
+ preload="auto"
  className="absolute inset-0 w-full h-full object-cover animate-kenburns pointer-events-none"
  src={media.src}
  onCanPlay={(e) => {
@@ -330,7 +587,22 @@ export default function App() {
  console.log("Home video autoplay prevented:", err);
  });
  }}
+ onLoadStart={() => setIsHeroVideoPlaying(false)}
+ onLoadedData={() => setIsHeroVideoPlaying(true)}
+ onPlaying={() => setIsHeroVideoPlaying(true)}
  />
+ <AnimatePresence>
+ {!isHeroVideoPlaying && (
+ <motion.div
+ initial={{ opacity: 1 }}
+ exit={{ opacity: 0 }}
+ transition={{ duration: 0.8, ease: "easeInOut" }}
+ className="absolute inset-0 z-10 pointer-events-none"
+ style={{ backgroundColor: theme.bg || '#000000' }}
+ />
+ )}
+ </AnimatePresence>
+ </div>
  );
  } else if (media.type === 'youtube') {
  return (
@@ -361,51 +633,194 @@ export default function App() {
  <div id="hero-overlay" className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/45 to-black" />
 
  {/* Hero Content */}
- <div id="hero-content" className="relative z-10 text-center px-6 max-w-4xl space-y-6">
- <motion.p 
- initial={{ opacity: 0, y: 15 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 1 }}
- className=" font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold"
+ <div 
+   id="hero-content" 
+   className={`relative z-10 px-6 max-w-4xl space-y-6 flex flex-col transition-all duration-300 ${
+     theme.heroAlign === 'left' ? 'text-left items-start mr-auto' :
+     theme.heroAlign === 'right' ? 'text-right items-end ml-auto' :
+     'text-center items-center mx-auto'
+   }`}
+   style={{ 
+     transform: `translateY(${theme.heroOffsetY || 0}px)`
+   }}
  >
- {getHeroSubtitle()}
- </motion.p>
- 
- <motion.h1 
- initial={{ opacity: 0, scale: 0.98 }}
- animate={{ opacity: 1, scale: 1 }}
- transition={{ duration: 1.2, delay: 0.2 }}
- className="text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none"
- >
- {getHeroTitle()}
- </motion.h1>
+   {/* Subtitle */}
+   <motion.div
+     drag={isEditingHeroText}
+     dragMomentum={false}
+     onDragEnd={(e, info) => {
+       setTheme(prev => ({
+         ...prev,
+         heroSubtitleOffsetX: (prev.heroSubtitleOffsetX || 0) + info.offset.x,
+         heroSubtitleOffsetY: (prev.heroSubtitleOffsetY || 0) + info.offset.y
+       }));
+     }}
+     initial={{ opacity: 0, y: 15 + (theme.heroSubtitleOffsetY || 0), x: theme.heroSubtitleOffsetX || 0 }}
+     animate={{ opacity: 1, y: theme.heroSubtitleOffsetY || 0, x: theme.heroSubtitleOffsetX || 0 }}
+     transition={isEditingHeroText ? { duration: 0 } : { duration: 1 }}
+     className={`font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     style={{ fontSize: theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined }}
+   >
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Subtitle</span>}
+     {isEditingHeroText ? (
+       <input
+         type="text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
+         style={{ textAlign: theme.heroAlign || 'center' }}
+         value={currentLang === 'KO' ? (theme.heroSubtitleKO ?? '') : currentLang === 'DE' ? (theme.heroSubtitleDE ?? '') : (theme.heroSubtitle ?? '')}
+         onPointerDownCapture={(e) => e.stopPropagation()}
+         onChange={(e) => {
+           const val = e.target.value;
+           setTheme(prev => ({
+             ...prev,
+             [currentLang === 'KO' ? 'heroSubtitleKO' : currentLang === 'DE' ? 'heroSubtitleDE' : 'heroSubtitle']: val
+           }));
+         }}
+       />
+     ) : (
+       getHeroSubtitle()
+     )}
+   </motion.div>
 
- <motion.p 
- initial={{ opacity: 0, y: 15 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 1, delay: 0.4 }}
- className=" font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl mx-auto uppercase pt-6"
- >
- {getHeroDescription()}
- </motion.p>
+   {/* Main Title */}
+   <motion.div
+     drag={isEditingHeroText}
+     dragMomentum={false}
+     onDragEnd={(e, info) => {
+       setTheme(prev => ({
+         ...prev,
+         heroTitleOffsetX: (prev.heroTitleOffsetX || 0) + info.offset.x,
+         heroTitleOffsetY: (prev.heroTitleOffsetY || 0) + info.offset.y
+       }));
+     }}
+     initial={{ opacity: 0, scale: 0.98, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
+     animate={{ opacity: 1, scale: 1, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
+     transition={isEditingHeroText ? { duration: 0 } : { duration: 1.2, delay: 0.2 }}
+     className={`text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     style={{ fontSize: theme.heroTitleSize ? `${theme.heroTitleSize}px` : undefined }}
+   >
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Main Title</span>}
+     {isEditingHeroText ? (
+       <input
+         type="text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
+         style={{ textAlign: theme.heroAlign || 'center' }}
+         value={currentLang === 'KO' ? (theme.heroTitleKO ?? '') : currentLang === 'DE' ? (theme.heroTitleDE ?? '') : (theme.heroTitle ?? '')}
+         onPointerDownCapture={(e) => e.stopPropagation()}
+         onChange={(e) => {
+           const val = e.target.value;
+           setTheme(prev => ({
+             ...prev,
+             [currentLang === 'KO' ? 'heroTitleKO' : currentLang === 'DE' ? 'heroTitleDE' : 'heroTitle']: val
+           }));
+         }}
+       />
+     ) : (
+       getHeroTitle()
+     )}
+   </motion.div>
 
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 1, delay: 0.6 }}
- className="pt-8"
- >
- <button
- id="discover-button"
- onClick={() => scrollToSection('biography')}
- className="group px-8 py-3.5 border border-black/10 hover:text-black hover:bg-white font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
- >
- <span>{getHeroDiscover()}</span>
- <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform group-hover:text-black" />
- </button>
- </motion.div>
+   {/* Description */}
+   <motion.div
+     drag={isEditingHeroText}
+     dragMomentum={false}
+     onDragEnd={(e, info) => {
+       setTheme(prev => ({
+         ...prev,
+         heroDescOffsetX: (prev.heroDescOffsetX || 0) + info.offset.x,
+         heroDescOffsetY: (prev.heroDescOffsetY || 0) + info.offset.y
+       }));
+     }}
+     initial={{ opacity: 0, y: 15 + (theme.heroDescOffsetY || 0), x: theme.heroDescOffsetX || 0 }}
+     animate={{ opacity: 1, y: theme.heroDescOffsetY || 0, x: theme.heroDescOffsetX || 0 }}
+     transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.4 }}
+     className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6 ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     style={{ 
+       fontSize: theme.heroDescSize ? `${theme.heroDescSize}px` : undefined,
+       marginLeft: theme.heroAlign === 'right' ? 'auto' : theme.heroAlign === 'left' ? '0' : 'auto',
+       marginRight: theme.heroAlign === 'left' ? 'auto' : theme.heroAlign === 'right' ? '0' : 'auto'
+     }}
+   >
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Description</span>}
+     {isEditingHeroText ? (
+       <textarea
+         rows={2}
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text resize-none"
+         style={{ textAlign: theme.heroAlign || 'center' }}
+         value={currentLang === 'KO' ? (theme.heroDescriptionKO ?? '') : currentLang === 'DE' ? (theme.heroDescriptionDE ?? '') : (theme.heroDescription ?? '')}
+         onPointerDownCapture={(e) => e.stopPropagation()}
+         onChange={(e) => {
+           const val = e.target.value;
+           setTheme(prev => ({
+             ...prev,
+             [currentLang === 'KO' ? 'heroDescriptionKO' : currentLang === 'DE' ? 'heroDescriptionDE' : 'heroDescription']: val
+           }));
+         }}
+       />
+     ) : (
+       getHeroDescription()
+     )}
+   </motion.div>
+
+   {/* Button */}
+   <motion.div
+     drag={isEditingHeroText}
+     dragMomentum={false}
+     onDragEnd={(e, info) => {
+       setTheme(prev => ({
+         ...prev,
+         heroButtonOffsetX: (prev.heroButtonOffsetX || 0) + info.offset.x,
+         heroButtonOffsetY: (prev.heroButtonOffsetY || 0) + info.offset.y
+       }));
+     }}
+     initial={{ opacity: 0, y: 20 + (theme.heroButtonOffsetY || 0), x: theme.heroButtonOffsetX || 0 }}
+     animate={{ opacity: 1, y: theme.heroButtonOffsetY || 0, x: theme.heroButtonOffsetX || 0 }}
+     transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.6 }}
+     className={`pt-8 ${isEditingHeroText ? 'cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex flex-col items-center justify-center' : ''}`}
+   >
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Button</span>}
+     {isEditingHeroText ? (
+       <input
+         type="text"
+         className="bg-transparent border border-black/10 px-8 py-3.5 focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text text-center text-xs tracking-[0.25em] uppercase w-full max-w-[200px] block"
+         style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
+         value={currentLang === 'KO' ? (theme.heroDiscoverKO ?? '') : currentLang === 'DE' ? (theme.heroDiscoverDE ?? '') : (theme.heroDiscover ?? '')}
+         onPointerDownCapture={(e) => e.stopPropagation()}
+         onChange={(e) => {
+           const val = e.target.value;
+           setTheme(prev => ({
+             ...prev,
+             [currentLang === 'KO' ? 'heroDiscoverKO' : currentLang === 'DE' ? 'heroDiscoverDE' : 'heroDiscover']: val
+           }));
+         }}
+       />
+     ) : (
+       <button
+         id="discover-button"
+         onClick={() => scrollToSection('biography')}
+         className="group px-8 py-3.5 border border-black/10 hover:text-black hover:bg-white font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
+         style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
+       >
+         <span>{getHeroDiscover()}</span>
+         <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform group-hover:text-black" />
+       </button>
+     )}
+   </motion.div>
  </div>
-
+ {/* Hero Background Copyright */}
+ {theme.homeBgType === 'image' && theme.heroCopyright && (
+   <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
+     <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
+       {theme.heroCopyrightUrl ? (
+         <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={theme.heroCopyright}>
+           {theme.heroCopyright.startsWith('©') ? theme.heroCopyright : `© ${theme.heroCopyright}`}
+         </a>
+       ) : (
+         <span>{theme.heroCopyright.startsWith('©') ? theme.heroCopyright : `© ${theme.heroCopyright}`}</span>
+       )}
+     </div>
+   </div>
+ )}
  {/* Scroll helper */}
  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex flex-col items-center animate-scroll-elegant select-none pointer-events-none">
  <span className="text-[10px] tracking-[0.5em] uppercase font-light mb-2">
@@ -416,107 +831,32 @@ export default function App() {
  </section>
 
  {/* 2.5 SELECTED PERFORMANCES SLIDER */}
- <SelectedPerformances currentLang={currentLang} slides={slides} />
-
- {/* 3. BIOGRAPHY SECTION */}
- <section 
- id="biography" 
- className="page-section bg-transparent"
- >
- <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
- <Reveal>
- <div className="text-center">
- <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
- BIOGRAPHY
- </h2>
- </div>
- </Reveal>
-
- <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
- 
- {/* Left: Artistic Portrait Photo (5 cols) */}
- <div id="bio-image-col" className="lg:col-span-5 relative group">
- <Reveal delay={0.15}>
- <div className="absolute -inset-1.5 bg-gradient-to-r from-white/10 to-transparent rounded-sm blur-md opacity-30 group-hover:opacity-45 transition-all duration-700" />
- <div className="relative border border-black/10 rounded-sm overflow-hidden bg-transparent/5">
- <img 
- src={bio.bioImage || "/src/assets/images/hyunkyum_portrait_1783548337837.jpg"} 
- alt="Portrait of Baritone Hyunkyum Kim" 
- className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] hover:grayscale-0 transition-all duration-1000 scale-100 hover:scale-[1.02]"
- referrerPolicy="no-referrer"
- onContextMenu={(e) => e.preventDefault()}
+ <SelectedPerformances 
+   currentLang={currentLang} 
+   setLang={setLang}
+   slides={slides} 
+   user={user}
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+   onItemsUpdated={(newItems) => setSlides(newItems)}
+   onRefreshData={() => loadAllData(false)}
  />
- <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
- </div>
- </Reveal>
- </div>
 
- {/* Right: Narrative Bio & Tabbed Timeline (7 cols) */}
- <div id="bio-text-col" className="lg:col-span-7 space-y-8">
- <Reveal delay={0.25}>
- <div className="space-y-5 font-sans text-sm md:text-base leading-relaxed font-light">
- <p className="font-medium text-base md:text-lg leading-relaxed">
- {bio.bioIntro[currentLang] || t.bioIntro}
- </p>
- <p className="whitespace-pre-line">
- {bio.bioLong[currentLang] || t.bioLong}
- </p>
- </div>
- </Reveal>
-
- <Reveal delay={0.35}>
- {/* Timelines tab navigation */}
- <div id="timeline-tabs-container" className="space-y-6 pt-4">
- <div className="flex flex-wrap border-b border-current/10 pb-2 gap-1">
- {timelineTabs.map((tab) => (
- <button
- key={tab.id}
- id={`timeline-tab-btn-${tab.id}`}
- onClick={() => setActiveTimelineTab(tab.id as any)}
- className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-sans tracking-wider uppercase transition-all rounded-sm cursor-pointer focus:outline-none focus:ring-0 select-none ${
- activeTimelineTab === tab.id
- ? 'font-bold bg-current/5 border border-current/15 border-b-transparent -mb-[9px] relative z-10'
- : 'opacity-60 hover:opacity-100 hover:bg-current/5'
- }`}
- >
- {tab.icon}
- <span>{tab.label}</span>
- </button>
- ))}
- </div>
-
- {/* Timeline Items lists */}
- <div id="timeline-content-area" className="bg-current/5 p-6 rounded-sm border border-current/10 min-h-[160px]">
- <AnimatePresence mode="wait">
- <motion.div
- key={activeTimelineTab}
- initial={{ opacity: 0, y: 5 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -5 }}
- transition={{ duration: 0.3 }}
- className="space-y-5"
- >
- {t.timeline[activeTimelineTab].map((item: any, idx: number) => (
- <div key={`${activeTimelineTab}-${item.year}-${idx}`} className="flex items-start space-x-4 group">
- <div className=" font-serif font-medium text-sm md:text-base tracking-wide whitespace-nowrap min-w-[100px] pt-0.5">
- {item.year}
- </div>
- <div className="h-4 w-[1px] bg-transparent/10 self-center hidden sm:block" />
- <div className=" group-hover: transition-colors text-xs md:text-sm font-sans leading-relaxed">
- {currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
- </div>
- </div>
- ))}
- </motion.div>
- </AnimatePresence>
- </div>
- </div>
- </Reveal>
-
- </div>
- </div>
- </div>
- </section>
+ 
+ {/* 3. BIOGRAPHY SECTION */}
+ <BiographySection 
+   bio={bio}
+   currentLang={currentLang}
+   setLang={setLang}
+   t={t}
+   user={user}
+   onBioUpdated={(newBio) => {
+     setBio(newBio);
+     window.dispatchEvent(new CustomEvent('bioChanged', { detail: newBio }));
+   }}
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+ />
 
  {/* 3.5 PRESS REVIEWS SECTION */}
  <section 
@@ -533,7 +873,23 @@ export default function App() {
  </Reveal>
 
  <Reveal delay={0.15}>
- <PressSection currentLang={currentLang} />
+ <PressSection 
+   currentLang={currentLang} 
+   setLang={setLang} 
+   user={user} 
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+   theme={theme}
+   onThemeUpdated={async (newTheme) => {
+     setTheme(newTheme);
+     try {
+       await saveThemeSettings(newTheme);
+       window.dispatchEvent(new CustomEvent('themeChanged', { detail: newTheme }));
+     } catch (err) {
+       console.error("Failed to save theme:", err);
+     }
+   }}
+ />
  </Reveal>
  </div>
  </section>
@@ -554,8 +910,14 @@ export default function App() {
 
  <Reveal delay={0.15}>
  <PortfolioGallery 
- items={portfolioItems} 
- currentLang={currentLang} 
+   items={portfolioItems} 
+   currentLang={currentLang} 
+   setLang={setLang}
+   user={user}
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+   onItemsUpdated={(newItems) => setPortfolioItems(newItems)}
+   onRefreshData={() => loadAllData(false)}
  />
  </Reveal>
  </div>
@@ -577,8 +939,14 @@ export default function App() {
 
  <Reveal delay={0.15}>
  <VideoPlayer 
- items={videoItems} 
- currentLang={currentLang} 
+   items={videoItems} 
+   currentLang={currentLang} 
+   setLang={setLang}
+   user={user}
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+   onItemsUpdated={(newItems) => setVideoItems(newItems)}
+   onRefreshData={() => loadAllData(false)}
  />
  </Reveal>
  </div>
@@ -601,116 +969,70 @@ export default function App() {
  {/* Schedule List */}
  <Reveal delay={0.15}>
  <ScheduleSection 
- items={scheduleItems} 
- currentLang={currentLang} 
- user={user} 
- onEditItem={handleEditSchedule} 
- onDeleteItem={handleDeleteSchedule} 
+   items={scheduleItems} 
+   currentLang={currentLang} 
+   setLang={setLang}
+   user={user} 
+   activeEditSection={activeEditSection}
+   setActiveEditSection={setActiveEditSection}
+   onItemsUpdated={(newItems) => setScheduleItems(newItems)}
+   onRefreshData={() => loadAllData(false)}
  />
  </Reveal>
  </div>
  </section>
 
  {/* 7. CONTACT SECTION */}
- <section 
- id="contact" 
- className="page-section bg-transparent"
- >
- <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
- <Reveal>
- <div className="text-center">
- <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
- INQUIRIES
- </h2>
- </div>
- </Reveal>
-
- <div id="contact-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
- 
- {/* Left Col: Contact Info details (5 cols) */}
- <div id="contact-info-col" className="lg:col-span-5 space-y-8 py-2">
- <Reveal delay={0.15}>
- <div className="space-y-2">
- <h3 className="text-[11px] md:text-xs text-[#A0A0A0] tracking-[0.18em] uppercase font-sans font-medium">
- CONNECT
- </h3>
- <p className="text-sm md:text-base font-sans leading-relaxed font-light">
- Always open to new stages and conversations. Reach out directly via email or use the form below.
- </p>
- </div>
-
- <div className="h-[1px] bg-transparent/5" />
-
- {/* Info Rows - Centering around Email with larger, elegant font */}
- <div className="space-y-2">
- <span className="text-[10px] tracking-[0.25em] uppercase block font-sans">
- {t.email}
- </span>
- <a 
- href={`mailto:${contact.email || 'info@hyunkyumbaritone.de'}`} 
- className="text-[17px] font-serif font-light hover: transition-colors duration-300 break-all"
- >
- {contact.email || 'info@hyunkyumbaritone.de'}
- </a>
- </div>
-
- <div className="h-[1px] bg-transparent/5" />
-
- {/* Social Channels */}
- <div className="space-y-4">
- <span className="text-[10px] tracking-[0.25em] uppercase block font-sans">
- Social Channels
- </span>
- <div className="flex space-x-3">
- <a 
- href="https://instagram.com" 
- target="_blank" 
- rel="noreferrer" 
- className="w-11 h-11 rounded-sm border border-black/10 flex items-center justify-center hover: hover:border-black/20 hover:bg-transparent/5 transition-all cursor-pointer"
- title={t.instagram}
- >
- <Instagram className="w-4 h-4" />
- </a>
- <a 
- href="https://youtube.com" 
- target="_blank" 
- rel="noreferrer" 
- className="w-11 h-11 rounded-sm border border-black/10 flex items-center justify-center hover: hover:border-black/20 hover:bg-transparent/5 transition-all cursor-pointer"
- title={t.youtube}
- >
- <Youtube className="w-4 h-4" />
- </a>
- </div>
- </div>
- </Reveal>
- </div>
-
- {/* Right Col: Contact Form (7 cols) */}
- <div id="contact-form-col" className="lg:col-span-7">
- <Reveal delay={0.25}>
- <ContactForm currentLang={currentLang} />
- </Reveal>
- </div>
-
- </div>
- </div>
- </section>
+ <ContactSection 
+  contact={contact}
+  currentLang={currentLang}
+  t={t}
+/>
 
  {/* 8. FOOTER */}
  <footer id="main-footer" className="bg-transparent border-t border-black/10 py-12 px-6 text-center text-xs">
  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 items-center gap-6">
  <div className="space-y-1 text-center md:text-left">
  <h4 className="font-serif text-sm tracking-widest uppercase">
- {t.heroTitle}
+ {theme?.footerBrandName || t.heroTitle}
  </h4>
- <p className="text-[10px] tracking-wider">
- {t.footerDesc}
+ <p className="text-[10px] tracking-wider opacity-75">
+ {theme?.footerContactEmail || t.footerDesc}
  </p>
+ {/* Social Links */}
+ {(theme?.footerSocialInstagram || theme?.footerSocialYoutube || theme?.footerSocialFacebook || theme?.footerSocialTwitter) && (
+   <div className="flex items-center space-x-3 justify-center md:justify-start pt-1.5">
+     {theme?.footerSocialInstagram && (
+       <a href={theme.footerSocialInstagram} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Instagram">
+         <Instagram className="w-3.5 h-3.5" />
+       </a>
+     )}
+     {theme?.footerSocialYoutube && (
+       <a href={theme.footerSocialYoutube} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="YouTube">
+         <Youtube className="w-3.5 h-3.5" />
+       </a>
+     )}
+     {theme?.footerSocialFacebook && (
+       <a href={theme.footerSocialFacebook} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Facebook">
+         <Facebook className="w-3.5 h-3.5" />
+       </a>
+     )}
+     {theme?.footerSocialTwitter && (
+       <a href={theme.footerSocialTwitter} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Twitter/X">
+         <Twitter className="w-3.5 h-3.5" />
+       </a>
+     )}
+   </div>
+ )}
  </div>
 
  <div className="flex flex-col items-center text-center gap-2 text-[10px] tracking-wider ">
  <div>
- &copy; {new Date().getFullYear()} {t.heroTitle}. {t.footerRights}.
+ {theme?.footerCopyrightText ? (
+   theme.footerCopyrightText.replace('{year}', new Date().getFullYear().toString())
+ ) : (
+   `© ${new Date().getFullYear()} ${theme?.footerBrandName || t.heroTitle}. ${t.footerRights}.`
+ )}
  </div>
  <div className="flex items-center space-x-3">
  <button 
@@ -746,23 +1068,28 @@ export default function App() {
  <AnimatePresence>
  {isAdminOpen && (
  <AdminPanel
+ key="admin-panel"
  currentLang={currentLang}
+ setLang={setLang}
  isOpen={isAdminOpen}
  onClose={() => setIsAdminOpen(false)}
  user={user}
  scheduleItems={scheduleItems}
  portfolioItems={portfolioItems}
- refreshData={loadAllData}
+ refreshData={() => loadAllData(false)}
  />
  )}
  {legalModal.isOpen && (
  <LegalModal
+ key="legal-modal"
  isOpen={legalModal.isOpen}
  type={legalModal.type}
  currentLang={currentLang}
+ theme={theme}
  onClose={() => setLegalModal(prev => ({ ...prev, isOpen: false }))}
  />
  )}
+ 
  </AnimatePresence>
  </div>
  );

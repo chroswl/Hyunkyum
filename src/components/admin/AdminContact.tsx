@@ -1,0 +1,74 @@
+import React, { useState, useEffect } from 'react';
+import type { Language, ContactSettings } from '../../types';
+import { fetchContactSettings, saveContactSettings } from '../../firebase';
+import AdminLayout from './AdminLayout';
+import PropertyAccordion from './PropertyAccordion';
+import { PropertyInput, PropertyTextarea } from './PropertyFields';
+import ContactSection from '../ContactSection';
+import { translations } from '../../translations';
+
+export default function AdminContact({ currentLang }: { currentLang: Language }) {
+  const [settings, setSettings] = useState<ContactSettings | null>(null);
+  const [initialSettings, setInitialSettings] = useState<ContactSettings | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchContactSettings().then(data => {
+      // Provide defaults if null
+      const safeData = data || { email: '', phone: '', management: '' };
+      setSettings(safeData);
+      setInitialSettings(safeData);
+    });
+  }, []);
+
+  if (!settings) return <div className="p-8 text-neutral-500">Loading editor...</div>;
+
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await saveContactSettings(settings);
+    setInitialSettings(settings);
+    setIsSaving(false);
+  };
+
+  const handleReset = () => {
+    if (initialSettings) setSettings(initialSettings);
+  };
+
+  const updateField = (key: keyof ContactSettings, val: string) => {
+    setSettings(prev => prev ? { ...prev, [key]: val } : prev);
+  };
+
+  const properties = (
+    <div className="pb-20">
+      <PropertyAccordion title="Contact Information" defaultOpen>
+         <PropertyInput label="Direct Email" value={settings.email || ''} onChange={(v) => updateField('email', v)} type="email" />
+         <PropertyInput label="Phone Number" value={settings.phone || ''} onChange={(v) => updateField('phone', v)} type="tel" />
+      </PropertyAccordion>
+      <PropertyAccordion title="Management" defaultOpen>
+         <PropertyTextarea label="Management Info (Name & Address)" value={settings.management || ''} onChange={(v) => updateField('management', v)} rows={5} />
+      </PropertyAccordion>
+    </div>
+  );
+
+  return (
+    <AdminLayout 
+      title="Contact Settings"
+      hasChanges={hasChanges}
+      isSaving={isSaving}
+      onSave={handleSave}
+      onReset={handleReset}
+      preview={
+        <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+          <ContactSection 
+  contact={settings || {}}
+  currentLang={currentLang}
+  t={translations[currentLang]}
+/>
+        </div>
+      }
+      properties={properties}
+    />
+  );
+}

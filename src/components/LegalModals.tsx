@@ -1,20 +1,29 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { X, Shield, FileText, ExternalLink, Mail, Phone, MapPin, Award } from 'lucide-react';
-import { Language } from '../types';
+import { Language, ThemeSettings } from '../types';
 
 interface LegalModalProps {
+  key?: string;
   isOpen: boolean;
   onClose: () => void;
   type: 'impressum' | 'privacy';
   currentLang: Language;
+  theme?: ThemeSettings;
 }
 
-export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, currentLang }) => {
+export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, currentLang, theme }) => {
   if (!isOpen) return null;
 
   // Render Impressum Content
   const renderImpressum = () => {
+    if (theme?.footerImpressum) {
+      return (
+        <div className="space-y-4 font-sans text-neutral-300 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
+          {theme.footerImpressum}
+        </div>
+      );
+    }
     return (
       <div className="space-y-8 font-sans text-neutral-300 leading-relaxed text-sm md:text-base">
         <div>
@@ -95,6 +104,13 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
 
   // Render Privacy Policy Content
   const renderPrivacy = () => {
+    if (theme?.footerPrivacyPolicy) {
+      return (
+        <div className="space-y-4 font-sans text-neutral-300 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
+          {theme.footerPrivacyPolicy}
+        </div>
+      );
+    }
     return (
       <div className="space-y-6 font-sans text-neutral-300 leading-relaxed text-sm md:text-base">
         <div>

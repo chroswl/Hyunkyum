@@ -18,8 +18,8 @@ export const translations = {
     discoverBtn: "Discover",
     
     bioTitle: "BIOGRAPHY",
-    bioIntro: "Hyunkyum Kim is a Korean baritone based in Germany. His repertoire ranges from Mozart to Verdi, performing both opera and concert works throughout Europe.",
-    bioLong: "Known for his rich, warm timber and compelling stage presence, baritone Hyunkyum Kim has captivated audiences in major opera houses and concert halls. Highly expressive and vocally versatile, he brings deep intellectual interpretation and dramatic truth to characters ranging from the comedic Papageno in Die Zauberflöte to the dark, intense Rigoletto.",
+    bioIntro: "",
+    bioLong: "",
     
     eduTitle: "Education",
     awardsTitle: "Awards",
@@ -90,29 +90,7 @@ export const translations = {
     fieldCategory: "Category",
     fieldImage: "Image",
     fieldImageCategory: "Gallery Category",
-    fieldImageUrl: "Image URL",
-    
-    timeline: {
-      education: [
-        { year: "2021 - 2024", textEN: "Master of Music in Opera, Hochschule für Musik, Germany", textDE: "Master of Music in Oper, Hochschule für Musik, Deutschland", textKO: "독일 국립음대 오페라과 석사 졸업" },
-        { year: "2016 - 2020", textEN: "Bachelor of Music in Voice, Seoul National University, Korea", textDE: "Bachelor of Music in Gesang, Seoul National University, Korea", textKO: "서울대학교 음악대학 성악과 학사 졸업" }
-      ],
-      awards: [
-        { year: "2025", textEN: "1st Prize, International Opera Singer Competition, Germany", textDE: "1. Preis, Internationaler Opernsänger-Wettbewerb, Deutschland", textKO: "독일 국제 성악 콩쿠르 1위" },
-        { year: "2024", textEN: "Special Audience Award, Spoleto Opera Competition, Italy", textDE: "Sonderpreis des Publikums, Spoleto Opernwettbewerb, Italien", textKO: "이탈리아 스폴레토 오페라 콩쿠르 청중 특별상" }
-      ],
-      roles: [
-        { year: "Papageno", textEN: "Die Zauberflöte (Mozart)", textDE: "Die Zauberflöte (Mozart)", textKO: "마술피리 - 파파게노 역" },
-        { year: "Don Giovanni", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 돈 조반니 역" },
-        { year: "Masetto", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 마제토 역" },
-        { year: "Rigoletto", textEN: "Rigoletto (Verdi)", textDE: "Rigoletto (Verdi)", textKO: "리골레토 - 리골레토 역" },
-        { year: "Figaro", textEN: "Le Nozze di Figaro (Mozart)", textDE: "Le Nozze di Figaro (Mozart)", textKO: "피가로의 결혼 - 피가로 역" }
-      ],
-      concert: [
-        { year: "Verdi Requiem", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
-        { year: "Handel Messiah", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
-      ]
-    }
+    fieldImageUrl: "Image URL"
   },
   DE: {
     navHome: "STARTSEITE",
@@ -133,8 +111,8 @@ export const translations = {
     discoverBtn: "Entdecken",
     
     bioTitle: "BIOGRAFIE",
-    bioIntro: "Hyunkyum Kim ist ein koreanischer Bariton, der in Deutschland lebt und arbeitet. Sein Repertoire reicht von Mozart bis Verdi und umfasst sowohl Opern- als auch Konzertwerke in ganz Europa.",
-    bioLong: "Bekannt für sein reiches, warmes Timbre und seine fesselnde Bühnenpräsenz hat der Bariton Hyunkyum Kim das Publikum in bedeutenden Opernhäusern und Konzertsälen begeistert. Äußerst ausdrucksstark und stimmlich vielseitig verleiht er Charakteren, vom komödiantischen Papageno in der Zauberflöte bis zum düsteren, intensiven Rigoletto, tiefe intellektuelle Interpretation und dramatische Wahrheit.",
+    bioIntro: "",
+    bioLong: "",
     
     eduTitle: "Ausbildung",
     awardsTitle: "Auszeichnungen",
@@ -204,29 +182,7 @@ export const translations = {
     fieldCategory: "Kategorie",
     fieldImage: "Bild",
     fieldImageCategory: "Galerie-Kategorie",
-    fieldImageUrl: "Bild-URL",
-    
-    timeline: {
-      education: [
-        { year: "2021 - 2024", textEN: "Master of Music in Opera, Hochschule für Musik, Germany", textDE: "Master of Music in Oper, Hochschule für Musik, Deutschland", textKO: "독일 국립음대 오페라과 석사 졸업" },
-        { year: "2016 - 2020", textEN: "Bachelor of Music in Voice, Seoul National University, Korea", textDE: "Bachelor of Music in Gesang, Seoul National University, Korea", textKO: "서울대학교 음악대학 성악과 학사 졸업" }
-      ],
-      awards: [
-        { year: "2025", textEN: "1st Prize, International Opera Singer Competition, Germany", textDE: "1. Preis, Internationaler Opernsänger-Wettbewerb, Deutschland", textKO: "독일 국제 성악 콩쿠르 1위" },
-        { year: "2024", textEN: "Special Audience Award, Spoleto Opera Competition, Italy", textDE: "Sonderpreis des Publikums, Spoleto Opernwettbewerb, Italien", textKO: "이탈리아 스폴레토 오페라 콩쿠르 청중 특별상" }
-      ],
-      roles: [
-        { year: "Papageno", textEN: "Die Zauberflöte (Mozart)", textDE: "Die Zauberflöte (Mozart)", textKO: "마술피리 - 파파게노 역" },
-        { year: "Don Giovanni", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 돈 조반니 역" },
-        { year: "Masetto", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 마제토 역" },
-        { year: "Rigoletto", textEN: "Rigoletto (Verdi)", textDE: "Rigoletto (Verdi)", textKO: "리골레토 - 리골레토 역" },
-        { year: "Figaro", textEN: "Le Nozze di Figaro (Mozart)", textDE: "Le Nozze di Figaro (Mozart)", textKO: "피가로의 결혼 - 피가로 역" }
-      ],
-      concert: [
-        { year: "Verdi Requiem", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
-        { year: "Handel Messiah", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
-      ]
-    }
+    fieldImageUrl: "Bild-URL"
   },
   KO: {
     navHome: "홈",
@@ -247,8 +203,8 @@ export const translations = {
     discoverBtn: "둘러보기",
     
     bioTitle: "바이오그래피",
-    bioIntro: "김현겸은 독일을 중심으로 유럽 전역에서 활동하고 있는 한국인 바리톤입니다. 모차르트부터 베르디에 이르는 넓은 레퍼토리를 지니고 있으며 오페라와 콘서트 무대를 넘나들며 종횡무진 활약하고 있습니다.",
-    bioLong: "풍부하고 따뜻한 음색과 압도적인 무대 장악력으로 국내외 평단과 관객의 마음을 사로잡고 있습니다. 풍부한 표현력과 보컬의 유연성을 통해 마술피리의 유쾌한 파파게노부터 깊고 강렬한 리골레토에 이르기까지 깊이 있는 학구적 해석과 드라마틱한 진실함을 무대 위 캐릭터에 불어넣습니다.",
+    bioIntro: "",
+    bioLong: "",
     
     eduTitle: "학력 및 교육",
     awardsTitle: "수상 내역",
@@ -318,29 +274,7 @@ export const translations = {
     fieldCategory: "구분",
     fieldImage: "이미지",
     fieldImageCategory: "갤러리 카테고리",
-    fieldImageUrl: "이미지 URL",
-    
-    timeline: {
-      education: [
-        { year: "2021 - 2024", textEN: "Master of Music in Opera, Hochschule für Musik, Germany", textDE: "Master of Music in Oper, Hochschule für Musik, Deutschland", textKO: "독일 국립음대 오페라과 석사 졸업" },
-        { year: "2016 - 2020", textEN: "Bachelor of Music in Voice, Seoul National University, Korea", textDE: "Bachelor of Music in Gesang, Seoul National University, Korea", textKO: "서울대학교 음악대학 성악과 학사 졸업" }
-      ],
-      awards: [
-        { year: "2025", textEN: "1st Prize, International Opera Singer Competition, Germany", textDE: "1. Preis, Internationaler Opernsänger-Wettbewerb, Deutschland", textKO: "독일 국제 성악 콩쿠르 1위" },
-        { year: "2024", textEN: "Special Audience Award, Spoleto Opera Competition, Italy", textDE: "Sonderpreis des Publikums, Spoleto Opernwettbewerb, Italien", textKO: "이탈리아 스폴레토 오페라 콩쿠르 청중 특별상" }
-      ],
-      roles: [
-        { year: "파파게노", textEN: "Die Zauberflöte (Mozart)", textDE: "Die Zauberflöte (Mozart)", textKO: "마술피리 (모차르트)" },
-        { year: "돈 조반니", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 (모차르트)" },
-        { year: "마제토", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 (모차르트)" },
-        { year: "리골레토", textEN: "Rigoletto (Verdi)", textDE: "Rigoletto (Verdi)", textKO: "리골레토 (베르디)" },
-        { year: "피가로", textEN: "Le Nozze di Figaro (Mozart)", textDE: "Le Nozze di Figaro (Mozart)", textKO: "피가로의 결혼 (모차르트)" }
-      ],
-      concert: [
-        { year: "베르디 레퀴엠", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
-        { year: "헨델 메시아", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
-      ]
-    }
+    fieldImageUrl: "이미지 URL"
   }
 };
 export type TranslationKey = keyof typeof translations.EN;

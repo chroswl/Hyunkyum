@@ -1,0 +1,546 @@
+  1755	              {activeTab === 'settings' && (
+  1756	                <div id="admin-settings-tab" className="space-y-8 pb-10">
+  1757	                  {loadingSettings ? (
+  1758	                    <div className="text-center py-10 text-neutral-500 text-xs">Loading application config...</div>
+  1759	                  ) : (
+  1760	                    <>
+  1761	                      {/* Sub-section 1: Theme Customizer */}
+  1762	                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
+  1763	                        <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
+  1764	                          <Palette className="w-4 h-4 text-[#C9A227] accent-color" />
+  1765	                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Theme Layout Color Schemes</h3>
+  1766	                        </div>
+  1767	
+  1768	                        {/* Presets Grid */}
+  1769	                        <div className="space-y-2">
+  1770	                          <span className="text-[10px] tracking-wider text-neutral-500 font-sans uppercase">Quick Color Presets</span>
+  1771	                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+  1772	                            <button
+  1773	                              type="button"
+  1774	                              onClick={() => selectThemePreset({ bg: '#000000', text: '#ffffff', accent: '#C9A227' })}
+  1775	                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-[var(--color-bg)] flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
+  1776	                            >
+  1777	                              <span>Gold Accent</span>
+  1778	                              <div className="w-2.5 h-2.5 rounded-full bg-[#C9A227]" />
+  1779	                            </button>
+  1780	                            <button
+  1781	                              type="button"
+  1782	                              onClick={() => selectThemePreset({ bg: '#0B0B0B', text: '#f3f4f6', accent: '#A1A1AA' })}
+  1783	                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-zinc-950 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
+  1784	                            >
+  1785	                              <span>Silver Accent</span>
+  1786	                              <div className="w-2.5 h-2.5 rounded-full bg-[#A1A1AA]" />
+  1787	                            </button>
+  1788	                            <button
+  1789	                              type="button"
+  1790	                              onClick={() => selectThemePreset({ bg: '#0A0103', text: '#fafafa', accent: '#800020' })}
+  1791	                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-red-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
+  1792	                            >
+  1793	                              <span>Burgundy Accent</span>
+  1794	                              <div className="w-2.5 h-2.5 rounded-full bg-[#800020]" />
+  1795	                            </button>
+  1796	                            <button
+  1797	                              type="button"
+  1798	                              onClick={() => selectThemePreset({ bg: '#020617', text: '#f8fafc', accent: '#1E3A8A' })}
+  1799	                              className="px-3 py-2 text-left border border-neutral-800 rounded bg-blue-950/20 flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--color-text)]"
+  1800	                            >
+  1801	                              <span>Dark Blue Accent</span>
+  1802	                              <div className="w-2.5 h-2.5 rounded-full bg-[#1E3A8A]" />
+  1803	                            </button>
+  1804	                          </div>
+  1805	                        </div>
+  1806	
+  1807	                        {/* Presets custom color picker */}
+  1808	                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+  1809	                          <div className="space-y-1">
+  1810	                            <span className="text-[10px] text-neutral-400 block font-sans">Background</span>
+  1811	                            <div className="flex items-center space-x-2">
+  1812	                              <input
+  1813	                                type="color"
+  1814	                                value={themeSettings.bg}
+  1815	                                onChange={(e) => setThemeSettings({ ...themeSettings, bg: e.target.value })}
+  1816	                                className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1817	                              />
+  1818	                              <span className="text-[10px] font-mono">{themeSettings.bg}</span>
+  1819	                            </div>
+  1820	                          </div>
+  1821	                          <div className="space-y-1">
+  1822	                            <span className="text-[10px] text-neutral-400 block font-sans">Text Content</span>
+  1823	                            <div className="flex items-center space-x-2">
+  1824	                              <input
+  1825	                                type="color"
+  1826	                                value={themeSettings.text}
+  1827	                                onChange={(e) => setThemeSettings({ ...themeSettings, text: e.target.value })}
+  1828	                                className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1829	                              />
+  1830	                              <span className="text-[10px] font-mono">{themeSettings.text}</span>
+  1831	                            </div>
+  1832	                          </div>
+  1833	                          <div className="space-y-1">
+  1834	                            <span className="text-[10px] text-neutral-400 block font-sans">Accent Highlight</span>
+  1835	                            <div className="flex items-center space-x-2">
+  1836	                              <input
+  1837	                                type="color"
+  1838	                                value={themeSettings.accent}
+  1839	                                onChange={(e) => setThemeSettings({ ...themeSettings, accent: e.target.value })}
+  1840	                                className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1841	                              />
+  1842	                              <span className="text-[10px] font-mono">{themeSettings.accent}</span>
+  1843	                            </div>
+  1844	                          </div>
+  1845	                          <div className="space-y-1">
+  1846	                            <span className="text-[10px] text-neutral-400 block font-sans">Contact Form Bg</span>
+  1847	                            <div className="flex items-center space-x-2">
+  1848	                              <input
+  1849	                                type="color"
+  1850	                                value={themeSettings.contactFormBg || '#0a0a0a'}
+  1851	                                onChange={(e) => setThemeSettings({ ...themeSettings, contactFormBg: e.target.value })}
+  1852	                                className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1853	                              />
+  1854	                              <span className="text-[10px] font-mono">{themeSettings.contactFormBg || '#0a0a0a'}</span>
+  1855	                            </div>
+  1856	                          </div>
+  1857	                        </div>
+  1858	
+  1859	                        {/* Section Text Color Customizations */}
+  1860	                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+  1861	                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+  1862	                            Section Text Colors Override (구역별 글씨 색상 오버라이드)
+  1863	                          </span>
+  1864	                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  1865	                            <div className="space-y-1">
+  1866	                              <span className="text-[10px] text-neutral-400 block font-sans">Hero Slide Text Color</span>
+  1867	                              <div className="flex items-center space-x-2">
+  1868	                                <input
+  1869	                                  type="color"
+  1870	                                  value={themeSettings.colorHeroSlideText || themeSettings.text}
+  1871	                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorHeroSlideText: e.target.value })}
+  1872	                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1873	                                />
+  1874	                                <span className="text-[10px] font-mono">{themeSettings.colorHeroSlideText || 'Default'}</span>
+  1875	                                {themeSettings.colorHeroSlideText && (
+  1876	                                  <button 
+  1877	                                    type="button" 
+  1878	                                    onClick={() => setThemeSettings({ ...themeSettings, colorHeroSlideText: undefined })}
+  1879	                                    className="text-[9px] text-red-500 hover:underline ml-2"
+  1880	                                  >
+  1881	                                    Reset
+  1882	                                  </button>
+  1883	                                )}
+  1884	                              </div>
+  1885	                            </div>
+  1886	                            <div className="space-y-1">
+  1887	                              <span className="text-[10px] text-neutral-400 block font-sans">PERFORMANCES (Videos) Text Color</span>
+  1888	                              <div className="flex items-center space-x-2">
+  1889	                                <input
+  1890	                                  type="color"
+  1891	                                  value={themeSettings.colorPerformancesText || themeSettings.text}
+  1892	                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorPerformancesText: e.target.value })}
+  1893	                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1894	                                />
+  1895	                                <span className="text-[10px] font-mono">{themeSettings.colorPerformancesText || 'Default'}</span>
+  1896	                                {themeSettings.colorPerformancesText && (
+  1897	                                  <button 
+  1898	                                    type="button" 
+  1899	                                    onClick={() => setThemeSettings({ ...themeSettings, colorPerformancesText: undefined })}
+  1900	                                    className="text-[9px] text-red-500 hover:underline ml-2"
+  1901	                                  >
+  1902	                                    Reset
+  1903	                                  </button>
+  1904	                                )}
+  1905	                              </div>
+  1906	                            </div>
+  1907	                            <div className="space-y-1">
+  1908	                              <span className="text-[10px] text-neutral-400 block font-sans">INQUIRIES (Contact) Text Color</span>
+  1909	                              <div className="flex items-center space-x-2">
+  1910	                                <input
+  1911	                                  type="color"
+  1912	                                  value={themeSettings.colorContactText || themeSettings.text}
+  1913	                                  onChange={(e) => setThemeSettings({ ...themeSettings, colorContactText: e.target.value })}
+  1914	                                  className="w-7 h-7 bg-transparent border-0 p-0 cursor-pointer"
+  1915	                                />
+  1916	                                <span className="text-[10px] font-mono">{themeSettings.colorContactText || 'Default'}</span>
+  1917	                                {themeSettings.colorContactText && (
+  1918	                                  <button 
+  1919	                                    type="button" 
+  1920	                                    onClick={() => setThemeSettings({ ...themeSettings, colorContactText: undefined })}
+  1921	                                    className="text-[9px] text-red-500 hover:underline ml-2"
+  1922	                                  >
+  1923	                                    Reset
+  1924	                                  </button>
+  1925	                                )}
+  1926	                              </div>
+  1927	                            </div>
+  1928	                          </div>
+  1929	                        </div>
+  1930	
+  1931	                        {/* Font Settings */}
+  1932	                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+  1933	                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+  1934	                            Website Typography Unification (사이트 전체 글꼴 통합 설정)
+  1935	                          </span>
+  1936	                          <div className="space-y-1.5">
+  1937	                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">
+  1938	                              Global Font Choice (홈페이지 통합 글꼴 선택)
+  1939	                            </label>
+  1940	                            <select
+  1941	                              value={themeSettings.fontSans || 'Inter'}
+  1942	                              onChange={(e) => {
+  1943	                                const selectedFont = e.target.value;
+  1944	                                setThemeSettings({ 
+  1945	                                  ...themeSettings, 
+  1946	                                  fontSans: selectedFont,
+  1947	                                  fontSerif: selectedFont,
+  1948	                                  fontNavbar: selectedFont,
+  1949	                                  fontMono: selectedFont
+  1950	                                });
+  1951	                              }}
+  1952	                              className="w-full bg-neutral-950 border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-neutral-200 font-sans"
+  1953	                            >
+  1954	                              <option value="Inter">Inter (Clean Sans, Elegant Standard)</option>
+  1955	                              <option value="Space Grotesk">Space Grotesk (Modern Tech-Forward)</option>
+  1956	                              <option value="Outfit">Outfit (Minimalist Geometric)</option>
+  1957	                              <option value="Montserrat">Montserrat (Classic Proportional Sans)</option>
+  1958	                              <option value="Playfair Display">Playfair Display (Graceful Classic Serif)</option>
+  1959	                              <option value="Cormorant Garamond">Cormorant Garamond (Premium Editorial Serif)</option>
+  1960	                              <option value="Cinzel">Cinzel (Cinematic Classical Roman)</option>
+  1961	                              <option value="Georgia">Georgia (Warm Academic Serif)</option>
+  1962	                              <option value="JetBrains Mono">JetBrains Mono (Sleek Technical Monospace)</option>
+  1963	                            </select>
+  1964	                            <p className="text-[9px] text-neutral-500 font-sans">
+  1965	                              * 선택한 글꼴이 홈페이지의 네비게이션, 본문, 대제목, 소제목 등 모든 텍스트에 일괄 적용되어 일관성 있고 깔끔한 레이아웃을 제공합니다.
+  1966	                            </p>
+  1967	                          </div>
+  1968	                        </div>
+  1969	
+  1970	                        {/* Home Content Customizer */}
+  1971	                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+  1972	                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+  1973	                            Home Main Screen Text Customization (메인 홈 첫화면 글씨 수정)
+  1974	                          </span>
+  1975	                          
+  1976	                          <div className="space-y-4 bg-black/10 p-4 rounded border border-neutral-900">
+  1977	                            {/* English */}
+  1978	                            <div className="space-y-3">
+  1979	                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">English (EN - Default)</h5>
+  1980	                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+  1981	                                <div className="space-y-1">
+  1982	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title</span>
+  1983	                                  <input
+  1984	                                    type="text"
+  1985	                                    placeholder="HYUNKYUM KIM"
+  1986	                                    value={themeSettings.heroTitle || ''}
+  1987	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitle: e.target.value })}
+  1988	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  1989	                                  />
+  1990	                                </div>
+  1991	                                <div className="space-y-1">
+  1992	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle</span>
+  1993	                                  <input
+  1994	                                    type="text"
+  1995	                                    placeholder="BARITONE"
+  1996	                                    value={themeSettings.heroSubtitle || ''}
+  1997	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitle: e.target.value })}
+  1998	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  1999	                                  />
+  2000	                                </div>
+  2001	                              </div>
+  2002	                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+  2003	                                <div className="md:col-span-8 space-y-1">
+  2004	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description</span>
+  2005	                                  <input
+  2006	                                    type="text"
+  2007	                                    placeholder="Opera Singer based in Germany"
+  2008	                                    value={themeSettings.heroDescription || ''}
+  2009	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescription: e.target.value })}
+  2010	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2011	                                  />
+  2012	                                </div>
+  2013	                                <div className="md:col-span-4 space-y-1">
+  2014	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button</span>
+  2015	                                  <input
+  2016	                                    type="text"
+  2017	                                    placeholder="Discover"
+  2018	                                    value={themeSettings.heroDiscover || ''}
+  2019	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscover: e.target.value })}
+  2020	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2021	                                  />
+  2022	                                </div>
+  2023	                              </div>
+  2024	                            </div>
+  2025	
+  2026	                            {/* German */}
+  2027	                            <div className="space-y-3 pt-3 border-t border-neutral-900/60">
+  2028	                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">German (DE)</h5>
+  2029	                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+  2030	                                <div className="space-y-1">
+  2031	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title (German)</span>
+  2032	                                  <input
+  2033	                                    type="text"
+  2034	                                    placeholder="HYUNKYUM KIM"
+  2035	                                    value={themeSettings.heroTitleDE || ''}
+  2036	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitleDE: e.target.value })}
+  2037	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2038	                                  />
+  2039	                                </div>
+  2040	                                <div className="space-y-1">
+  2041	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle (German)</span>
+  2042	                                  <input
+  2043	                                    type="text"
+  2044	                                    placeholder="BARITON"
+  2045	                                    value={themeSettings.heroSubtitleDE || ''}
+  2046	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitleDE: e.target.value })}
+  2047	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2048	                                  />
+  2049	                                </div>
+  2050	                              </div>
+  2051	                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+  2052	                                <div className="md:col-span-8 space-y-1">
+  2053	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description (German)</span>
+  2054	                                  <input
+  2055	                                    type="text"
+  2056	                                    placeholder="Opernsänger ansässig in Deutschland"
+  2057	                                    value={themeSettings.heroDescriptionDE || ''}
+  2058	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescriptionDE: e.target.value })}
+  2059	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2060	                                  />
+  2061	                                </div>
+  2062	                                <div className="md:col-span-4 space-y-1">
+  2063	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button (German)</span>
+  2064	                                  <input
+  2065	                                    type="text"
+  2066	                                    placeholder="Entdecken"
+  2067	                                    value={themeSettings.heroDiscoverDE || ''}
+  2068	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscoverDE: e.target.value })}
+  2069	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2070	                                  />
+  2071	                                </div>
+  2072	                              </div>
+  2073	                            </div>
+  2074	
+  2075	                            {/* Korean */}
+  2076	                            <div className="space-y-3 pt-3 border-t border-neutral-900/60">
+  2077	                              <h5 className="text-[10px] font-mono tracking-wider text-[#C9A227] uppercase block">Korean (KO)</h5>
+  2078	                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+  2079	                                <div className="space-y-1">
+  2080	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Main Title (Korean)</span>
+  2081	                                  <input
+  2082	                                    type="text"
+  2083	                                    placeholder="바리톤 김현겸"
+  2084	                                    value={themeSettings.heroTitleKO || ''}
+  2085	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroTitleKO: e.target.value })}
+  2086	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2087	                                  />
+  2088	                                </div>
+  2089	                                <div className="space-y-1">
+  2090	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Subtitle (Korean)</span>
+  2091	                                  <input
+  2092	                                    type="text"
+  2093	                                    placeholder="바리톤"
+  2094	                                    value={themeSettings.heroSubtitleKO || ''}
+  2095	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroSubtitleKO: e.target.value })}
+  2096	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2097	                                  />
+  2098	                                </div>
+  2099	                              </div>
+  2100	                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+  2101	                                <div className="md:col-span-8 space-y-1">
+  2102	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Description (Korean)</span>
+  2103	                                  <input
+  2104	                                    type="text"
+  2105	                                    placeholder="독일을 중심으로 활동하는 성악가 바리톤 김현겸"
+  2106	                                    value={themeSettings.heroDescriptionKO || ''}
+  2107	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDescriptionKO: e.target.value })}
+  2108	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2109	                                  />
+  2110	                                </div>
+  2111	                                <div className="md:col-span-4 space-y-1">
+  2112	                                  <span className="text-[9px] text-neutral-500 uppercase block font-sans">Discover Button (Korean)</span>
+  2113	                                  <input
+  2114	                                    type="text"
+  2115	                                    placeholder="더 알아보기"
+  2116	                                    value={themeSettings.heroDiscoverKO || ''}
+  2117	                                    onChange={(e) => setThemeSettings({ ...themeSettings, heroDiscoverKO: e.target.value })}
+  2118	                                    className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-2.5 py-1.5 text-xs text-[var(--color-text)] font-sans"
+  2119	                                  />
+  2120	                                </div>
+  2121	                              </div>
+  2122	                            </div>
+  2123	                          </div>
+  2124	                        </div>
+  2125	
+  2126	                        {/* Start Home Screen Background Image */}
+  2127	                        <div className="border-t border-neutral-900 pt-4 mt-4 space-y-4">
+  2128	                          <span className="text-[11px] font-sans text-neutral-400 uppercase tracking-wider block font-medium">
+  2129	                            Start Home Screen Background (홈 첫화면 배경)
+  2130	                          </span>
+  2131	                          
+  2132	                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  2133	                            <div className="space-y-3">
+  2134	                              <span className="text-[10px] text-neutral-500 uppercase block font-sans">
+  2135	                                Image File Upload / URL
+  2136	                              </span>
+  2137	                              
+  2138	                              {/* Computer File Upload Block */}
+  2139	                              <div className="border border-dashed border-neutral-800 rounded bg-[var(--color-bg)] hover:bg-[var(--color-bg)] transition-colors flex flex-col items-center justify-center space-y-2 relative group text-center min-h-[110px]">
+  2140	                                <input
+  2141	                                  type="file"
+  2142	                                  accept="image/*,video/*"
+  2143	                                  disabled={isUploadingFile}
+  2144	                                  onChange={(e) => {
+  2145	                                    const file = e.target.files?.[0];
+  2146	                                    if (!file) return;
+  2147	                                    if (file.type.startsWith('video/')) {
+  2148	                                      if (file.size > 800 * 1024) {
+  2149	                                        triggerAlert('error', 'Video file is too large! Maximum 800KB allowed. Use a URL instead.');
+  2150	                                        return;
+  2151	}
+  2152	                                      const reader = new FileReader();
+  2153	                                      reader.onload = (re) => {
+  2154	                                        if (typeof re.target?.result === 'string') {
+  2155	                                          setThemeSettings({ ...themeSettings, homeBg: re.target.result, homeBgType: 'video' });
+  2156	                                          triggerAlert('success', 'Video processed successfully!');
+  2157	}
+  2158	                                      };
+  2159	                                      reader.readAsDataURL(file);
+  2160	                                    } else {
+  2161	                                      handleImageCropUpload(file, (base64) => {
+  2162	                                        setThemeSettings({ ...themeSettings, homeBg: base64, homeBgType: 'image' });
+  2163	                                      });
+  2164	}
+  2165	                                    e.target.value = '';
+  2166	                                  }}
+  2167	                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+  2168	                                />
+  2169	                                <Upload className={`w-5 h-5 ${isUploadingFile ? 'animate-bounce text-[#C9A227]' : 'text-neutral-500 group-hover:text-[#C9A227]'} transition-colors`} />
+  2170	                                <div className="space-y-0.5">
+  2171	                                  <p className="text-[11px] text-neutral-300 font-sans font-medium">
+  2172	                                    {isUploadingFile ? 'Processing...' : 'Upload new background'}
+  2173	                                  </p>
+  2174	                                  <p className="text-[9px] text-neutral-500 font-sans">
+  2175	                                    Click or drag any photo file
+  2176	                                  </p>
+  2177	                                </div>
+  2178	                              </div>
+  2179	
+  2180	                              <div className="space-y-1">
+  2181	                                <span className="text-[9px] text-neutral-500 uppercase block font-sans">Or Enter Image/Video URL (YouTube supported)</span>
+  2182	                                <input
+  2183	                                  type="text"
+  2184	                                  placeholder="Image URL, MP4 URL, or YouTube URL"
+  2185	                                  value={themeSettings.homeBg || ''}
+  2186	                                  onChange={(e) => {
+  2187	                                    const val = e.target.value;
+  2188	                                    let type: 'image' | 'video' | 'youtube' = 'image';
+  2189	                                    if (val.includes('youtube.com') || val.includes('youtu.be')) {
+  2190	                                      type = 'youtube';
+  2191	                                    } else if (val.match(/\.(mp4|webm|ogg)$/i)) {
+  2192	                                      type = 'video';
+  2193	}
+  2194	                                    setThemeSettings({ ...themeSettings, homeBg: val, homeBgType: type });
+  2195	                                  }}
+  2196	                                  className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded px-3 py-2 text-xs text-[var(--color-text)]"
+  2197	                                />
+  2198	                              </div>
+  2199	                            </div>
+  2200	
+  2201	                            {/* Image Preview Block */}
+  2202	                            <div className="space-y-1.5 flex flex-col">
+  2203	                              <span className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Background Image Preview</span>
+  2204	                              <div className="flex-1 min-h-[150px] bg-[var(--color-bg)] border border-neutral-800 rounded flex items-center justify-center overflow-hidden p-2 relative">
+  2205	                                {themeSettings.homeBg ? (
+  2206	                                  <>
+  2207	                                    <img
+  2208	                                      src={themeSettings.homeBg}
+  2209	                                      alt="Preview"
+  2210	                                      className="max-h-[160px] max-w-full object-contain rounded"
+  2211	                                      referrerPolicy="no-referrer"
+  2212	                                    />
+  2213	                                    <button
+  2214	                                      type="button"
+  2215	                                      onClick={() => setThemeSettings({ ...themeSettings, homeBg: '/src/assets/images/opera_stage_1783548365279.jpg' })}
+  2216	                                      className="absolute top-2 right-2 p-1 bg-[var(--color-bg)]/60 hover:bg-[var(--color-bg)]/90 text-neutral-400 hover:text-[var(--color-text)] rounded-full transition-colors cursor-pointer"
+  2217	                                      title="Reset to Default"
+  2218	                                    >
+  2219	                                      <X className="w-3.5 h-3.5" />
+  2220	                                    </button>
+  2221	                                  </>
+  2222	                                ) : (
+  2223	                                  <div className="text-center text-neutral-600 space-y-1 p-4">
+  2224	                                    <Image className="w-8 h-8 mx-auto stroke-1" />
+  2225	                                    <p className="text-[10px] font-sans">No custom background selected.</p>
+  2226	                                  </div>
+  2227	                                )}
+  2228	                              </div>
+  2229	                            </div>
+  2230	                          </div>
+  2231	                        </div>
+  2232	
+  2233	                        <div className="flex justify-end pt-2">
+  2234	                          <button
+  2235	                            type="button"
+  2236	                            onClick={saveThemeSettingsAction}
+  2237	                            disabled={loadingAction}
+  2238	                            className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
+  2239	                          >
+  2240	                            <Save className="w-3.5 h-3.5" />
+  2241	                            <span>Save Theme Configuration</span>
+  2242	                          </button>
+  2243	                        </div>
+  2244	                      </div>
+  2245	
+  2246	                      {/* Sub-section 3: Contact & Management Details */}
+  2247	                      <div className="space-y-4 border border-neutral-900 bg-[var(--color-bg)] p-5 rounded">
+  2248	                        <div className="flex items-center space-x-2 border-b border-neutral-900 pb-2">
+  2249	                          <Info className="w-4 h-4 text-[#C9A227] accent-color" />
+  2250	                          <h3 className="font-serif text-sm tracking-widest text-[var(--color-text)] uppercase">Contact Details & Management</h3>
+  2251	                        </div>
+  2252	
+  2253	                        <div className="space-y-3">
+  2254	                          <div className="space-y-1.5">
+  2255	                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Official Artist Email</label>
+  2256	                            <input
+  2257	                              type="email"
+  2258	                              value={contactSettings.email}
+  2259	                              onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
+  2260	                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+  2261	                            />
+  2262	                          </div>
+  2263	
+  2264	                          <div className="space-y-1.5">
+  2265	                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Management Office Phone</label>
+  2266	                            <input
+  2267	                              type="text"
+  2268	                              value={contactSettings.phone}
+  2269	                              onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
+  2270	                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+  2271	                            />
+  2272	                          </div>
+  2273	
+  2274	                          <div className="space-y-1.5">
+  2275	                            <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Agency / Management Label Name</label>
+  2276	                            <input
+  2277	                              type="text"
+  2278	                              value={contactSettings.management}
+  2279	                              onChange={(e) => setContactSettings({ ...contactSettings, management: e.target.value })}
+  2280	                              className="w-full bg-[var(--color-bg)] border border-neutral-800 focus:border-[#C9A227]/50 rounded-sm px-3 py-2 text-xs text-[var(--color-text)]"
+  2281	                            />
+  2282	                          </div>
+  2283	                        </div>
+  2284	
+  2285	                        <div className="flex justify-end pt-2">
+  2286	                          <button
+  2287	                            type="button"
+  2288	                            onClick={saveContactSettingsAction}
+  2289	                            disabled={loadingAction}
+  2290	                            className="px-4 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black text-xs font-semibold tracking-wider uppercase rounded flex items-center space-x-1.5 transition-colors cursor-pointer accent-bg"
+  2291	                          >
+  2292	                            <Save className="w-3.5 h-3.5" />
+  2293	                            <span>Update Contact Info</span>
+  2294	                          </button>
+  2295	                        </div>
+  2296	                      </div>
+  2297	                    </>
+  2298	                  )}
+  2299	                </div>
+  2300	              )}

@@ -33,6 +33,8 @@ export interface PortfolioItem {
     DE: string;
     KO: string;
   };
+  copyright?: string;
+  copyrightUrl?: string;
 }
 
 export interface VideoItem {
@@ -74,6 +76,7 @@ export interface ThemeSettings {
   homeBg?: string;
   homeBgType?: 'image' | 'video' | 'youtube';
   contactFormBg?: string;
+  pressFontSize?: number;
   // Font Customization
   fontSans?: string;
   fontSerif?: string;
@@ -96,6 +99,58 @@ export interface ThemeSettings {
   heroSubtitleKO?: string;
   heroDescriptionKO?: string;
   heroDiscoverKO?: string;
+  // Hero Layout Customization
+  heroOffsetY?: number;
+  heroAlign?: 'left' | 'center' | 'right';
+  heroTitleSize?: number;
+  heroDescSize?: number;
+  heroSubtitleSize?: number;
+  heroButtonSize?: number;
+
+  heroSubtitleOffsetX?: number;
+  heroSubtitleOffsetY?: number;
+  heroTitleOffsetX?: number;
+  heroTitleOffsetY?: number;
+  heroDescOffsetX?: number;
+  heroDescOffsetY?: number;
+  heroButtonOffsetX?: number;
+  heroButtonOffsetY?: number;
+  heroCopyright?: string;
+  heroCopyrightUrl?: string;
+  // Footer Customization
+  footerBrandName?: string;
+  footerCopyrightText?: string;
+  footerImpressum?: string;
+  footerPrivacyPolicy?: string;
+  footerContactEmail?: string;
+  footerSocialInstagram?: string;
+  footerSocialYoutube?: string;
+  footerSocialFacebook?: string;
+  footerSocialTwitter?: string;
+}
+
+export interface TimelineItem {
+  id?: string;
+  order?: number;
+  year: string;
+  textEN: string;
+  textDE: string;
+  textKO: string;
+}
+
+export interface TimelineData {
+  education: TimelineItem[];
+  awards: TimelineItem[];
+  roles: TimelineItem[];
+  concert: TimelineItem[];
+  [key: string]: TimelineItem[];
+}
+
+export interface TimelineTitles {
+  education?: { EN: string; DE: string; KO: string; };
+  awards?: { EN: string; DE: string; KO: string; };
+  roles?: { EN: string; DE: string; KO: string; };
+  concert?: { EN: string; DE: string; KO: string; };
 }
 
 export interface BiographySettings {
@@ -110,6 +165,10 @@ export interface BiographySettings {
     KO: string;
   };
   bioImage?: string;
+  photoCredit?: string;
+  photoCreditLink?: string;
+  timeline?: TimelineData;
+  timelineTitles?: TimelineTitles;
 }
 
 export interface ContactSettings {
@@ -147,4 +206,6 @@ export interface PerformanceSlide {
     DE: string;
     KO: string;
   };
+  copyright?: string;
+  copyrightUrl?: string;
 }

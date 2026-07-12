@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Globe, Lock, ShieldCheck } from 'lucide-react';
-import { Language } from '../types';
+import { Language, ThemeSettings } from '../types';
 import { translations } from '../translations';
 import { User } from 'firebase/auth';
 
@@ -10,9 +10,10 @@ interface NavbarProps {
   setLang: (lang: Language) => void;
   user: User | null;
   onAdminToggle: () => void;
+  theme?: ThemeSettings;
 }
 
-export default function Navbar({ currentLang, setLang, user, onAdminToggle }: NavbarProps) {
+export default function Navbar({ currentLang, setLang, user, onAdminToggle, theme }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -37,22 +38,34 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
     ];
   }, [currentLang]);
 
+  const clickScrollInProgress = React.useRef(false);
+  const clickScrollTimeout = React.useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      // Simple intersection tracker
-      const scrollPosition = window.scrollY + 200;
+      if (clickScrollInProgress.current) return;
+
+      // Use middle of screen for better intersection tracking
+      const scrollPosition = window.scrollY + window.innerHeight / 2;
+      
+      // Check if we are at the very bottom of the page
+      const isBottom = window.innerHeight + Math.round(window.scrollY) >= document.documentElement.scrollHeight - 50;
+
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 150) {
+        setActiveSection(menuItems[menuItems.length - 1].id);
+        return;
+      }
+
+      let current = menuItems[0].id;
       for (const item of menuItems) {
         const el = document.getElementById(item.id);
-        if (el) {
-          const offsetTop = el.offsetTop;
-          const offsetHeight = el.offsetHeight;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(item.id);
-          }
+        if (el && scrollPosition >= el.offsetTop - 100) {
+          current = item.id;
         }
       }
+      setActiveSection(current);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -63,9 +76,18 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
     setActiveSection(id);
     setIsOpen(false);
     
+    clickScrollInProgress.current = true;
+    if (clickScrollTimeout.current) clearTimeout(clickScrollTimeout.current);
+    
+    // Release the scroll lock after smooth scrolling completes
+    clickScrollTimeout.current = setTimeout(() => {
+      clickScrollInProgress.current = false;
+    }, 1200);
+
     // Defer scroll slightly to allow the mobile drawer to start closing and 
     // prevent animation conflicts on mobile and tablet touch devices.
     setTimeout(() => {
+
       const element = document.getElementById(id);
       if (element) {
         let offset = window.innerWidth >= 768 ? 80 : 60; // Base offset to clear navbar
@@ -106,33 +128,34 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
           onClick={() => scrollTo('home')}
           className="cursor-pointer font-serif text-xl md:text-2xl font-light tracking-[0.2em] text-white hover:text-white/80 transition-all"
         >
-          HYUNKYUM KIM
+          {theme?.footerBrandName || 'HYUNKYUM KIM'}
         </div>
 
         {/* Desktop Navigation */}
         <div id="desktop-menu" className="hidden lg:flex items-center space-x-8">
           <div className="flex items-center space-x-6">
-            {menuItems.map((item) => (
+            {menuItems.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
               <button
                 key={item.id}
                 id={`nav-link-${item.id}`}
                 onClick={() => scrollTo(item.id)}
-                className={`relative font-sans text-xs tracking-[0.15em] transition-all uppercase ${
-                  activeSection === item.id 
-                    ? 'text-white font-bold' 
-                    : 'text-neutral-400 hover:text-white font-normal'
-                }`}
+                className="relative font-sans text-xs tracking-[0.15em] transition-colors uppercase cursor-pointer py-1"
               >
-                {item.label}
-                {activeSection === item.id && (
+                <span className={`transition-all duration-300 block ${isActive ? 'text-white' : 'text-neutral-400 hover:text-white'}`} style={{ textShadow: isActive ? '0 0 0.5px white' : 'none' }}>
+                  {item.label}
+                </span>
+                {isActive && (
                   <motion.div 
-                    layoutId="activeIndicator"
-                    className="absolute -bottom-1 left-0 right-0 h-[1px] bg-white"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    layoutId="navbarMainIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-white"
+                    transition={{ type: 'spring', stiffness: 350, damping: 35 }}
                   />
                 )}
               </button>
-            ))}
+              );
+            })}
           </div>
 
           <div className="h-4 w-[1px] bg-neutral-800" />

@@ -58,6 +58,9 @@ export function getMediaSource(url: string, explicitType?: 'image' | 'video' | '
     if (explicitType === 'video') {
       return { type: 'video' as const, src: drive.streamUrl };
     }
+    if (explicitType === 'image') {
+      return { type: 'image' as const, src: `https://lh3.googleusercontent.com/d/${drive.id}` };
+    }
     // Google Drive videos should be embedded via iframe for reliable playback (avoids virus scan blocks)
     return { type: 'drive' as const, src: drive.previewUrl };
   }

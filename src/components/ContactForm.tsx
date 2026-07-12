@@ -15,6 +15,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errors, setErrors] = useState<{ name?: string; email?: string; message?: string }>({});
 
   const t = translations[currentLang];
 
@@ -23,9 +24,77 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
   // 새로 생성한 폼의 엔드포인트 URL(예: https://formspree.io/f/xxxxxxxx)을 아래에 입력해 주세요!
   const FORM_ENDPOINT = "https://formspree.io/f/your_form_id_here"; 
 
+  const validationMessages = {
+    EN: {
+      nameRequired: "Please enter your name.",
+      emailRequired: "Please enter your email address.",
+      messageRequired: "Please enter your message.",
+      emailInvalid: "Please enter a valid email address."
+    },
+    DE: {
+      nameRequired: "Bitte geben Sie Ihren Namen ein.",
+      emailRequired: "Bitte geben Sie Ihre E-Mail-Adresse ein.",
+      messageRequired: "Bitte geben Sie Ihre Nachricht ein.",
+      emailInvalid: "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+    },
+    KO: {
+      nameRequired: "이름을 입력해 주세요.",
+      emailRequired: "이메일 주소를 입력해 주세요.",
+      messageRequired: "메시지를 입력해 주세요.",
+      emailInvalid: "올바른 이메일 주소를 입력해 주세요."
+    }
+  };
+
+  const msgs = validationMessages[currentLang] || validationMessages.EN;
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (val.trim()) {
+      setErrors(prev => ({ ...prev, name: undefined }));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (val.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(val.trim())) {
+        setErrors(prev => ({ ...prev, email: undefined }));
+      }
+    }
+  };
+
+  const handleMessageChange = (val: string) => {
+    setMessage(val);
+    if (val.trim()) {
+      setErrors(prev => ({ ...prev, message: undefined }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !message) return;
+
+    // Custom Validation
+    const newErrors: { name?: string; email?: string; message?: string } = {};
+    if (!name.trim()) {
+      newErrors.name = msgs.nameRequired;
+    }
+    if (!email.trim()) {
+      newErrors.email = msgs.emailRequired;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        newErrors.email = msgs.emailInvalid;
+      }
+    }
+    if (!message.trim()) {
+      newErrors.message = msgs.messageRequired;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
@@ -65,6 +134,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
       setName('');
       setEmail('');
       setMessage('');
+      setErrors({});
     } catch (error) {
       console.error("Error submitting contact message:", error);
       setSubmitStatus('error');
@@ -85,11 +155,12 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
         action={FORM_ENDPOINT} 
         method="POST" 
         onSubmit={handleSubmit} 
+        noValidate
         className="space-y-5"
       >
         {/* Row for Name & Email */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 pb-5 relative">
             <label htmlFor="name" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
               {t.formName} *
             </label>
@@ -97,15 +168,26 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               type="text"
               id="name"
               name="name"
-              required
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. Jean-Pierre"
-              className="w-full bg-[var(--color-bg)] border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors"
+              className={`w-full bg-[var(--color-bg)] border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors`}
               style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
             />
+            <AnimatePresence>
+              {errors.name && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="absolute bottom-0 left-0 text-[11px] text-rose-400 font-sans font-light tracking-wide"
+                >
+                  {errors.name}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 pb-5 relative">
             <label htmlFor="email" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
               {t.formEmail} *
             </label>
@@ -113,32 +195,54 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               type="email"
               id="email"
               name="email"
-              required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="e.g. jp@example.com"
-              className="w-full bg-[var(--color-bg)] border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors"
+              className={`w-full bg-[var(--color-bg)] border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors`}
               style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
             />
+            <AnimatePresence>
+              {errors.email && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="absolute bottom-0 left-0 text-[11px] text-rose-400 font-sans font-light tracking-wide"
+                >
+                  {errors.email}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {/* Message area */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 pb-5 relative">
           <label htmlFor="message" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
             {t.formMessage} *
           </label>
           <textarea
             id="message"
             name="message"
-            required
             rows={5}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => handleMessageChange(e.target.value)}
             placeholder="..."
-            className="w-full bg-[var(--color-bg)] border border-neutral-900 focus:border-white/40 focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors resize-none"
+            className={`w-full bg-[var(--color-bg)] border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors resize-none`}
             style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
           />
+          <AnimatePresence>
+            {errors.message && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute bottom-0 left-0 text-[11px] text-rose-400 font-sans font-light tracking-wide"
+              >
+                {errors.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Status displays */}
@@ -173,7 +277,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
           type="submit"
           id="contact-submit-btn"
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-8 py-3.5 bg-[var(--color-bg)] hover:bg-white hover:text-black border border-white/20 hover:border-white text-[var(--color-text)] font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-current opacity-60 hover:opacity-100 hover:bg-white/5 text-[var(--color-text)] font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>
