@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getGoogleAccessToken, loginWithGoogle } from '../../firebase';
 
 declare global {
   interface Window {
@@ -25,28 +26,43 @@ export const GoogleDrivePicker = ({ onPick }: Props) => {
     document.body.appendChild(script);
   }, []);
 
-  const openPicker = () => {
+  const openPicker = async () => {
     if (!pickerApiLoaded || !window.gapi) return;
 
-    const token = window.gapi.auth && window.gapi.auth.getToken ? window.gapi.auth.getToken()?.access_token : null;
+    let token = getGoogleAccessToken();
 
     if (!token) {
-        alert("Authentication required. Please log in with Google Drive first.");
+        try {
+            await loginWithGoogle();
+            token = getGoogleAccessToken();
+        } catch (e) {
+            alert("Authentication required. Please log in with Google Drive.");
+            return;
+        }
+    }
+
+    if (!token) {
+        alert("Authentication failed.");
         return;
     }
 
-    const picker = new window.google.picker.PickerBuilder()
-      .addView(window.google.picker.ViewId.DOCS)
-      .setOAuthToken(token)
-      .setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY)
-      .setCallback((data: any) => {
-        if (data.action === window.google.picker.Action.PICKED) {
-          const doc = data.docs[0];
-          onPick(doc.url);
-        }
-      })
-      .build();
-    picker.setVisible(true);
+    try {
+        const picker = new window.google.picker.PickerBuilder()
+          .addView(window.google.picker.ViewId.DOCS)
+          .setOAuthToken(token)
+          .setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY)
+          .setCallback((data: any) => {
+            if (data.action === window.google.picker.Action.PICKED) {
+              const doc = data.docs[0];
+              onPick(doc.url);
+            }
+          })
+          .build();
+        picker.setVisible(true);
+    } catch (e) {
+        console.error("Picker error:", e);
+        alert("Failed to open picker. Please check console for details.");
+    }
   };
 
   return (

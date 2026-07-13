@@ -93,3 +93,4 @@ Confirm that:
 ✓ Existing Admin data remains untouched.
 ✓ Existing Firestore documents remain compatible.
 ✓ No existing functionality was broken.
+✓ Document all changes in CHANGELOG.md.
