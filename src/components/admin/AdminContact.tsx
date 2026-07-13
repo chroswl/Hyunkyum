@@ -36,8 +36,22 @@ export default function AdminContact({ currentLang }: { currentLang: Language })
     if (initialSettings) setSettings(initialSettings);
   };
 
-  const updateField = (key: keyof ContactSettings, val: string) => {
+  const updateField = (key: keyof ContactSettings, val: any) => {
     setSettings(prev => prev ? { ...prev, [key]: val } : prev);
+  };
+
+  const updateMultilingualField = (key: 'connectTitle' | 'connectDescription', lang: Language, val: string) => {
+    setSettings(prev => {
+      if (!prev) return prev;
+      const currentField = prev[key] || { EN: '', DE: '', KO: '' };
+      return {
+        ...prev,
+        [key]: {
+          ...currentField,
+          [lang]: val
+        }
+      };
+    });
   };
 
   const properties = (
@@ -45,6 +59,12 @@ export default function AdminContact({ currentLang }: { currentLang: Language })
       <PropertyAccordion title="Contact Information" defaultOpen>
          <PropertyInput label="Direct Email" value={settings.email || ''} onChange={(v) => updateField('email', v)} type="email" />
          <PropertyInput label="Phone Number" value={settings.phone || ''} onChange={(v) => updateField('phone', v)} type="tel" />
+      </PropertyAccordion>
+      <PropertyAccordion title="Connect Section" defaultOpen>
+         <PropertyInput label="Connect Title" value={settings.connectTitle?.[currentLang] || ''} onChange={(v) => updateMultilingualField('connectTitle', currentLang, v)} />
+         <PropertyTextarea label="Connect Description" value={settings.connectDescription?.[currentLang] || ''} onChange={(v) => updateMultilingualField('connectDescription', currentLang, v)} rows={3} />
+         <PropertyInput label="Instagram Link" value={settings.instagramLink || ''} onChange={(v) => updateField('instagramLink', v)} />
+         <PropertyInput label="YouTube Link" value={settings.youtubeLink || ''} onChange={(v) => updateField('youtubeLink', v)} />
       </PropertyAccordion>
       <PropertyAccordion title="Management" defaultOpen>
          <PropertyTextarea label="Management Info (Name & Address)" value={settings.management || ''} onChange={(v) => updateField('management', v)} rows={5} />

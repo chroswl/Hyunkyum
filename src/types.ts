@@ -175,6 +175,10 @@ export interface ContactSettings {
   email: string;
   phone: string;
   management: string;
+  connectTitle?: { EN: string; DE: string; KO: string };
+  connectDescription?: { EN: string; DE: string; KO: string };
+  instagramLink?: string;
+  youtubeLink?: string;
 }
 
 export interface ContactMessage {

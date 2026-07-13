@@ -570,8 +570,13 @@ export default function SelectedPerformances({
                           <div className="flex-1 min-w-0 pr-4 flex items-center space-x-4">
                             {item.image && (
                               <div className="w-16 h-10 bg-neutral-900 rounded overflow-hidden flex-shrink-0 border border-white/10">
-                                {item.mediaType === 'image' && <img src={item.image} alt="thumb" className="w-full h-full object-cover" />}
-                                {item.mediaType !== 'image' && <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-500 uppercase">{item.mediaType}</div>}
+                                {(() => {
+                                  const media = getMediaSource(item.image, item.mediaType as any);
+                                  if (media.type === 'video' || media.type === 'youtube' || media.type === 'drive') {
+                                    return <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-500 uppercase">{media.type}</div>;
+                                  }
+                                  return <img src={media.src} alt="thumb" className="w-full h-full object-cover" />;
+                                })()}
                               </div>
                             )}
                             <div>
@@ -699,7 +704,7 @@ export default function SelectedPerformances({
         <ImageCropperModal
           imageSrc={cropTarget.src}
           aspect={cropTarget.aspect}
-          copyright={cropTarget.copyright.trim().startsWith('©') ? cropTarget.copyright : `© ${cropTarget.copyright.trim()}`}
+          copyright={(cropTarget.copyright || '').trim().startsWith('©') ? (cropTarget.copyright || '') : `© ${(cropTarget.copyright || '').trim()}`}
           copyrightUrl={cropTarget.copyrightUrl}
           onCropDone={(base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl)}
           onCropCancel={() => {

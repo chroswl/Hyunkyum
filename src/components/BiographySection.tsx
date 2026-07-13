@@ -404,12 +404,19 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                       <div className="w-full h-40 bg-black/40 rounded-sm border border-white/5 overflow-hidden flex items-center justify-center p-2 relative group/preview">
                         {editedBio.bioImage ? (
                           <>
-                            {getMediaSource(editedBio.bioImage).type === 'video' ? (
-                              <video src={getMediaSource(editedBio.bioImage).src} className="max-w-full max-h-full object-contain rounded-sm" muted loop autoPlay playsInline />
-                            ) : (
-                              <img src={getMediaSource(editedBio.bioImage).src} alt="Preview" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />
-                            )}
-                            {getMediaSource(editedBio.bioImage).type !== 'video' && (
+                            {(() => {
+                              const media = getMediaSource(editedBio.bioImage);
+                              if (media.type === 'video') {
+                                return <video src={media.src} className="max-w-full max-h-full object-contain rounded-sm" muted loop autoPlay playsInline />;
+                              } else if (media.type === 'youtube') {
+                                return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="max-w-full max-h-full" frameBorder="0" allowFullScreen />;
+                              } else if (media.type === 'drive') {
+                                return <iframe src={media.src} className="max-w-full max-h-full" frameBorder="0" allowFullScreen />;
+                              } else {
+                                return <img src={media.src} alt="Preview" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />;
+                              }
+                            })()}
+                            {getMediaSource(editedBio.bioImage).type === 'image' && (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -480,6 +487,10 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                             onContextMenu={(e) => e.preventDefault()}
                           />
                         );
+                      } else if (media.type === 'youtube') {
+                        return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]" frameBorder="0" allowFullScreen />;
+                      } else if (media.type === 'drive') {
+                        return <iframe src={media.src} className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]" frameBorder="0" allowFullScreen />;
                       }
                       return (
                         <img 
@@ -720,7 +731,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
         <ImageCropperModal
           imageSrc={cropTarget.src}
           aspect={cropTarget.aspect}
-          copyright={cropTarget.copyright.trim().startsWith('©') ? cropTarget.copyright : `© ${cropTarget.copyright.trim()}`}
+          copyright={(cropTarget.copyright || '').trim().startsWith('©') ? (cropTarget.copyright || '') : `© ${(cropTarget.copyright || '').trim()}`}
           copyrightUrl={cropTarget.copyrightUrl}
           onCropCancel={() => setCropTarget(null)}
           onCropDone={(base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl)}

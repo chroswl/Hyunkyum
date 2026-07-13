@@ -36,10 +36,10 @@ export default function ContactSection({
  <div className="flex flex-col space-y-12">
  <div className="space-y-4">
  <h3 className="text-[11px] md:text-xs text-[#A0A0A0] tracking-[0.2em] uppercase font-sans font-medium">
- CONNECT
+ {contact.connectTitle?.[currentLang] || 'CONNECT'}
  </h3>
  <p className="text-sm md:text-base font-sans leading-relaxed font-light opacity-90">
- Always open to new stages and conversations. Reach out directly via email or use the form below.
+ {contact.connectDescription?.[currentLang] || 'Always open to new stages and conversations. Reach out directly via email or use the form below.'}
  </p>
  </div>
 
@@ -62,7 +62,7 @@ export default function ContactSection({
  </span>
  <div className="flex space-x-4">
  <a 
- href="https://instagram.com" 
+ href={contact.instagramLink || 'https://instagram.com'} 
  target="_blank" 
  rel="noreferrer" 
  className="w-12 h-12 rounded-sm border border-current opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"
@@ -71,7 +71,7 @@ export default function ContactSection({
  <Instagram className="w-5 h-5" />
  </a>
  <a 
- href="https://youtube.com" 
+ href={contact.youtubeLink || 'https://youtube.com'} 
  target="_blank" 
  rel="noreferrer" 
  className="w-12 h-12 rounded-sm border border-current opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"

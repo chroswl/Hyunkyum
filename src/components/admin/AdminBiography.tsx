@@ -117,11 +117,18 @@ export default function AdminBiography({ currentLang }: { currentLang: Language 
            
            {bio.bioImage && (
              <div className="relative border border-neutral-800 rounded bg-black aspect-[3/4] overflow-hidden">
-                {getMediaSource(bio.bioImage).type === 'video' ? (
-                  <video src={getMediaSource(bio.bioImage).src} className="w-full h-full object-cover" muted loop autoPlay playsInline />
-                ) : (
-                  <img src={getMediaSource(bio.bioImage).src} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                )}
+                {(() => {
+                  const media = getMediaSource(bio.bioImage);
+                  if (media.type === 'video') {
+                    return <video src={media.src} className="w-full h-full object-cover" muted loop autoPlay playsInline />;
+                  } else if (media.type === 'youtube') {
+                    return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-full" frameBorder="0" allowFullScreen />;
+                  } else if (media.type === 'drive') {
+                    return <iframe src={media.src} className="w-full h-full" frameBorder="0" allowFullScreen />;
+                  } else {
+                    return <img src={media.src} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />;
+                  }
+                })()}
                 <button onClick={() => setBio({...bio, bioImage: ''})} className="absolute top-2 right-2 bg-black/80 text-white text-[10px] px-2 py-1 rounded">Remove</button>
              </div>
            )}

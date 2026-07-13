@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Language, PressItem } from '../../types';
-import { fetchPress, savePressItem, deletePressItem } from '../../firebase';
+import { fetchPress, savePressItem } from '../../firebase';
 import { Plus, Trash2, Edit, GripVertical, FileText } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -18,6 +18,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
   const [initialItems, setInitialItems] = useState<PressItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -36,6 +37,15 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
   const handleSave = async () => {
     setIsSaving(true);
     const batch = writeBatch(db);
+    
+    // Items to delete
+    initialItems.forEach(item => {
+      if (!items.find(i => i.id === item.id)) {
+        batch.delete(doc(db, 'press', item.id));
+      }
+    });
+
+    // Items to add/update
     items.forEach((item, index) => {
        const ref = doc(db, 'press', item.id);
        batch.set(ref, { ...item, order: index });
@@ -65,14 +75,11 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
     setItems(items.map(item => item.id === id ? { ...item, ...updates } : item));
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this press item?')) {
-      await deletePressItem(id);
-      const newItems = items.filter(i => i.id !== id);
-      setItems(newItems);
-      setInitialItems(newItems);
-      if (editingId === id) setEditingId(null);
-    }
+  const handleDeleteConfirm = (id: string) => {
+    const newItems = items.filter(i => i.id !== id);
+    setItems(newItems);
+    if (editingId === id) setEditingId(null);
+    setDeleteTargetId(null);
   };
 
   const handleAdd = () => {
@@ -108,7 +115,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
                   <div className="text-xs text-neutral-300 truncate">{item.source || 'Untitled'}</div>
                   <div className="text-[9px] text-[#C9A227] tracking-widest uppercase mt-0.5 truncate">{item.quote?.[currentLang] || item.quote?.EN || 'No quote'}</div>
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
+                  <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </SortableItem>
@@ -128,7 +135,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
                  <PropertyInput label="Publication / Source" value={editingItem.source || ''} onChange={v => updateItem(editingItem.id, { source: v })} />
                  <PropertyInput label="Author / Critic" value={editingItem.author || ''} onChange={v => updateItem(editingItem.id, { author: v })} />
                  <PropertyInput label="Date (e.g. Oct 2026)" value={editingItem.date || ''} onChange={v => updateItem(editingItem.id, { date: v })} />
-                 <PropertyInput label="Article Link (Optional)" value={editingItem.link || ''} onChange={v => updateItem(editingItem.id, { link: v })} type="url" />
+                 <PropertyInput label="Article Link or Google Drive link (Optional)" value={editingItem.link || ''} onChange={v => updateItem(editingItem.id, { link: v })} type="url" />
               </PropertyAccordion>
               <PropertyAccordion title="Quote" defaultOpen>
                  <PropertyTextarea label={`Quote Text (${currentLang})`} value={(currentLang === 'KO' ? editingItem.quote?.KO : currentLang === 'DE' ? editingItem.quote?.DE : editingItem.quote?.EN) || ''} onChange={v => updateItem(editingItem.id, { quote: {...(editingItem.quote||{EN:'',DE:'',KO:''}), [currentLang]: v} })} rows={8} />
@@ -141,28 +148,58 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
   );
 
   return (
-    <AdminLayout 
-      title="Press Editor"
-      hasChanges={hasChanges}
-      isSaving={isSaving}
-      onSave={handleSave}
-      onReset={handleReset}
-      preview={
-        <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
-          <PressSection 
-            items={items} 
-            currentLang={currentLang} 
-            setLang={() => {}} 
-            t={translations[currentLang]} 
-            user={null}
-            activeEditSection="none"
-            setActiveEditSection={() => {}}
-            onItemsUpdated={() => {}}
-            onRefreshData={() => {}}
-          />
+    <>
+      <AdminLayout 
+        title="Press Editor"
+        hasChanges={hasChanges}
+        isSaving={isSaving}
+        onSave={handleSave}
+        onReset={handleReset}
+        preview={
+          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+            <PressSection 
+              items={items} 
+              currentLang={currentLang} 
+              setLang={() => {}} 
+              t={translations[currentLang]} 
+              user={null}
+              activeEditSection="none"
+              setActiveEditSection={() => {}}
+              onItemsUpdated={() => {}}
+              onRefreshData={() => {}}
+            />
+          </div>
+        }
+        properties={properties}
+      />
+      {deleteTargetId && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+          <div className="bg-neutral-950 border border-neutral-900 p-6 rounded max-w-sm w-full space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="space-y-2">
+              <h3 className="text-sm font-serif text-white tracking-widest uppercase">Delete Confirmation</h3>
+              <p className="text-xs text-neutral-400">Are you sure you want to delete this item? This action cannot be undone.</p>
+            </div>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setDeleteTargetId(null)} 
+                className="flex-1 py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded text-xs uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  const id = deleteTargetId;
+                  setDeleteTargetId(null);
+                  await handleDeleteConfirm(id);
+                }} 
+                className="flex-1 py-2 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-200 rounded text-xs uppercase tracking-wider transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
-      }
-      properties={properties}
-    />
+      )}
+    </>
   );
 }

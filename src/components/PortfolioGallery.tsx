@@ -17,6 +17,7 @@ import { db, storage, savePortfolioItem, deletePortfolioItem } from '../firebase
 import { doc, updateDoc } from 'firebase/firestore';
 import { uploadToR2, isAIStudioPreview } from '../r2';
 import { compressFile, compressBase64, optimizeImageFile } from '../lib/imageCompressor';
+import { getMediaSource } from '../lib/mediaUtils';
 import ImageCropperModal from './ImageCropperModal';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
@@ -678,7 +679,13 @@ export default function PortfolioGallery({
                             handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
                           >
                             <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
-                              <img src={item.url} alt="Thumbnail preview" className="w-16 h-12 object-cover border border-white/5 rounded-sm shrink-0" referrerPolicy="no-referrer" />
+                              {(() => {
+                                const media = getMediaSource(item.url);
+                                if (media.type === 'video' || media.type === 'youtube' || media.type === 'drive') {
+                                  return <div className="w-16 h-12 flex items-center justify-center text-[10px] text-neutral-500 bg-neutral-900 border border-white/5 rounded-sm shrink-0">{media.type}</div>;
+                                }
+                                return <img src={media.src} alt="Thumbnail preview" className="w-16 h-12 object-cover border border-white/5 rounded-sm shrink-0" referrerPolicy="no-referrer" />;
+                              })()}
                               <div className="min-w-0">
                                 <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded mr-2 inline-block">
                                   {item.category}
@@ -933,7 +940,7 @@ export default function PortfolioGallery({
         <ImageCropperModal
           imageSrc={cropTarget.src}
           aspect={cropTarget.aspect}
-          copyright={cropTarget.copyright.trim().startsWith('©') ? cropTarget.copyright : `© ${cropTarget.copyright.trim()}`}
+          copyright={(cropTarget.copyright || '').trim().startsWith('©') ? (cropTarget.copyright || '') : `© ${(cropTarget.copyright || '').trim()}`}
           copyrightUrl={cropTarget.copyrightUrl}
           onCropDone={(base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl)}
           onCropCancel={() => setCropTarget(null)}
