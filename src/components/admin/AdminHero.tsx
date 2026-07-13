@@ -4,6 +4,7 @@ import { fetchThemeSettings, saveThemeSettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySlider, PropertySelect } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import HeroSection from '../HeroSection';
 import { translations } from '../../translations';
 import { optimizeImageFile } from '../../lib/imageCompressor';
@@ -126,7 +127,10 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
 
       <PropertyAccordion title="Background Settings">
         <PropertySelect label="Background Type" value={theme.homeBgType || 'image'} options={[{label: 'Image', value: 'image'}, {label: 'Video', value: 'video'}, {label: 'YouTube', value: 'youtube'}]} onChange={(v) => updateField('homeBgType', v as any)} />
-        <PropertyInput label="Background URL / Youtube ID" value={theme.homeBg || ''} onChange={(v) => updateField('homeBg', v)} />
+        <div className="flex justify-between items-end gap-2">
+          <PropertyInput label="Background URL / Youtube ID" value={theme.homeBg || ''} onChange={(v) => updateField('homeBg', v)} />
+          <GoogleDrivePicker onPick={url => updateField('homeBg', url)} />
+        </div>
         
         <div className="mt-4 space-y-2">
           <label className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>

@@ -8,6 +8,7 @@ import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertyTextarea } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import VideoPlayer from '../VideoPlayer';
 import { translations } from '../../translations';
 
@@ -97,6 +98,47 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
     setEditingId(newItem.id);
   };
 
+  const handleSaveChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || (!editingItem.youtubeId && !editingItem.videoUrl)) {
+      alert("Please provide a valid YouTube ID or Video URL");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      // Clean up YouTube ID input if they pasted a full URL
+      let ytId = editingItem.youtubeId;
+      if (ytId) {
+        const parsed = getMediaSource(ytId);
+        if (parsed.ytId) {
+          ytId = parsed.ytId;
+        }
+      }
+
+      const saveItem = {
+        ...editingItem,
+        youtubeId: ytId,
+        videoUrl: editingItem.videoUrl
+      };
+
+      if (!saveItem.order) {
+        saveItem.order = items.length;
+      }
+
+      const saved = await saveVideoItem(saveItem as VideoItem);
+      
+      // Update local state to reflect the change
+      setItems(items.map(item => item.id === saved.id ? saved : item));
+      setInitialItems(items.map(item => item.id === saved.id ? saved : item));
+
+      setIsSaving(false);
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error saving video:", err);
+      setIsSaving(false);
+    }
+  };
+
   const editingItem = items.find(i => i.id === editingId);
 
   const properties = (
@@ -131,10 +173,13 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
              <button onClick={() => setEditingId(null)} className="text-xs text-neutral-500 hover:text-white uppercase tracking-widest">← Back to List</button>
           </div>
           {editingItem && (
-            <>
+            <form onSubmit={handleSaveChanges}>
               <PropertyAccordion title="Media" defaultOpen>
-                <PropertyInput label="YouTube ID (e.g. dQw4w9WgXcQ)" value={editingItem.youtubeId || ''} onChange={v => updateItem(editingItem.id, { youtubeId: v })} />
-                {editingItem.youtubeId && (
+                <div className="flex justify-between items-end gap-2">
+                  <PropertyInput label="YouTube ID or Drive Link" value={editingItem.youtubeId || editingItem.videoUrl || ''} onChange={v => updateItem(editingItem.id, { youtubeId: v, videoUrl: v })} />
+                  <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { videoUrl: url, youtubeId: url })} />
+                </div>
+                {(editingItem.youtubeId || editingItem.videoUrl) && (
                   <div className="mt-4 aspect-video bg-black rounded overflow-hidden border border-neutral-800 relative pointer-events-none">
                      <img src={`https://img.youtube.com/vi/${editingItem.youtubeId}/hqdefault.jpg`} className="w-full h-full object-cover" alt="Preview" />
                   </div>
@@ -144,7 +189,10 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
                  <PropertyInput label={`Title (${currentLang})`} value={(currentLang === 'KO' ? editingItem.title?.KO : currentLang === 'DE' ? editingItem.title?.DE : editingItem.title?.EN) || ''} onChange={v => updateItem(editingItem.id, { title: {...(editingItem.title||{EN:'',DE:'',KO:''}), [currentLang]: v} })} />
                  <PropertyInput label={`Role (${currentLang})`} value={(currentLang === 'KO' ? editingItem.role?.KO : currentLang === 'DE' ? editingItem.role?.DE : editingItem.role?.EN) || ''} onChange={v => updateItem(editingItem.id, { role: {...(editingItem.role||{EN:'',DE:'',KO:''}), [currentLang]: v} })} />
               </PropertyAccordion>
-            </>
+              <div className="px-6 pt-4">
+                <button type="submit" className="w-full bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold py-2 rounded text-xs uppercase tracking-wider">Save Changes</button>
+              </div>
+            </form>
           )}
         </>
       )}

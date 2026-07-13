@@ -10,6 +10,7 @@ import {
   arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable 
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GoogleDrivePicker } from './admin/GoogleDrivePicker';
 import { PortfolioItem, Language } from '../types';
 import { translations } from '../translations';
 import { User } from 'firebase/auth';
@@ -477,6 +478,7 @@ export default function PortfolioGallery({
                       onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
                       className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
                     />
+                    <GoogleDrivePicker onPick={url => setEditingItem({ ...editingItem, url: url })} />
                   </div>
 
                   <div className="space-y-1.5">

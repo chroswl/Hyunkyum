@@ -8,6 +8,7 @@ import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertyTextarea } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import PressSection from '../PressSection';
 import { translations } from '../../translations';
 import { writeBatch, doc } from 'firebase/firestore';
@@ -135,7 +136,10 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
                  <PropertyInput label="Publication / Source" value={editingItem.source || ''} onChange={v => updateItem(editingItem.id, { source: v })} />
                  <PropertyInput label="Author / Critic" value={editingItem.author || ''} onChange={v => updateItem(editingItem.id, { author: v })} />
                  <PropertyInput label="Date (e.g. Oct 2026)" value={editingItem.date || ''} onChange={v => updateItem(editingItem.id, { date: v })} />
-                 <PropertyInput label="Article Link or Google Drive link (Optional)" value={editingItem.link || ''} onChange={v => updateItem(editingItem.id, { link: v })} type="url" />
+                 <div className="flex justify-between items-end gap-2">
+                    <PropertyInput label="Article Link or Google Drive link (Optional)" value={editingItem.link || ''} onChange={v => updateItem(editingItem.id, { link: v })} type="url" />
+                    <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { link: url })} />
+                 </div>
               </PropertyAccordion>
               <PropertyAccordion title="Quote" defaultOpen>
                  <PropertyTextarea label={`Quote Text (${currentLang})`} value={(currentLang === 'KO' ? editingItem.quote?.KO : currentLang === 'DE' ? editingItem.quote?.DE : editingItem.quote?.EN) || ''} onChange={v => updateItem(editingItem.id, { quote: {...(editingItem.quote||{EN:'',DE:'',KO:''}), [currentLang]: v} })} rows={8} />

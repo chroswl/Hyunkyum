@@ -11,6 +11,7 @@ import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySelect } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import PortfolioGallery from '../PortfolioGallery';
 import ImageCropperModal from '../ImageCropperModal';
 import { getMediaSource } from '../../lib/mediaUtils';
@@ -133,6 +134,8 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
             <>
               <PropertyAccordion title="Image Asset" defaultOpen>
                 <div className="space-y-4">
+                   <PropertyInput label="Or enter image URL" value={editingItem.url || ''} onChange={v => updateItem(editingItem.id, { url: v })} />
+                   <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { url: url })} />
                    {editingItem.url ? (
                      <div className="relative border border-neutral-800 rounded bg-black aspect-[3/4] overflow-hidden">
                         {(() => {

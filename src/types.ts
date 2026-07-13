@@ -40,7 +40,8 @@ export interface PortfolioItem {
 export interface VideoItem {
   id: string;
   order?: number;
-  youtubeId: string;
+  youtubeId?: string;
+  videoUrl?: string;
   title: {
     EN: string;
     DE: string;

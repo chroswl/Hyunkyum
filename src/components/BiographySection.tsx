@@ -7,6 +7,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SortableItem } from './SortableItem';
 import Reveal from './Reveal';
 import { User } from 'firebase/auth';
+import { GoogleDrivePicker } from './admin/GoogleDrivePicker';
 import { BiographySettings, TimelineData } from '../types';
 import { saveBiographySettings } from '../firebase';
 import { uploadToR2, isAIStudioPreview } from '../r2';
@@ -303,6 +304,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
                         placeholder="https://images.unsplash.com/photo-..."
                       />
+                      <GoogleDrivePicker onPick={url => setEditedBio({...editedBio, bioImage: url})} />
                     </div>
 
                     <div className="space-y-1.5">

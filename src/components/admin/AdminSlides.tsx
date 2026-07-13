@@ -8,6 +8,7 @@ import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySelect } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import SelectedPerformances from '../SelectedPerformances';
 import ImageCropperModal from '../ImageCropperModal';
 import { writeBatch, doc } from 'firebase/firestore';
@@ -203,6 +204,7 @@ export default function AdminSlides({ currentLang }: { currentLang: Language }) 
                      value={editingItem.image || ''} 
                      onChange={(v) => updateItem(editingItem.id, { image: v })} 
                    />
+                   <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { image: url })} />
 
                    {editingItem.image ? (
                      <div className="relative border border-neutral-800 rounded bg-black aspect-[16/9] overflow-hidden">

@@ -9,6 +9,7 @@ import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySelect } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import ScheduleSection from '../ScheduleSection';
 import { writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -140,6 +141,7 @@ export default function AdminSchedule({ currentLang }: { currentLang: Language }
               </PropertyAccordion>
               <PropertyAccordion title="External Links">
                  <PropertyInput label="Booking Link (Optional)" value={editingItem.link || ''} onChange={v => updateItem(editingItem.id, { link: v })} type="url" />
+                  <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { link: url })} />
               </PropertyAccordion>
             </>
           )}

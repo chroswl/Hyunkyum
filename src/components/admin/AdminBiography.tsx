@@ -5,6 +5,7 @@ import { fetchBiographySettings, saveBiographySettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyTextarea, PropertyInput } from './PropertyFields';
+import { GoogleDrivePicker } from './GoogleDrivePicker';
 import BiographySection from '../BiographySection';
 import ImageCropperModal from '../ImageCropperModal';
 import { optimizeImageFile } from '../../lib/imageCompressor';
@@ -114,6 +115,7 @@ export default function AdminBiography({ currentLang }: { currentLang: Language 
       <PropertyAccordion title="Profile Media Settings">
         <div className="space-y-4">
            <PropertyInput label="Media URL or Google Drive link" value={bio.bioImage || ''} onChange={v => setBio({...bio, bioImage: v})} />
+            <GoogleDrivePicker onPick={(url) => setBio({...bio, bioImage: url})} />
            
            {bio.bioImage && (
              <div className="relative border border-neutral-800 rounded bg-black aspect-[3/4] overflow-hidden">
