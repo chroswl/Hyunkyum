@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Undo, Redo, RotateCcw } from 'lucide-react';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
 interface AdminLayoutProps {
   toolbar?: ReactNode;
@@ -16,13 +17,14 @@ interface AdminLayoutProps {
 export default function AdminLayout({
   toolbar, preview, properties, onSave, onReset, isSaving, hasChanges, title, lastSaved
 }: AdminLayoutProps) {
+  const { theme } = useAppearance();
   return (
     <div className="flex w-full h-full bg-[#0a0a0a] overflow-hidden text-white font-sans animate-in fade-in duration-300">
       {/* Center Panel (Preview) */}
       <div className="flex-1 flex flex-col min-w-0 border-r border-neutral-900 bg-[#0a0a0a]">
         <div className="h-14 border-b border-neutral-900 bg-[#111] flex items-center justify-between px-6 shrink-0">
            <div className="flex items-center space-x-6">
-              <span className="text-xs font-serif tracking-widest text-accent uppercase">{title || 'Preview'}</span>
+              <span className="text-xs font-serif tracking-widest text-[#C9A227] uppercase">{title || 'Preview'}</span>
               {toolbar}
            </div>
            <div className="flex items-center space-x-4">
@@ -34,7 +36,21 @@ export default function AdminLayout({
            </div>
         </div>
         <div className="flex-1 overflow-hidden bg-neutral-950 p-6 flex flex-col relative items-center justify-center">
-           <div className="w-full h-full flex flex-col bg-black border border-neutral-900 rounded-lg overflow-hidden shadow-2xl relative">
+           <div 
+             id="theme-preview-scope"
+             className="w-full h-full flex flex-col bg-black border border-neutral-900 rounded-lg overflow-hidden shadow-2xl relative"
+             style={theme ? {
+               '--color-bg': theme.bg,
+               '--color-text': theme.text,
+               '--color-accent': theme.accent,
+               '--color-contact-bg': theme.contactFormBg || '#0a0a0a',
+             } as React.CSSProperties : {}}
+            >
+              <style>{theme ? `
+                #theme-preview-scope, #theme-preview-scope * {
+                  color: var(--color-text) !important;
+                }
+              ` : ''}</style>
               {preview}
            </div>
         </div>
@@ -48,7 +64,7 @@ export default function AdminLayout({
              <button onClick={onReset} className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Reset">
                <RotateCcw className="w-4 h-4" />
              </button>
-             <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-accent text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
+             <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-[#C9A227] text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
                {isSaving ? 'Saving...' : 'Save'}
              </button>
            </div>

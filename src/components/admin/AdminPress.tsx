@@ -13,8 +13,10 @@ import PressSection from '../PressSection';
 import { translations } from '../../translations';
 import { writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminPress({ currentLang }: { currentLang: Language }) {
+export default function AdminPress({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+  const { theme } = useAppearance();
   const [items, setItems] = useState<PressItem[]>([]);
   const [initialItems, setInitialItems] = useState<PressItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,6 +55,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
     });
     await batch.commit();
     setInitialItems(items);
+    if (onRefreshData) onRefreshData();
     setIsSaving(false);
   };
 
@@ -103,7 +106,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
          <span className="text-xs uppercase tracking-widest text-neutral-500">Press Clippings</span>
-         <button onClick={handleAdd} className="text-accent hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
+         <button onClick={handleAdd} className="text-[#C9A227] hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -115,7 +118,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
               {items.map(item => (
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
                   <div className="text-xs text-neutral-300 truncate">{item.source || 'Untitled'}</div>
-                  <div className="text-[9px] text-accent tracking-widest uppercase mt-0.5 truncate">{item.quote?.[currentLang] || item.quote?.EN || 'No quote'}</div>
+                  <div className="text-[9px] text-[#C9A227] tracking-widest uppercase mt-0.5 truncate">{item.quote?.[currentLang] || item.quote?.EN || 'No quote'}</div>
                   <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -160,7 +163,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
         onSave={handleSave}
         onReset={handleReset}
         preview={
-          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
             <PressSection 
               items={items} 
               currentLang={currentLang} 
@@ -171,6 +174,7 @@ export default function AdminPress({ currentLang }: { currentLang: Language }) {
               setActiveEditSection={() => {}}
               onItemsUpdated={() => {}}
               onRefreshData={() => {}}
+              theme={theme || undefined}
             />
           </div>
         }

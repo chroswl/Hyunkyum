@@ -1,4 +1,3 @@
-import { useAppearance } from '../contexts/AppearanceContext';
 import React, { ReactNode } from 'react';
 import { motion } from 'motion/react';
 
@@ -21,16 +20,7 @@ export default function Reveal({
   x = 0,
   staggerChildren
 }: RevealProps) {
-  const { appearance } = useAppearance();
-  
-  if (!appearance.animation.enabled) {
-    return <div className={width}>{children}</div>;
-  }
-
-  const animStyle = appearance.animation.style;
-  const animSpeedMultiplier = appearance.animation.speed === 'fast' ? 0.5 : appearance.animation.speed === 'slow' ? 1.5 : 1;
-  const actualDuration = duration * animSpeedMultiplier;
-  const actualY = animStyle === 'fade' || animStyle === 'none' ? 0 : y;
+  const isInPreview = typeof document !== 'undefined' && !!document.getElementById('theme-preview-scope');
 
   if (staggerChildren !== undefined) {
     // Parent container that staggers children
@@ -48,7 +38,7 @@ export default function Reveal({
     return (
       <motion.div
         variants={containerVariants}
-        initial="hidden"
+        initial={isInPreview ? "visible" : "hidden"}
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
         className={width}
@@ -62,7 +52,7 @@ export default function Reveal({
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: actualY,
+      y: y,
       x: x
     },
     visible: { 
@@ -70,7 +60,7 @@ export default function Reveal({
       y: 0,
       x: 0,
       transition: { 
-        duration: actualDuration, 
+        duration: duration, 
         ease: [0.16, 1, 0.3, 1], // Luxury cubic bezier easing
         delay: delay 
       } 
@@ -80,7 +70,7 @@ export default function Reveal({
   return (
     <motion.div
       variants={itemVariants}
-      initial="hidden"
+      initial={isInPreview ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
       className={width}
@@ -102,25 +92,14 @@ export function RevealItem({
   x?: number;
   duration?: number;
 }) {
-  const { appearance } = useAppearance();
-
-  if (!appearance.animation.enabled) {
-    return <div className="w-full">{children}</div>;
-  }
-
-  const animStyle = appearance.animation.style;
-  const animSpeedMultiplier = appearance.animation.speed === 'fast' ? 0.5 : appearance.animation.speed === 'slow' ? 1.5 : 1;
-  const actualDuration = duration * animSpeedMultiplier;
-  const actualY = animStyle === 'fade' || animStyle === 'none' ? 0 : y;
-
   const itemVariants = {
-    hidden: { opacity: 0, y: actualY, x },
+    hidden: { opacity: 0, y, x },
     visible: { 
       opacity: 1, 
       y: 0, 
       x: 0,
       transition: {
-        duration: actualDuration,
+        duration,
         ease: [0.16, 1, 0.3, 1]
       }
     }

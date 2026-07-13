@@ -8,7 +8,7 @@ import { translations } from '../../translations';
 import { Instagram, Youtube, Facebook, Twitter, Lock, Mail } from 'lucide-react';
 import { LegalModal } from '../LegalModals';
 
-export default function AdminFooter({ currentLang }: { currentLang: Language }) {
+export default function AdminFooter({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
   const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,6 +29,7 @@ export default function AdminFooter({ currentLang }: { currentLang: Language }) 
     setIsSaving(true);
     await saveThemeSettings(theme);
     setInitialTheme(theme);
+    if (onRefreshData) onRefreshData();
     setIsSaving(false);
     // Dispatch event so live site updates immediately
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
@@ -137,7 +138,7 @@ export default function AdminFooter({ currentLang }: { currentLang: Language }) 
 
         <div className="flex flex-col items-center text-center gap-3 text-[10px] tracking-wider">
           <div className="opacity-75">
-            {typeof theme.footerCopyrightText === 'string' ? (
+            {theme.footerCopyrightText ? (
               theme.footerCopyrightText.replace('{year}', new Date().getFullYear().toString())
             ) : (
               `© ${new Date().getFullYear()} ${theme.footerBrandName || t.heroTitle}. All Rights Reserved.`
@@ -164,7 +165,7 @@ export default function AdminFooter({ currentLang }: { currentLang: Language }) 
             <Twitter className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
           )}
           <div className="flex items-center space-x-1 p-1 bg-white/5 rounded-sm opacity-50">
-            <Lock className="w-3 h-3 text-accent" />
+            <Lock className="w-3 h-3 text-[#C9A227]" />
             <span className="text-[8px] uppercase tracking-widest font-mono">Secure</span>
           </div>
         </div>

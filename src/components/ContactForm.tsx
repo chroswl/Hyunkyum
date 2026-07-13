@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { saveContactMessage } from '../firebase';
-import { Language } from '../types';
+import { Language, ThemeSettings } from '../types';
 import { translations } from '../translations';
 
 interface ContactFormProps {
   currentLang: Language;
+  theme?: ThemeSettings;
 }
 
-export default function ContactForm({ currentLang }: ContactFormProps) {
+export default function ContactForm({ currentLang, theme }: ContactFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -161,7 +162,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
         {/* Row for Name & Email */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-1.5 pb-5 relative">
-            <label htmlFor="name" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
+            <label htmlFor="name" className="text-[10px] tracking-widest font-sans uppercase font-medium opacity-60" style={{ color: theme?.text }}>
               {t.formName} *
             </label>
             <input
@@ -171,8 +172,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. Jean-Pierre"
-              className={`forms-input w-full border ${errors.name ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors`}
-              
+              className={`w-full border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
+              style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
             />
             <AnimatePresence>
               {errors.name && (
@@ -188,7 +189,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
             </AnimatePresence>
           </div>
           <div className="space-y-1.5 pb-5 relative">
-            <label htmlFor="email" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
+            <label htmlFor="email" className="text-[10px] tracking-widest font-sans uppercase font-medium opacity-60" style={{ color: theme?.text }}>
               {t.formEmail} *
             </label>
             <input
@@ -198,8 +199,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="e.g. jp@example.com"
-              className={`forms-input w-full border ${errors.email ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors`}
-              
+              className={`w-full border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
+              style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
             />
             <AnimatePresence>
               {errors.email && (
@@ -218,7 +219,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
 
         {/* Message area */}
         <div className="space-y-1.5 pb-5 relative">
-          <label htmlFor="message" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
+          <label htmlFor="message" className="text-[10px] tracking-widest font-sans uppercase font-medium opacity-60" style={{ color: theme?.text }}>
             {t.formMessage} *
           </label>
           <textarea
@@ -228,8 +229,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
             value={message}
             onChange={(e) => handleMessageChange(e.target.value)}
             placeholder="..."
-            className={`forms-input w-full border ${errors.message ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
-            
+            className={`w-full border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
+            style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
           />
           <AnimatePresence>
             {errors.message && (
@@ -277,7 +278,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
           type="submit"
           id="contact-submit-btn"
           disabled={isSubmitting}
-          className="forms-btn border-transparent w-full sm:w-auto px-8 py-3.5 font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-current opacity-60 hover:opacity-100 hover:bg-white/5 font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          style={{ color: theme?.text, borderColor: theme?.text }}
         >
           {isSubmitting ? (
             <>

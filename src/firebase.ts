@@ -379,31 +379,12 @@ export const fetchThemeSettings = async (): Promise<ThemeSettings> => {
     const qSnapshot = await getDocs(collection(db, "settings"));
     let themeDoc = qSnapshot.docs.find(d => d.id === "theme");
     if (!themeDoc) {
-      return { bg: "#000000", text: "#ffffff", accent: "#ffffff", homeBg: "", homeBgType: 'image' };
+      return { bg: "#000000", text: "#ffffff", accent: "#C9A227", homeBg: "", homeBgType: 'image' };
     }
-    const data = themeDoc.data() as ThemeSettings;
-    
-    // Check for old gold or blue
-    const hasOldColor = data.accent === '#C9A227' || data.accent === '#4ea8de' || data.bg === '#000814';
-    if (hasOldColor) {
-      const migrated: ThemeSettings = {
-        ...data,
-        accent: '#ffffff',
-        bg: data.bg === '#000814' ? '#000000' : data.bg
-      };
-      try {
-        await setDoc(doc(db, "settings", "theme"), migrated);
-        console.log("Firestore settings/theme successfully auto-migrated to monochrome!");
-      } catch (err) {
-        console.error("Failed to auto-migrate settings/theme:", err);
-      }
-      return migrated;
-    }
-    
-    return data;
+    return themeDoc.data() as ThemeSettings;
   } catch (error) {
     console.error("Error fetching theme settings:", error);
-    return { bg: "#000000", text: "#ffffff", accent: "#ffffff", homeBg: "", homeBgType: 'image' };
+    return { bg: "#000000", text: "#ffffff", accent: "#C9A227", homeBg: "", homeBgType: 'image' };
   }
 };
 

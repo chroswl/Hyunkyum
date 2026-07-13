@@ -307,7 +307,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
     <div className="fixed inset-0 z-[100] flex flex-col bg-[var(--color-bg)]">
       {croppedAreaPixels && (
         <div className="absolute top-4 left-4 z-[120] flex items-center space-x-2 bg-black/80 backdrop-blur-md px-3 py-2 rounded-sm border border-white/10 text-white font-mono text-[10px] tracking-wider uppercase shadow-xl">
-          <ImageIcon className="w-3.5 h-3.5 text-accent" />
+          <ImageIcon className="w-3.5 h-3.5 text-[#C9A227]" />
           <span>Output Resolution: {Math.round(croppedAreaPixels.width)} × {Math.round(croppedAreaPixels.height)} px</span>
         </div>
       )}
@@ -376,7 +376,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               <button
                 key={a.label}
                 onClick={() => setAspect(a.value)}
-                className={`px-3 py-1.5 text-[10px] uppercase font-sans border rounded-sm transition-colors ${aspect === a.value ? 'bg-accent text-black border-accent font-bold' : 'text-neutral-400 border-neutral-700 hover:text-[var(--color-text)]'}`}
+                className={`px-3 py-1.5 text-[10px] uppercase font-sans border rounded-sm transition-colors ${aspect === a.value ? 'bg-[#C9A227] text-black border-[#C9A227] font-bold' : 'text-neutral-400 border-neutral-700 hover:text-[var(--color-text)]'}`}
               >
                 {a.label}
               </button>
@@ -408,7 +408,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               onChange={(e) => {
                 setZoom(Number(e.target.value));
               }}
-              className="w-full accent-accent"
+              className="w-full accent-[#C9A227]"
             />
           </div>
           
@@ -424,7 +424,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               onChange={(e) => {
                 setRotation(Number(e.target.value));
               }}
-              className="w-full accent-accent"
+              className="w-full accent-[#C9A227]"
             />
           </div>
         </div>
@@ -437,7 +437,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               placeholder="e.g. John Doe Photography"
               value={currentCopyright}
               onChange={(e) => setCurrentCopyright(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-800 text-[var(--color-text)] rounded-sm px-3 py-2 text-xs font-sans focus:border-accent focus:outline-none"
+              className="w-full bg-neutral-900 border border-neutral-800 text-[var(--color-text)] rounded-sm px-3 py-2 text-xs font-sans focus:border-[#C9A227] focus:outline-none"
             />
           </div>
           <div className="flex flex-col space-y-1">
@@ -447,7 +447,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               placeholder="e.g. https://instagram.com/johndoe"
               value={currentCopyrightUrl}
               onChange={(e) => setCurrentCopyrightUrl(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-800 text-[var(--color-text)] rounded-sm px-3 py-2 text-xs font-sans focus:border-accent focus:outline-none"
+              className="w-full bg-neutral-900 border border-neutral-800 text-[var(--color-text)] rounded-sm px-3 py-2 text-xs font-sans focus:border-[#C9A227] focus:outline-none"
             />
           </div>
         </div>
@@ -465,7 +465,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
             type="button"
             onClick={handleDone}
             disabled={isProcessing}
-            className="flex-1 py-3 px-4 bg-accent text-black font-semibold rounded-sm font-sans uppercase tracking-wider text-xs flex justify-center items-center hover:bg-[#b08d22] transition-colors"
+            className="flex-1 py-3 px-4 bg-[#C9A227] text-black font-semibold rounded-sm font-sans uppercase tracking-wider text-xs flex justify-center items-center hover:bg-[#b08d22] transition-colors"
           >
             {isProcessing ? 'Processing...' : (
               <><Check className="w-4 h-4 mr-2" /> Apply Crop</>

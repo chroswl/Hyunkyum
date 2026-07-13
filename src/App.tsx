@@ -309,15 +309,39 @@ export default function App() {
  };
 
  // Google Font Import String generator
- 
+ const getGoogleFontImport = () => {
+   const fontsToLoad = [
+     theme.fontSans,
+     theme.fontSerif,
+     theme.fontMono,
+     theme.fontNavbar
+   ].filter(Boolean) as string[];
+   
+   const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'serif', 'sans-serif', 'monospace', 'system-ui', 'inherit'];
+   const uniqueGoogleFonts = Array.from(new Set(fontsToLoad))
+     .filter(f => f && !systemFonts.includes(f));
+   
+   if (uniqueGoogleFonts.length === 0) return '';
+   
+   const fontParams = uniqueGoogleFonts
+     .map(f => `family=${f.replace(/\s+/g, '+')}:wght@300;400;500;600;700`)
+     .join('&');
+   
+   return `@import url('https://fonts.googleapis.com/css2?${fontParams}&display=swap');`;
+ };
+
  // Timeline category definitions
  
 
  if (isLoading) {
   return (
-   <div id="loading-container" className="min-h-screen flex flex-col items-center justify-center bg-[var(--color-bg,#000)] text-[var(--color-text,#fff)] font-sans">
+   <div 
+    id="loading-container" 
+    className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white font-sans"
+    style={{ backgroundColor: theme.bg || "#000000", color: theme.text || "#ffffff" }}
+   >
     <div className="relative flex flex-col items-center">
-     <div className="w-16 h-16 border-2 border-accent border-t-transparent rounded-full animate-spin mb-4" />
+     <div className="w-16 h-16 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: theme.accent || "#C9A227", borderTopColor: "transparent" }} />
      <h1 className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
       HYUNKYUM KIM
      </h1>
@@ -330,8 +354,163 @@ export default function App() {
  }
 
  return (
- <>
- <div id="app-container" className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] font-sans selection:bg-accent selection:text-[var(--color-bg)]">
+ <div id="app-container" className="min-h-screen bg-transparent font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme.bg, color: theme.text }}>
+ {/* Dynamic Theme Color Injection overrides */}
+ <style>{`
+ ${getGoogleFontImport()}
+
+ :root {
+ --color-bg: ${theme.bg};
+ --color-text: ${theme.text};
+ --color-accent: ${theme.accent};
+ --color-contact-bg: ${theme.contactFormBg || '#0a0a0a'};
+ }
+ 
+ /* Apply Background Color to Public Website Sections */
+ body, html, #app-container, #biography, #contact, #videos, #main-footer, #navbar-root, #press, #portfolio, #schedule {
+ background-color: ${theme.bg} !important;
+ }
+
+ /* Global website text color overrides (Applying theme.text to all public sections and items) */
+ #navbar-root, #navbar-root *,
+ #home, #home *,
+ #biography, #biography *,
+ #press, #press *,
+ #portfolio, #portfolio *,
+ #videos, #videos *,
+ #schedule, #schedule *,
+ #contact, #contact *,
+ #main-footer, #main-footer *,
+  #app-container {
+   color: ${theme.text};
+ }
+
+ /* Specific Sticky Navbar Styling with Opacity/Blur and Custom Scroll Background */
+ #navbar-root {
+   background-color: ${theme.bg ? `${theme.bg}e6` : 'rgba(0,0,0,0.85)'} !important; /* e6 is ~90% opacity */
+   backdrop-filter: blur(12px);
+   border-color: ${theme.text}1a !important; /* light 10% opacity border */
+ }
+ #desktop-menu button, .nav-link {
+   color: ${theme.text} !important;
+   opacity: 0.65;
+   transition: all 0.3s ease;
+ }
+ #desktop-menu button:hover, .nav-link:hover {
+   opacity: 1 !important;
+ }
+ #desktop-menu button[id^="nav-link-"].text-white, .nav-link.text-white {
+   opacity: 1 !important;
+   font-weight: 700 !important;
+ }
+
+ /* Unified Font Override (Applies website-wide unified font except for the Admin Panel) */
+ ${theme.fontSans ? `
+   body, html, #app-container, #navbar-root, .navbar-item, .nav-link, .nav-font, p, span, h1, h2, h3, h4, h5, h6, input, textarea, button, select, a, li, label, .font-sans, .font-serif, .font-mono { 
+     font-family: "${theme.fontSans}", sans-serif !important; 
+   }
+ ` : ''}
+
+ /* Hero and Slider (Selected Performances) text color overrides unified */
+ ${theme.colorHeroSlideText ? `
+   #home,
+   #home h1,
+   #home h2,
+   #home h3,
+   #home p,
+   #home span,
+   #home button,
+   #home input,
+   #home textarea,
+   #home div:not(.admin-panel-exclude):not([id^="admin-"]) {
+     color: ${theme.colorHeroSlideText} !important;
+   }
+   #discover-button {
+     border-color: ${theme.colorHeroSlideText}4d !important;
+   }
+   #discover-button:hover {
+     background-color: ${theme.colorHeroSlideText} !important;
+     color: ${theme.bg || '#000000'} !important;
+    }
+   #performances-slider-root,
+   #performances-slider-root h3,
+   #performances-slider-root p,
+   #performances-slider-root span,
+   #performances-slider-root div,
+   #performances-slider-root button,
+   #performances-slider-root svg {
+     color: ${theme.colorHeroSlideText} !important;
+   }
+ ` : ''}
+
+ 
+
+ .accent-color {
+ color: ${theme.accent} !important;
+ }
+ .accent-bg {
+ background-color: ${theme.accent} !important;
+ }
+ .accent-border {
+ border-color: ${theme.accent} !important;
+ }
+ .accent-hover-bg:hover {
+ background-color: ${theme.accent} !important;
+ color: ${theme.bg} !important;
+ }
+ .accent-hover-text:hover {
+ color: ${theme.accent} !important;
+ }
+ .accent-hover-border:hover {
+ border-color: ${theme.accent} !important;
+ }
+ ::selection {
+ background-color: ${theme.accent} !important;
+ color: ${theme.bg} !important;
+ }
+ /* Custom scrollbars */
+ ::-webkit-scrollbar-thumb {
+ background: ${theme.accent}80 !important;
+ }
+ ::-webkit-scrollbar-thumb:hover {
+ background: ${theme.accent} !important;
+ }
+
+ /* EXCLUDE ADMIN PANEL - COMPLETELY PROTECT IT FROM OVERRIDES */
+  #admin-panel-root,
+  #admin-panel-root *,
+  .admin-panel-exclude, 
+  .admin-panel-exclude *, 
+  [id^="admin-"], 
+  [id^="admin-"] *, 
+  #admin-panel-backdrop, 
+  #admin-panel-backdrop * {
+    font-family: 'Inter', sans-serif !important;
+    color: #ffffff !important;
+  }
+  #admin-panel-root input, 
+  #admin-panel-root textarea, 
+  #admin-panel-root select,
+  #admin-panel-root button {
+    color: #ffffff !important;
+  }
+  #admin-panel-root select option {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+  }
+  #admin-panel-root .text-neutral-400,
+  #admin-panel-root .text-neutral-400 * {
+    color: #a3a3a3 !important;
+  }
+  #admin-panel-root .text-neutral-500,
+  #admin-panel-root .text-neutral-500 * {
+    color: #737373 !important;
+  }
+  #admin-panel-root [class*="text-[#C9A227]"],
+  #admin-panel-root [class*="text-[#ebd04e]"] {
+    color: #C9A227 !important;
+  }
+ `}</style>
 
  {/* 1. STICKY NAVBAR */}
  <Navbar 
@@ -350,7 +529,7 @@ export default function App() {
   {user && (activeEditSection === 'none' || activeEditSection === 'hero') && (
     <div className="absolute top-24 left-6 right-6 z-50 flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 border border-white/10 rounded-lg">
       <div className="flex items-center space-x-3">
-        <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
+        <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
           ADMIN ACCESS
         </span>
       </div>
@@ -359,9 +538,9 @@ export default function App() {
           <button
             type="button"
             onClick={() => setActiveEditSection('hero')}
-            className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+            className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
           >
-            <Edit3 className="w-3.5 h-3.5 text-accent" />
+            <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
             <span>Edit Hero</span>
           </button>
         ) : (
@@ -500,14 +679,14 @@ export default function App() {
      initial={{ opacity: 0, y: 15 + (theme.heroSubtitleOffsetY || 0), x: theme.heroSubtitleOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroSubtitleOffsetY || 0, x: theme.heroSubtitleOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1 }}
-     className={`font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     className={`font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
      style={{ fontSize: theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase">Subtitle</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Subtitle</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroSubtitleKO ?? '') : currentLang === 'DE' ? (theme.heroSubtitleDE ?? '') : (theme.heroSubtitle ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -538,14 +717,14 @@ export default function App() {
      initial={{ opacity: 0, scale: 0.98, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
      animate={{ opacity: 1, scale: 1, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1.2, delay: 0.2 }}
-     className={`text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     className={`text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
      style={{ fontSize: theme.heroTitleSize ? `${theme.heroTitleSize}px` : undefined }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase font-sans">Main Title</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Main Title</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroTitleKO ?? '') : currentLang === 'DE' ? (theme.heroTitleDE ?? '') : (theme.heroTitle ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -576,18 +755,18 @@ export default function App() {
      initial={{ opacity: 0, y: 15 + (theme.heroDescOffsetY || 0), x: theme.heroDescOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroDescOffsetY || 0, x: theme.heroDescOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.4 }}
-     className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6 ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6 ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
      style={{ 
        fontSize: theme.heroDescSize ? `${theme.heroDescSize}px` : undefined,
        marginLeft: theme.heroAlign === 'right' ? 'auto' : theme.heroAlign === 'left' ? '0' : 'auto',
        marginRight: theme.heroAlign === 'left' ? 'auto' : theme.heroAlign === 'right' ? '0' : 'auto'
      }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase">Description</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Description</span>}
      {isEditingHeroText ? (
        <textarea
          rows={2}
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text resize-none"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text resize-none"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroDescriptionKO ?? '') : currentLang === 'DE' ? (theme.heroDescriptionDE ?? '') : (theme.heroDescription ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -618,13 +797,13 @@ export default function App() {
      initial={{ opacity: 0, y: 20 + (theme.heroButtonOffsetY || 0), x: theme.heroButtonOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroButtonOffsetY || 0, x: theme.heroButtonOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.6 }}
-     className={`pt-8 ${isEditingHeroText ? 'cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex flex-col items-center justify-center' : ''}`}
+     className={`pt-8 ${isEditingHeroText ? 'cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex flex-col items-center justify-center' : ''}`}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase font-sans">Button</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Button</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border border-black/10 px-8 py-3.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text text-center text-xs tracking-[0.25em] uppercase w-full max-w-[200px] block"
+         className="bg-transparent border border-black/10 px-8 py-3.5 focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text text-center text-xs tracking-[0.25em] uppercase w-full max-w-[200px] block"
          style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
          value={currentLang === 'KO' ? (theme.heroDiscoverKO ?? '') : currentLang === 'DE' ? (theme.heroDiscoverDE ?? '') : (theme.heroDiscover ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -654,7 +833,7 @@ export default function App() {
    <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
      <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
        {theme.heroCopyrightUrl ? (
-         <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="footer-link transition-colors" title={theme.heroCopyright}>
+         <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={theme.heroCopyright}>
            {theme.heroCopyright.startsWith('©') ? theme.heroCopyright : `© ${theme.heroCopyright}`}
          </a>
        ) : (
@@ -737,14 +916,16 @@ export default function App() {
  </section>
 
  {/* 4. PORTFOLIO SECTION */}
- <section id="portfolio" className="page-section portfolio-bg"
+ <section 
+ id="portfolio" 
+ className="page-section bg-transparent/5/30"
  >
  <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
  <Reveal>
  <div className="text-center">
- <h2 className="portfolio-title text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
-              ARCHIVE
-            </h2>
+ <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
+ ARCHIVE
+ </h2>
  </div>
  </Reveal>
 
@@ -764,14 +945,16 @@ export default function App() {
  </section>
 
  {/* 5. VIDEOS SECTION */}
- <section id="videos" className="page-section videos-bg"
+ <section 
+ id="videos" 
+ className="page-section bg-transparent"
  >
  <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
  <Reveal>
  <div className="text-center -mt-4 md:-mt-8">
- <h2 className="videos-title text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
-              PERFORMANCES
-            </h2>
+ <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
+ PERFORMANCES
+ </h2>
  </div>
  </Reveal>
 
@@ -791,14 +974,16 @@ export default function App() {
  </section>
 
  {/* 6. SCHEDULE SECTION */}
- <section id="schedule" className="page-section schedule-bg"
+ <section 
+ id="schedule" 
+ className="page-section bg-transparent/5/30"
  >
  <div className="max-w-4xl mx-auto space-y-8 md:space-y-10">
  <Reveal>
  <div className="text-center">
- <h2 className="schedule-title text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
-              UPCOMING
-            </h2>
+ <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
+ UPCOMING
+ </h2>
  </div>
  </Reveal>
 
@@ -826,35 +1011,35 @@ export default function App() {
 />
 
  {/* 8. FOOTER */}
- <footer id="main-footer" className="footer-bg border-t py-12 px-6 text-center text-xs">
+ <footer id="main-footer" className="bg-transparent border-t border-black/10 py-12 px-6 text-center text-xs">
  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 items-center gap-6">
  <div className="space-y-1 text-center md:text-left">
- <h4 className="font-serif text-sm tracking-widest uppercase footer-heading">
+ <h4 className="font-serif text-sm tracking-widest uppercase">
  {theme?.footerBrandName || t.heroTitle}
  </h4>
- <p className="text-[10px] tracking-wider opacity-75 footer-text">
+ <p className="text-[10px] tracking-wider opacity-75">
  {theme?.footerContactEmail || t.footerDesc}
  </p>
  {/* Social Links */}
  {(theme?.footerSocialInstagram || theme?.footerSocialYoutube || theme?.footerSocialFacebook || theme?.footerSocialTwitter) && (
    <div className="flex items-center space-x-3 justify-center md:justify-start pt-1.5">
      {theme?.footerSocialInstagram && (
-       <a href={theme.footerSocialInstagram} target="_blank" rel="noopener noreferrer" className="footer-link transition-colors" title="Instagram">
+       <a href={theme.footerSocialInstagram} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Instagram">
          <Instagram className="w-3.5 h-3.5" />
        </a>
      )}
      {theme?.footerSocialYoutube && (
-       <a href={theme.footerSocialYoutube} target="_blank" rel="noopener noreferrer" className="footer-link transition-colors" title="YouTube">
+       <a href={theme.footerSocialYoutube} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="YouTube">
          <Youtube className="w-3.5 h-3.5" />
        </a>
      )}
      {theme?.footerSocialFacebook && (
-       <a href={theme.footerSocialFacebook} target="_blank" rel="noopener noreferrer" className="footer-link transition-colors" title="Facebook">
+       <a href={theme.footerSocialFacebook} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Facebook">
          <Facebook className="w-3.5 h-3.5" />
        </a>
      )}
      {theme?.footerSocialTwitter && (
-       <a href={theme.footerSocialTwitter} target="_blank" rel="noopener noreferrer" className="footer-link transition-colors" title="Twitter/X">
+       <a href={theme.footerSocialTwitter} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-accent)] transition-colors" title="Twitter/X">
          <Twitter className="w-3.5 h-3.5" />
        </a>
      )}
@@ -862,20 +1047,26 @@ export default function App() {
  )}
  </div>
 
- <div className="flex flex-col items-center text-center gap-2 text-[10px] tracking-wider footer-text">
+ <div className="flex flex-col items-center text-center gap-2 text-[10px] tracking-wider ">
  <div>
- {typeof theme?.footerCopyrightText === 'string' ? (
+ {theme?.footerCopyrightText ? (
    theme.footerCopyrightText.replace('{year}', new Date().getFullYear().toString())
  ) : (
    `© ${new Date().getFullYear()} ${theme?.footerBrandName || t.heroTitle}. ${t.footerRights}.`
  )}
  </div>
  <div className="flex items-center space-x-3">
- <button onClick={() => setLegalModal({ isOpen: true, type: 'impressum' })} className="footer-link transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">
+ <button 
+ onClick={() => setLegalModal({ isOpen: true, type: 'impressum' })}
+ className=" hover: transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer"
+ >
  Impressum
  </button>
  <span className="">|</span>
- <button onClick={() => setLegalModal({ isOpen: true, type: 'privacy' })} className="footer-link transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">
+ <button 
+ onClick={() => setLegalModal({ isOpen: true, type: 'privacy' })}
+ className=" hover: transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer"
+ >
  Privacy Policy
  </button>
  </div>
@@ -885,7 +1076,7 @@ export default function App() {
  <button
  id="admin-lock-btn"
  onClick={() => setIsAdminOpen(true)}
- className="justify-self-center md:justify-self-end flex items-center space-x-1.5 footer-link transition-colors p-2 rounded cursor-pointer"
+ className="justify-self-center md:justify-self-end flex items-center space-x-1.5 hover: transition-colors p-2 rounded cursor-pointer"
  title="Secure Admin Access"
  >
  <Lock className="w-3.5 h-3.5" />
@@ -893,7 +1084,6 @@ export default function App() {
  </button>
  </div>
  </footer>
- </div>
 
  {/* 9. FIREBASE DRAWER ADMIN MANAGEMENT PANEL */}
  <AnimatePresence>
@@ -922,6 +1112,6 @@ export default function App() {
  )}
  
  </AnimatePresence>
- </>
-);
+ </div>
+ );
 }

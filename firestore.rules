@@ -46,21 +46,6 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
-    // Appearance collections
-    match /appearance/{appearanceId} {
-      allow read, write: if true;
-    }
-
-    match /appearanceThemes/{themeId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    match /appearanceHistory/{historyId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
     // Selected performances hero slides collection
     match /selected_performances/{slideId} {
       allow read: if true;

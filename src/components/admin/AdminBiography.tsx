@@ -11,8 +11,10 @@ import ImageCropperModal from '../ImageCropperModal';
 import { optimizeImageFile } from '../../lib/imageCompressor';
 import { getMediaSource } from '../../lib/mediaUtils';
 import { Upload } from 'lucide-react';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminBiography({ currentLang }: { currentLang: Language }) {
+export default function AdminBiography({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+  const { theme } = useAppearance();
   const [bio, setBio] = useState<BiographySettings | null>(null);
   const [initialBio, setInitialBio] = useState<BiographySettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,11 +33,14 @@ export default function AdminBiography({ currentLang }: { currentLang: Language 
   if (!bio) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
   const hasChanges = JSON.stringify(bio) !== JSON.stringify(initialBio);
+  // ... rest of the file
 
   const handleSave = async () => {
     setIsSaving(true);
     await saveBiographySettings(bio);
     setInitialBio(bio);
+    if (onRefreshData) onRefreshData();
+    window.dispatchEvent(new CustomEvent('bioChanged', { detail: bio }));
     setIsSaving(false);
   };
 
@@ -136,11 +141,11 @@ export default function AdminBiography({ currentLang }: { currentLang: Language 
            )}
            
            <div className="space-y-2">
-             <label className="text-[10px] uppercase text-accent tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
+             <label className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
              <div 
                className={`relative border-2 border-dashed rounded p-5 text-center transition-all ${
                  isDragOver 
-                   ? 'border-accent bg-accent/5' 
+                   ? 'border-[#C9A227] bg-[#C9A227]/5' 
                    : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700'
                }`}
                onDragOver={(e) => {
@@ -158,14 +163,14 @@ export default function AdminBiography({ currentLang }: { currentLang: Language 
              >
                {uploadProgress !== null ? (
                  <div className="flex flex-col items-center justify-center space-y-2 py-4">
-                   <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                   <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
                    <span className="text-xs text-neutral-400 font-mono">Processing: {uploadProgress}%</span>
                  </div>
                ) : (
                  <label className="cursor-pointer flex flex-col items-center justify-center space-y-1 py-1 w-full h-full">
                    <Upload className="w-5 h-5 text-neutral-500 mb-1" />
                    <span className="text-[11px] text-neutral-300 font-sans font-medium">
-                     Drag & Drop file here or <span className="text-accent hover:underline">Browse</span>
+                     Drag & Drop file here or <span className="text-[#C9A227] hover:underline">Browse</span>
                    </span>
                    <span className="text-[9px] text-neutral-500 font-sans">
                      Images and Videos up to 30MB • Drive Links Compatible

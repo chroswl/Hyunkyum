@@ -6,8 +6,10 @@ import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertyTextarea } from './PropertyFields';
 import ContactSection from '../ContactSection';
 import { translations } from '../../translations';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminContact({ currentLang }: { currentLang: Language }) {
+export default function AdminContact({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+  const { theme } = useAppearance();
   const [settings, setSettings] = useState<ContactSettings | null>(null);
   const [initialSettings, setInitialSettings] = useState<ContactSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,6 +31,8 @@ export default function AdminContact({ currentLang }: { currentLang: Language })
     setIsSaving(true);
     await saveContactSettings(settings);
     setInitialSettings(settings);
+    if (onRefreshData) onRefreshData();
+    window.dispatchEvent(new CustomEvent('contactChanged', { detail: settings }));
     setIsSaving(false);
   };
 
@@ -80,12 +84,13 @@ export default function AdminContact({ currentLang }: { currentLang: Language })
       onSave={handleSave}
       onReset={handleReset}
       preview={
-        <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+        <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
           <ContactSection 
-  contact={settings || {}}
-  currentLang={currentLang}
-  t={translations[currentLang]}
-/>
+            contact={settings || {}}
+            currentLang={currentLang}
+            t={translations[currentLang]}
+            theme={theme || undefined}
+          />
         </div>
       }
       properties={properties}

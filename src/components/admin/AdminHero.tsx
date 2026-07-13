@@ -10,7 +10,7 @@ import { translations } from '../../translations';
 import { optimizeImageFile } from '../../lib/imageCompressor';
 import { Upload } from 'lucide-react';
 
-export default function AdminHero({ currentLang }: { currentLang: Language }) {
+export default function AdminHero({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
   const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,6 +33,7 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
     setIsSaving(true);
     await saveThemeSettings(theme);
     setInitialTheme(theme);
+    if (onRefreshData) onRefreshData();
     setIsSaving(false);
   };
 
@@ -41,7 +42,10 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
   };
 
   const updateField = (key: keyof ThemeSettings, val: any) => {
-    setTheme(prev => prev ? { ...prev, [key]: val } : prev);
+    if (!theme) return;
+    const next = { ...theme, [key]: val };
+    setTheme(next);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: next }));
   };
 
   const handleFile = async (file: File) => {
@@ -104,21 +108,21 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
         <PropertySelect label="Alignment" value={theme.heroAlign || 'center'} options={[{label: 'Left', value: 'left'}, {label: 'Center', value: 'center'}, {label: 'Right', value: 'right'}]} onChange={(v) => updateField('heroAlign', v)} />
         
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
-           <h4 className="text-[10px] uppercase text-accent tracking-widest font-semibold">Title Adjustments</h4>
+           <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Title Adjustments</h4>
            <PropertySlider label="Font Size" value={theme.heroTitleSize || 64} min={10} max={120} onChange={(v) => updateField('heroTitleSize', v)} />
            <PropertySlider label="X Offset" value={theme.heroTitleOffsetX || 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetX', v)} />
            <PropertySlider label="Y Offset" value={theme.heroTitleOffsetY || 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetY', v)} />
         </div>
 
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
-           <h4 className="text-[10px] uppercase text-accent tracking-widest font-semibold">Subtitle Adjustments</h4>
+           <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Subtitle Adjustments</h4>
            <PropertySlider label="Font Size" value={theme.heroSubtitleSize || 14} min={8} max={40} onChange={(v) => updateField('heroSubtitleSize', v)} />
            <PropertySlider label="X Offset" value={theme.heroSubtitleOffsetX || 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetX', v)} />
            <PropertySlider label="Y Offset" value={theme.heroSubtitleOffsetY || 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetY', v)} />
         </div>
 
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
-           <h4 className="text-[10px] uppercase text-accent tracking-widest font-semibold">Description Adjustments</h4>
+           <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Description Adjustments</h4>
            <PropertySlider label="Font Size" value={theme.heroDescSize || 16} min={8} max={40} onChange={(v) => updateField('heroDescSize', v)} />
            <PropertySlider label="X Offset" value={theme.heroDescOffsetX || 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetX', v)} />
            <PropertySlider label="Y Offset" value={theme.heroDescOffsetY || 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetY', v)} />
@@ -133,11 +137,11 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
         </div>
         
         <div className="mt-4 space-y-2">
-          <label className="text-[10px] uppercase text-accent tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
+          <label className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
           <div 
             className={`relative border-2 border-dashed rounded p-5 text-center transition-all ${
               isDragOver 
-                ? 'border-accent bg-accent/5' 
+                ? 'border-[#C9A227] bg-[#C9A227]/5' 
                 : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700'
             }`}
             onDragOver={(e) => {
@@ -155,14 +159,14 @@ export default function AdminHero({ currentLang }: { currentLang: Language }) {
           >
             {uploadProgress !== null ? (
               <div className="flex flex-col items-center justify-center space-y-2 py-4">
-                <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs text-neutral-400 font-mono">Processing: {uploadProgress}%</span>
               </div>
             ) : (
               <label className="cursor-pointer flex flex-col items-center justify-center space-y-1 py-2 w-full h-full">
                 <Upload className="w-5 h-5 text-neutral-500 mb-1" />
                 <span className="text-[11px] text-neutral-300 font-sans font-medium">
-                  Drag & Drop file here or <span className="text-accent hover:underline">Browse</span>
+                  Drag & Drop file here or <span className="text-[#C9A227] hover:underline">Browse</span>
                 </span>
                 <span className="text-[9px] text-neutral-500 font-sans">
                   Images and Videos up to 30MB • Drive Links Compatible

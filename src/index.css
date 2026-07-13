@@ -1,27 +1,9 @@
 @import "tailwindcss";
 
 @theme {
---font-sans: var(--font-body, "Inter", sans-serif);
-  --font-serif: var(--font-heading, "Playfair Display", serif);
-  --font-mono: var(--font-body, "JetBrains Mono", monospace);
-  --font-hero: var(--font-hero, "Playfair Display", serif);
-  --font-nav: var(--font-navigation, "Inter", sans-serif);
-  --font-button: var(--font-button, "Inter", sans-serif);
-  --font-quote: var(--font-quote, "Playfair Display", serif);
-  
-  --color-primary: var(--color-primary, #ffffff);
-  --color-secondary: var(--color-secondary, #bdbdbd);
-  --color-accent: var(--color-accent, #C9A227);
-  --color-background: var(--color-bg, #000000);
-  --color-surface: var(--color-surface, #111111);
-  --color-text-main: var(--color-text, #ffffff);
-  --color-muted: var(--color-muted, #888888);
-  --color-navigation: var(--color-navigation, #000000);
-  --color-footer: var(--color-footer, #000000);
-  --color-buttons: var(--color-buttons, #333333);
-  --color-links: var(--color-links, #C9A227);
-  --color-hover: var(--color-hover, #ebd04e);
-  --color-borders: var(--color-borders, #333333);
+  --font-sans: "Courier New", Courier, monospace;
+  --font-serif: "Courier New", Courier, monospace;
+  --font-mono: "Courier New", Courier, monospace;
 }
 
 /* Custom styles to enhance premium classic dark theme */
@@ -29,29 +11,20 @@
   --color-bg: #000000;
   --color-text: #ffffff;
 }
-
 html {
   scroll-behavior: smooth;
-  background-color: var(--color-bg, #000000);
-  color: var(--color-text, #ffffff);
-  font-size: var(--font-base-size, 16px);
-  line-height: var(--font-line-height, 1.6);
-  font-weight: var(--font-weight, 400);
+  background-color: #000000;
+  color: #ffffff;
 }
 
 body {
   overflow-x: hidden;
-  font-family: var(--font-body, "Courier New", Courier, monospace);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading, "Courier New", Courier, monospace);
 }
 
 /* Luxury accent text shadows and selections */
 ::selection {
-  background-color: var(--color-primary, #ffffff);
-  color: var(--color-bg, #000000);
+  background-color: #ffffff;
+  color: #000000;
 }
 
 img {
@@ -65,16 +38,16 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg, #050505);
+  background: #050505;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-surface, #262626);
+  background: #262626;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-muted, #525252);
+  background: #525252;
 }
 
 /* Continuously looping ultra-slow Ken Burns animation */
@@ -109,320 +82,21 @@ img {
 
 /* Unified premium page section spacing */
 .page-section {
-  padding-top: 4.5rem;
-  padding-bottom: 5.5rem;
-  padding-left: 1.5rem;
+  padding-top: 4.5rem; /* pt-18: comfortable, elegant clearance under the fixed navbar on mobile */
+  padding-bottom: 5.5rem; /* pb-22: premium bottom margin for beautiful vertical rhythm */
+  padding-left: 1.5rem; /* px-6: standardized page margins on mobile */
   padding-right: 1.5rem;
   border-top-width: 1px;
-  border-color: var(--color-surface, #0a0a0a);
+  border-color: #0a0a0a; /* border-neutral-950 */
 }
 
 @media (min-width: 768px) {
   .page-section {
-    padding-top: 6rem;
-    padding-bottom: 6.5rem;
-    padding-left: 3rem;
+    padding-top: 6rem; /* pt-24: luxurious but balanced top spacing on desktop for breathability */
+    padding-bottom: 6.5rem; /* pb-26: balanced bottom spacing on desktop */
+    padding-left: 3rem; /* px-12: standardized page margins on desktop */
     padding-right: 3rem;
   }
 }
 
-/* Dynamic Layout Overrides */
-.max-w-7xl {
-  max-width: var(--layout-max-width, 1280px) !important;
-}
-.page-section {
-  padding-top: calc(var(--layout-section-spacing, 160px) * 0.5) !important;
-  padding-bottom: calc(var(--layout-section-spacing, 160px) * 0.5) !important;
-}
-@media (min-width: 768px) {
-  .page-section {
-    padding-top: var(--layout-section-spacing, 160px) !important;
-    padding-bottom: var(--layout-section-spacing, 160px) !important;
-  }
-}
-.gap-8 {
-  gap: var(--layout-content-spacing, 32px) !important;
-}
-.rounded {
-  border-radius: var(--layout-border-radius, 4px) !important;
-}
-.rounded-sm {
-  border-radius: calc(var(--layout-border-radius, 4px) * 0.5) !important;
-}
-.rounded-md {
-  border-radius: calc(var(--layout-border-radius, 4px) * 1.5) !important;
-}
-.rounded-lg {
-  border-radius: calc(var(--layout-border-radius, 4px) * 2) !important;
-}
 
-
-/* Viewport Preview Modes */
-body[data-preview-mode="tablet"] #app-container {
-  width: 768px !important;
-  margin: 0 auto !important;
-  overflow-x: hidden;
-  box-shadow: 0 0 50px rgba(0,0,0,0.5);
-  border-left: 1px solid var(--color-surface, #333);
-  border-right: 1px solid var(--color-surface, #333);
-  min-height: 100vh;
-}
-
-body[data-preview-mode="mobile"] #app-container {
-  width: 375px !important;
-  margin: 0 auto !important;
-  overflow-x: hidden;
-  box-shadow: 0 0 50px rgba(0,0,0,0.5);
-  border-left: 1px solid var(--color-surface, #333);
-  border-right: 1px solid var(--color-surface, #333);
-  min-height: 100vh;
-}
-
-/* Global Typographic Variables application */
-body, html, #app-container {
-  font-family: var(--font-body, 'Inter'), sans-serif !important;
-  font-size: var(--font-base-size, 16px);
-  line-height: var(--font-line-height, 1.6);
-  font-weight: var(--font-weight, 400);
-}
-
-h1, h2, h3, h4, h5, h6, .font-serif {
-  font-family: var(--font-heading, 'Playfair Display'), serif !important;
-}
-
-/* Base colors */
-body {
-  background-color: var(--color-bg) !important;
-  color: var(--color-text) !important;
-}
-
-
-
-/* Override tailwind transitions to use our variable */
-.transition-all {
-  transition-duration: var(--animation-speed, 300ms) !important;
-}
-.transition-colors {
-  transition-duration: var(--animation-speed, 300ms) !important;
-}
-.transition-opacity {
-  transition-duration: var(--animation-speed, 300ms) !important;
-}
-.transition-transform {
-  transition-duration: var(--animation-speed, 300ms) !important;
-}
-
-/* Hero Button Customization */
-.hero-btn {
-  background-color: var(--hero-button-bg, transparent);
-  color: var(--hero-button-text, var(--color-text-main));
-  border-color: var(--hero-button-bg, var(--color-borders));
-}
-.hero-btn:hover {
-  background-color: var(--hero-button-hover, var(--color-text-main));
-  color: var(--hero-button-text, var(--color-background));
-  border-color: var(--hero-button-hover, var(--color-text-main));
-}
-
-/* Navigation Customization */
-.nav-bg {
-  background-color: var(--nav-bg, var(--color-navigation));
-  color: var(--nav-text, var(--color-text-main));
-  border-color: var(--nav-border, var(--color-borders));
-  box-shadow: var(--nav-shadow, none);
-}
-.nav-link {
-  transition: color 0.3s ease, opacity 0.3s ease;
-}
-
-/* Footer Customization */
-.footer-bg {
-  background-color: var(--footer-bg, var(--color-footer));
-  border-color: var(--footer-border, var(--color-borders));
-}
-.footer-heading {
-  color: var(--footer-heading, var(--color-text-main));
-}
-.footer-text {
-  color: var(--footer-text, var(--color-muted));
-}
-.footer-link {
-  color: var(--footer-links, var(--color-text-main));
-}
-.footer-link:hover {
-  color: var(--footer-hover, var(--color-text-main));
-}
-
-/* Section Specific Customizations */
-.portfolio-bg { background-color: var(--portfolio-bg, var(--color-background)); }
-.portfolio-title { color: var(--portfolio-title, var(--color-primary)); }
-.portfolio-desc { color: var(--portfolio-desc, var(--color-muted)); }
-.portfolio-card { background-color: var(--portfolio-card-bg, var(--color-surface)); color: var(--portfolio-card-text, var(--color-text-main)); }
-
-.bio-bg { background-color: var(--bio-bg, var(--color-background)); }
-.bio-title { color: var(--bio-title, var(--color-primary)); }
-.bio-text { color: var(--bio-text, var(--color-muted)); }
-.bio-highlight { color: var(--bio-highlight, var(--color-accent)); }
-
-.videos-bg { background-color: var(--videos-bg, var(--color-background)); }
-.videos-title { color: var(--videos-title, var(--color-primary)); }
-.videos-text { color: var(--videos-text, var(--color-muted)); }
-
-.schedule-bg { background-color: var(--schedule-bg, var(--color-background)); }
-.schedule-title { color: var(--schedule-title, var(--color-primary)); }
-.schedule-text { color: var(--schedule-text, var(--color-muted)); }
-.schedule-card { 
-  background-color: var(--schedule-card-bg, var(--color-surface));
-  border-color: var(--schedule-card-border, var(--color-borders));
-}
-.schedule-btn {
-  background-color: var(--schedule-btn-bg, var(--color-buttons));
-  color: var(--schedule-btn-text, var(--color-background));
-}
-.schedule-btn:hover {
-  background-color: var(--schedule-btn-hover, var(--color-hover));
-}
-
-.forms-input {
-  background-color: var(--forms-bg, var(--color-surface));
-  color: var(--forms-text, var(--color-text-main));
-  border-color: var(--forms-border, var(--color-borders));
-}
-.forms-input:focus {
-  border-color: var(--forms-focus, var(--color-accent));
-  outline: none;
-  ring: 1px solid var(--forms-focus, var(--color-accent));
-}
-.forms-btn {
-  background-color: var(--forms-btn-bg, var(--color-buttons));
-  color: var(--forms-btn-text, var(--color-background));
-}
-.forms-btn:hover {
-  background-color: var(--forms-btn-hover, var(--color-hover));
-}
-
-/* Layout Additional Properties */
-.p-6 {
-  padding: var(--layout-card-padding, 24px) !important;
-}
-.space-y-8 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: calc(var(--layout-vertical-rhythm, 32px) * 2.5) !important;
-}
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: var(--layout-vertical-rhythm, 16px) !important;
-}
-
-/* Navbar Appearance System */
-.nav-container {
-  --current-nav-bg: var(--nav-transparent-bg, transparent);
-  --current-nav-text: var(--nav-transparent-text, var(--color-text-main));
-  --current-nav-hover: var(--nav-transparent-hover, var(--color-accent));
-  --current-nav-active: var(--nav-transparent-active, var(--color-text-main));
-  --current-nav-border: var(--nav-transparent-border, transparent);
-  --current-nav-shadow: var(--nav-transparent-shadow, none);
-  
-  background-color: var(--current-nav-bg);
-  border-bottom-color: var(--current-nav-border);
-  box-shadow: var(--current-nav-shadow);
-  color: var(--current-nav-text);
-  
-  /* Cinematic premium smooth transitions */
-  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              -webkit-backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              height 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              padding 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Glassmorphism transparent navbar when over the Hero */
-.nav-container.nav-transparent {
-  /* Use custom transparent bg if defined, otherwise fallback to transparent */
-  --current-nav-bg: var(--nav-transparent-bg, transparent);
-  
-  /* Use custom transparent border if defined, otherwise fallback to transparent */
-  --current-nav-border: var(--nav-transparent-border, transparent);
-  
-  /* Small backdrop blur */
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-}
-
-.nav-container.nav-scrolled {
-  --current-nav-bg: var(--nav-bg, var(--color-background));
-  --current-nav-text: var(--nav-text, var(--color-text-main));
-  --current-nav-hover: var(--nav-hover, var(--color-accent));
-  --current-nav-active: var(--nav-active, var(--color-text-main));
-  --current-nav-border: var(--nav-border, var(--color-borders));
-  --current-nav-shadow: var(--nav-shadow, none);
-  
-  /* Slightly more distinct backdrop-blur for scrolled content readability */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-/* Ensure navigation elements respect appearance settings at full brightness in transparent mode */
-.nav-container.nav-transparent .nav-link,
-.nav-container.nav-transparent .nav-logo,
-.nav-container.nav-transparent button,
-.nav-container.nav-transparent span,
-.nav-container.nav-transparent .lucide {
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
-              color 0.3s ease;
-}
-
-.nav-container.nav-transparent .nav-link:hover,
-.nav-container.nav-transparent .nav-logo:hover,
-.nav-container.nav-transparent button:hover {
-  opacity: 1;
-}
-
-.nav-container.nav-transparent .nav-link.active {
-  opacity: 1;
-}
-
-/* Reset back to normal/custom visual weight when scrolled */
-.nav-container.nav-scrolled .nav-link,
-.nav-container.nav-scrolled .nav-logo,
-.nav-container.nav-scrolled button,
-.nav-container.nav-scrolled span,
-.nav-container.nav-scrolled .lucide {
-  opacity: 1;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
-              color 0.3s ease;
-}
-
-/* Base Nav Link */
-.nav-container .nav-link {
-  color: var(--current-nav-text);
-  transition: color 0.3s ease;
-}
-
-.nav-container .nav-link:hover {
-  color: var(--current-nav-hover);
-}
-
-.nav-container .nav-link.active {
-  color: var(--current-nav-active);
-}
-
-/* Nav Logo */
-.nav-container .nav-logo {
-  color: var(--current-nav-text);
-}
-.nav-container .nav-logo:hover {
-  color: var(--current-nav-hover);
-}
-
-/* Nav Border Utility */
-.nav-container .nav-border-color {
-  border-color: var(--current-nav-border);
-}
-
-/* Nav Background Utility (for dropdowns/drawers if needed) */
-.nav-container .nav-dropdown-bg {
-  /* On mobile menu/drawers and quick language selectors, use the solid nav background for perfect readability and visual contrast */
-  background-color: var(--nav-bg, var(--color-background, #000000));
-}

@@ -15,8 +15,10 @@ import { GoogleDrivePicker } from './GoogleDrivePicker';
 import PortfolioGallery from '../PortfolioGallery';
 import ImageCropperModal from '../ImageCropperModal';
 import { getMediaSource } from '../../lib/mediaUtils';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminPortfolio({ currentLang }: { currentLang: Language }) {
+export default function AdminPortfolio({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+  const { theme } = useAppearance();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [initialItems, setInitialItems] = useState<PortfolioItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -56,6 +58,7 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
     });
     await batch.commit();
     setInitialItems(items);
+    if (onRefreshData) onRefreshData();
     setIsSaving(false);
   };
 
@@ -102,8 +105,8 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
   const properties = (
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
-         <span className="text-xs uppercase tracking-widest text-neutral-500">Gallery Items</span>
-         <button onClick={handleAdd} className="text-accent hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
+         <span className="text-xs uppercase tracking-widest" style={{ color: theme?.text }}>Gallery Items</span>
+         <button onClick={handleAdd} className="flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.accent }}>
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -113,22 +116,22 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
           <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
             <div className="p-2 space-y-1 custom-scrollbar overflow-y-auto max-h-[400px]">
               {items.map(item => (
-                <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
-                  <div className="text-xs text-neutral-300 truncate">{item.title?.[currentLang] || item.title?.EN || 'Untitled Image'}</div>
-                  <div className="text-[9px] text-accent tracking-widest uppercase mt-0.5">{item.category}</div>
-                  <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
+                <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1" style={{ color: theme?.text || 'inherit' }} onClick={() => setEditingId(item.id)}>
+                  <div className="text-xs truncate" style={{ color: theme?.text || 'inherit' }}>{item.title?.[currentLang] || item.title?.EN || 'Untitled Image'}</div>
+                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.accent || 'inherit' }}>{item.category}</div>
+                  <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-rose-500" style={{ color: theme?.text || 'inherit' }}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </SortableItem>
               ))}
-              {items.length === 0 && <div className="text-center p-4 text-neutral-500 text-xs">No gallery items.</div>}
+              {items.length === 0 && <div className="text-center p-4 text-[color:inherit] text-xs">No gallery items.</div>}
             </div>
           </SortableContext>
         </DndContext>
       ) : (
         <>
           <div className="px-6 py-3 border-b border-neutral-900 flex items-center space-x-2 bg-neutral-950">
-             <button onClick={() => setEditingId(null)} className="text-xs text-neutral-500 hover:text-white uppercase tracking-widest">← Back to List</button>
+             <button onClick={() => setEditingId(null)} className="text-xs hover:text-white uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>← Back to List</button>
           </div>
           {editingItem && (
             <>
@@ -153,11 +156,11 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
                      </div>
                    ) : (
                      <div className="aspect-[3/4] bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center">
-                        <span className="text-xs text-neutral-500">No Image</span>
+                        <span className="text-xs" style={{ color: theme?.text || 'inherit' }}>No Image</span>
                      </div>
                    )}
-                   <div className="relative bg-neutral-900 border border-neutral-800 hover:border-accent transition-colors rounded p-4 text-center cursor-pointer">
-                      <span className="text-xs text-neutral-400">Upload Image</span>
+                   <div className="relative bg-neutral-900 border border-neutral-800 hover:border-[#C9A227] transition-colors rounded p-4 text-center cursor-pointer">
+                      <span className="text-xs" style={{ color: theme?.text || 'inherit' }}>Upload Image</span>
                       <input type="file" accept="image/*" onChange={(e) => {
                          if (e.target.files && e.target.files[0]) {
                            setCropTarget({ id: editingItem.id, src: URL.createObjectURL(e.target.files[0]) });
@@ -189,7 +192,7 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
         onSave={handleSave}
         onReset={handleReset}
         preview={
-          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
             <PortfolioGallery 
               items={items} 
               currentLang={currentLang} 
@@ -199,6 +202,7 @@ export default function AdminPortfolio({ currentLang }: { currentLang: Language 
               setActiveEditSection={() => {}}
               onItemsUpdated={() => {}}
               onRefreshData={() => {}}
+              theme={theme || undefined}
             />
           </div>
         }

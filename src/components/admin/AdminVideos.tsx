@@ -16,8 +16,10 @@ import { translations } from '../../translations';
 // Helper to save entire list for ordering (if we want to support it eventually)
 import { collection, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminVideos({ currentLang }: { currentLang: Language }) {
+export default function AdminVideos({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+  const { theme } = useAppearance();
   const [items, setItems] = useState<VideoItem[]>([]);
   const [initialItems, setInitialItems] = useState<VideoItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -56,6 +58,7 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
     });
     await batch.commit();
     setInitialItems(items);
+    if (onRefreshData) onRefreshData();
     setIsSaving(false);
   };
 
@@ -145,8 +148,8 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
   const properties = (
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
-         <span className="text-xs uppercase tracking-widest text-neutral-500">Video Catalog</span>
-         <button onClick={handleAdd} className="text-accent hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
+         <span className="text-xs uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>Video Catalog</span>
+         <button onClick={handleAdd} className="hover:opacity-70 flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.accent || 'inherit' }}>
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -156,22 +159,22 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
           <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
             <div className="p-2 space-y-1 custom-scrollbar overflow-y-auto max-h-[500px]">
               {items.map(item => (
-                <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
-                  <div className="text-xs text-neutral-300 truncate">{item.title?.[currentLang] || item.title?.EN || 'Untitled Video'}</div>
-                  <div className="text-[9px] text-accent tracking-widest uppercase mt-0.5">{item.role?.[currentLang] || item.role?.EN || 'No Role'}</div>
-                  <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
+                <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1" style={{ color: theme?.text || 'inherit' }} onClick={() => setEditingId(item.id)}>
+                  <div className="text-xs truncate" style={{ color: theme?.text || 'inherit' }}>{item.title?.[currentLang] || item.title?.EN || 'Untitled Video'}</div>
+                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.accent || 'inherit' }}>{item.role?.[currentLang] || item.role?.EN || 'No Role'}</div>
+                  <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-rose-500" style={{ color: theme?.text || 'inherit' }}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </SortableItem>
               ))}
-              {items.length === 0 && <div className="text-center p-4 text-neutral-500 text-xs">No videos.</div>}
+              {items.length === 0 && <div className="text-center p-4 text-[color:inherit] text-xs">No videos.</div>}
             </div>
           </SortableContext>
         </DndContext>
       ) : (
         <>
           <div className="px-6 py-3 border-b border-neutral-900 flex items-center space-x-2 bg-neutral-950">
-             <button onClick={() => setEditingId(null)} className="text-xs text-neutral-500 hover:text-white uppercase tracking-widest">← Back to List</button>
+             <button onClick={() => setEditingId(null)} className="text-xs uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>← Back to List</button>
           </div>
           {editingItem && (
             <form onSubmit={handleSaveChanges}>
@@ -191,7 +194,7 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
                  <PropertyInput label={`Role (${currentLang})`} value={(currentLang === 'KO' ? editingItem.role?.KO : currentLang === 'DE' ? editingItem.role?.DE : editingItem.role?.EN) || ''} onChange={v => updateItem(editingItem.id, { role: {...(editingItem.role||{EN:'',DE:'',KO:''}), [currentLang]: v} })} />
               </PropertyAccordion>
               <div className="px-6 pt-4">
-                <button type="submit" className="w-full bg-accent hover:bg-[#ebd04e] text-black font-semibold py-2 rounded text-xs uppercase tracking-wider">Save Changes</button>
+                <button type="submit" className="w-full bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold py-2 rounded text-xs uppercase tracking-wider">Save Changes</button>
               </div>
             </form>
           )}
@@ -209,7 +212,7 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
         onSave={handleSave}
         onReset={handleReset}
         preview={
-          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
+          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
             <VideoPlayer 
               items={items} 
               currentLang={currentLang} 
@@ -219,6 +222,7 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
               setActiveEditSection={() => {}}
               onItemsUpdated={() => {}}
               onRefreshData={() => {}}
+              theme={theme || undefined}
             />
           </div>
         }
@@ -228,8 +232,8 @@ export default function AdminVideos({ currentLang }: { currentLang: Language }) 
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div className="bg-neutral-950 border border-neutral-900 p-6 rounded max-w-sm w-full space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="space-y-2">
-              <h3 className="text-sm font-serif text-white tracking-widest uppercase">Delete Confirmation</h3>
-              <p className="text-xs text-neutral-400">Are you sure you want to delete this item? This action cannot be undone.</p>
+              <h3 className="text-sm font-serif tracking-widest uppercase" style={{ color: theme?.text || 'inherit' }}>Delete Confirmation</h3>
+              <p className="text-xs" style={{ color: theme?.text ? `${theme.text}99` : 'inherit' }}>Are you sure you want to delete this item? This action cannot be undone.</p>
             </div>
             <div className="flex space-x-3">
               <button 
