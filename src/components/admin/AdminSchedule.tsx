@@ -103,7 +103,7 @@ export default function AdminSchedule({ currentLang }: { currentLang: Language }
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
          <span className="text-xs uppercase tracking-widest text-neutral-500">Performances</span>
-         <button onClick={handleAdd} className="text-[#C9A227] hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
+         <button onClick={handleAdd} className="text-accent hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -115,7 +115,7 @@ export default function AdminSchedule({ currentLang }: { currentLang: Language }
               {items.map(item => (
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
                   <div className="text-xs text-neutral-300 truncate">{item.title?.[currentLang] || item.title?.EN || 'Untitled Event'}</div>
-                  <div className="text-[9px] text-[#C9A227] tracking-widest uppercase mt-0.5">{item.date} • {item.location?.[currentLang] || item.location?.EN || 'No Location'}</div>
+                  <div className="text-[9px] text-accent tracking-widest uppercase mt-0.5">{item.date} • {item.location?.[currentLang] || item.location?.EN || 'No Location'}</div>
                   <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
                     <Trash2 className="w-4 h-4" />
                   </button>

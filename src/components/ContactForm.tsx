@@ -161,7 +161,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
         {/* Row for Name & Email */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-1.5 pb-5 relative">
-            <label htmlFor="name" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
+            <label htmlFor="name" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
               {t.formName} *
             </label>
             <input
@@ -171,8 +171,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. Jean-Pierre"
-              className={`w-full bg-[var(--color-bg)] border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors`}
-              style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
+              className={`forms-input w-full border ${errors.name ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors`}
+              
             />
             <AnimatePresence>
               {errors.name && (
@@ -188,7 +188,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
             </AnimatePresence>
           </div>
           <div className="space-y-1.5 pb-5 relative">
-            <label htmlFor="email" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
+            <label htmlFor="email" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
               {t.formEmail} *
             </label>
             <input
@@ -198,8 +198,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="e.g. jp@example.com"
-              className={`w-full bg-[var(--color-bg)] border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors`}
-              style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
+              className={`forms-input w-full border ${errors.email ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors`}
+              
             />
             <AnimatePresence>
               {errors.email && (
@@ -218,7 +218,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
 
         {/* Message area */}
         <div className="space-y-1.5 pb-5 relative">
-          <label htmlFor="message" className="text-[10px] tracking-widest text-neutral-400 font-sans uppercase font-medium">
+          <label htmlFor="message" className="text-[10px] tracking-widest text-[var(--color-text)]/60 font-sans uppercase font-medium">
             {t.formMessage} *
           </label>
           <textarea
@@ -228,8 +228,8 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
             value={message}
             onChange={(e) => handleMessageChange(e.target.value)}
             placeholder="..."
-            className={`w-full bg-[var(--color-bg)] border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'border-neutral-900 focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm text-[var(--color-text)] placeholder-neutral-700 transition-colors resize-none`}
-            style={{ backgroundColor: 'var(--color-contact-bg, #0a0a0a)' }}
+            className={`forms-input w-full border ${errors.message ? "border-rose-500/50" : ""} rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
+            
           />
           <AnimatePresence>
             {errors.message && (
@@ -277,7 +277,7 @@ export default function ContactForm({ currentLang }: ContactFormProps) {
           type="submit"
           id="contact-submit-btn"
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-current opacity-60 hover:opacity-100 hover:bg-white/5 text-[var(--color-text)] font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="forms-btn border-transparent w-full sm:w-auto px-8 py-3.5 font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>

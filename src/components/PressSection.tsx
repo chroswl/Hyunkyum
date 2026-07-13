@@ -252,7 +252,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
       <div className="flex justify-center items-center py-24">
         <div className="animate-pulse flex flex-col items-center space-y-4">
           <div className="w-12 h-[1px] bg-white/20" />
-          <span className="text-[10px] tracking-[0.3em] uppercase font-sans text-neutral-400">Loading Reviews</span>
+          <span className="text-[10px] tracking-[0.3em] uppercase font-body text-neutral-400">Loading Reviews</span>
         </div>
       </div>
     );
@@ -268,7 +268,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`absolute top-0 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-sans flex items-center space-x-2 shadow-lg ${
+            className={`absolute top-0 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-body flex items-center space-x-2 shadow-lg ${
               notification.type === 'success'
                 ? 'border-emerald-500/30 bg-emerald-950/80 text-emerald-400 backdrop-blur-sm'
                 : 'border-rose-500/30 bg-rose-950/80 text-rose-400 backdrop-blur-sm'
@@ -284,7 +284,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
       {user && (activeEditSection === 'none' || activeEditSection === 'press') && (
         <div className="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-white/5 gap-4">
           <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+            <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
               ADMIN ACCESS
             </span>
           </div>
@@ -294,9 +294,9 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
               <button
                 type="button"
                 onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-body font-medium"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+                <Edit3 className="w-3.5 h-3.5 text-accent" />
                 <span>Edit Press</span>
               </button>
             ) : (
@@ -308,9 +308,9 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       key={lang}
                       type="button"
                       onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
+                      className={`px-2.5 py-0.5 text-[10px] font-body font-bold tracking-wider rounded-sm transition-all ${
                         currentLang === lang
-                          ? 'bg-[#C9A227] text-black font-extrabold shadow-sm'
+                          ? 'bg-accent text-black font-extrabold shadow-sm'
                           : 'text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -321,14 +321,14 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
 
                 {/* Quote Font Size Control */}
                 <div className="flex items-center space-x-2 bg-white/5 px-2.5 py-1 rounded-sm border border-white/10">
-                  <span className="text-[9px] tracking-wider text-neutral-400 uppercase font-sans">Font Size:</span>
+                  <span className="text-[9px] tracking-wider text-neutral-400 uppercase font-body">Font Size:</span>
                   <input
                     type="range"
                     min="14"
                     max="64"
                     value={theme?.pressFontSize || 28}
                     onChange={(e) => onThemeUpdated({ ...theme, pressFontSize: parseInt(e.target.value, 10) })}
-                    className="w-16 md:w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#C9A227]"
+                    className="w-16 md:w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                   />
                   <input
                     type="number"
@@ -361,7 +361,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                 <button
                   type="button"
                   onClick={startNewPress}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-sm transition-all cursor-pointer font-body"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add Quote</span>
@@ -380,7 +380,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       setIsEditMode(false);
                     }
                   }}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-body"
                 >
                   <X className="w-3 h-3" />
                   <span>Exit Edit Mode</span>
@@ -400,25 +400,25 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
           {/* Live Preview Box */}
           <div className="bg-white/[0.01] border border-white/5 rounded-sm p-6 text-center max-w-3xl mx-auto space-y-3">
             <div className="flex justify-center items-center space-x-1.5">
-              <Sparkles className="w-3 h-3 text-[#C9A227] animate-pulse" />
+              <Sparkles className="w-3 h-3 text-accent animate-pulse" />
               <span className="text-[9px] font-mono tracking-widest text-neutral-400 uppercase">FONT SIZE LIVE PREVIEW</span>
             </div>
             <blockquote 
-              className="font-serif italic text-neutral-100 max-w-2xl mx-auto leading-relaxed"
+              className="font-heading italic text-neutral-100 max-w-2xl mx-auto leading-relaxed"
               style={{ fontSize: theme?.pressFontSize ? `clamp(16px, 4vw, ${theme.pressFontSize}px)` : undefined }}
             >
               “{editingItem?.quote?.[currentLang] || pressItems[0]?.quote[currentLang] || pressItems[0]?.quote['EN'] || 'Enter your press quote translations to see them displayed here in real-time.'}”
             </blockquote>
-            <p className="text-[10px] text-neutral-400 font-sans font-semibold uppercase">
+            <p className="text-[10px] text-neutral-400 font-body font-semibold uppercase">
               {editingItem?.source || pressItems[0]?.source || 'Publication Source'}
             </p>
           </div>
 
           {/* Active Item Form Editor */}
           {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
+            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-accent/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
+                <h4 className="text-xs tracking-widest uppercase font-body font-semibold text-accent">
                   {editingItem.id ? 'Edit Review Quote' : 'New Review Quote'}
                 </h4>
                 <button
@@ -433,11 +433,11 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Type</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block">Type</label>
                   <select
                     value={editingItem.type || 'Review'}
                     onChange={(e) => setEditingItem({ ...editingItem, type: e.target.value as any })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227] select-none"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] select-none"
                   >
                     <option value="Review" className="bg-neutral-900 text-white">Review</option>
                     <option value="Interview" className="bg-neutral-900 text-white">Interview</option>
@@ -446,25 +446,25 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Source</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block">Source</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Opera Magazine"
                     value={editingItem.source || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, source: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Date</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block">Date</label>
                   <input
                     type="date"
                     required
                     value={editingItem.date || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                   />
                 </div>
               </div>
@@ -472,7 +472,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
               {/* Multi-language Quote (displayed for the selected language only) */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[10px] tracking-wider text-neutral-300 font-sans uppercase block font-semibold">
+                  <label className="text-[10px] tracking-wider text-neutral-300 font-body uppercase block font-semibold">
                     Quote Excerpt ({currentLang})
                   </label>
                   <span className="text-[9px] font-mono text-neutral-500 uppercase">
@@ -497,30 +497,30 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       } as Partial<PressItem>;
                     });
                   }}
-                  className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-4 py-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227] resize-none leading-relaxed font-serif italic"
+                  className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-4 py-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] resize-none leading-relaxed font-heading italic"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Author</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block">Author</label>
                   <input
                     type="text"
                     placeholder="e.g. Richard Morrison (Optional)"
                     value={editingItem.author || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, author: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block">Article URL / Link</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block">Article URL / Link</label>
                   <input
                     type="url"
                     placeholder="https://... (Optional)"
                     value={editingItem.link || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, link: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                   />
                 </div>
               </div>
@@ -529,14 +529,14 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
+                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-body transition-all cursor-pointer"
                 >
                   {t.adminCancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
+                  className="px-5 py-2 bg-[var(--color-buttons)] text-background hover:bg-[var(--color-hover)] font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-body active:scale-95 shadow-md"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSaving ? t.adminSaving : t.adminSave}</span>
@@ -547,7 +547,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
             /* Drag-and-drop management list */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-xs tracking-wider text-neutral-400 font-sans uppercase">
+                <h3 className="text-xs tracking-wider text-neutral-400 font-body uppercase">
                   Drag and drop to sort • Click edit icon to change
                 </h3>
               </div>
@@ -555,7 +555,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <div className="divide-y divide-white/5 border border-white/10 bg-black/20 rounded-sm overflow-hidden">
                   {pressItems.length === 0 ? (
-                    <div className="p-12 text-center text-neutral-500 text-xs font-sans">No reviews created yet. Click Add Quote above to get started.</div>
+                    <div className="p-12 text-center text-neutral-500 text-xs font-body">No reviews created yet. Click Add Quote above to get started.</div>
                   ) : (
                     <SortableContext items={pressItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
                       {pressItems.map((item, index) => {
@@ -566,22 +566,22 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                           <SortableItem 
                             key={item.id} 
                             id={item.id} 
-                            className={`bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 ${isCurrentlySelected ? 'border-l-2 border-[#C9A227] bg-white/[0.01]' : ''}`} 
+                            className={`bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 ${isCurrentlySelected ? 'border-l-2 border-accent bg-white/[0.01]' : ''}`} 
                             handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
                           >
                             <div className="flex-1 min-w-0 pr-4">
                               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                                <span className="text-[11px] font-sans font-semibold text-white tracking-wide">
+                                <span className="text-[11px] font-body font-semibold text-white tracking-wide">
                                   {item.source}
                                 </span>
                                 <span className="text-[10px] font-mono text-neutral-500">
                                   {item.date}
                                 </span>
-                                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded accent-color">
+                                <span className="text-[9px] font-mono text-accent uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded accent-color">
                                   {item.type || 'Review'}
                                 </span>
                               </div>
-                              <p className="text-xs text-neutral-400 italic line-clamp-1 font-serif">
+                              <p className="text-xs text-neutral-400 italic line-clamp-1 font-heading">
                                 "{translatedQuote}"
                               </p>
                             </div>
@@ -593,9 +593,9 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                                   setSelectedItemId(item.id);
                                   showNotification(`Carousel set to: ${item.source}`);
                                 }}
-                                className={`px-2.5 py-1 text-[9px] font-sans tracking-wider rounded border transition-colors uppercase ${
+                                className={`px-2.5 py-1 text-[9px] font-body tracking-wider rounded border transition-colors uppercase ${
                                   isCurrentlySelected
-                                    ? 'bg-[#C9A227]/10 border-[#C9A227] text-[#C9A227] accent-color font-bold'
+                                    ? 'bg-accent/10 border-accent text-accent accent-color font-bold'
                                     : 'border-white/10 text-neutral-500 hover:text-white'
                                 }`}
                               >
@@ -635,7 +635,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
             ======================================================== */
         <div className="max-w-4xl mx-auto">
           {pressItems.length === 0 ? (
-            <div className="text-center py-16 text-neutral-500 text-xs font-sans">
+            <div className="text-center py-16 text-neutral-500 text-xs font-body">
               No press reviews published at the moment.
             </div>
           ) : (
@@ -656,13 +656,13 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       {/* Quote section */}
                       <div className="space-y-4 md:space-y-6">
                         <div className="flex justify-center items-center">
-                          <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-[#C9A227] accent-color">
+                          <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-accent accent-color">
                             {currentItem.type || 'Review'}
                           </span>
                         </div>
                         
                         <blockquote 
-                          className="font-serif italic leading-relaxed tracking-wide text-neutral-100 max-w-3xl mx-auto"
+                          className="font-heading italic leading-relaxed tracking-wide text-neutral-100 max-w-3xl mx-auto"
                           style={{
                             fontSize: theme?.pressFontSize ? `clamp(16px, 4vw, ${theme.pressFontSize}px)` : undefined,
                             fontWeight: 300
@@ -674,12 +674,12 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
 
                       {/* Source details and publication */}
                       <div className="mt-6 md:mt-8 pt-6 border-t border-white/5 max-w-sm mx-auto w-full space-y-1">
-                        <h4 className="font-serif text-sm md:text-base tracking-widest uppercase font-semibold text-white">
+                        <h4 className="font-heading text-sm md:text-base tracking-widest uppercase font-semibold text-white">
                           {currentItem.source}
                         </h4>
                         
                         {currentItem.author && (
-                          <p className="text-[10px] sm:text-xs text-neutral-400 font-sans">
+                          <p className="text-[10px] sm:text-xs text-neutral-400 font-body">
                             {currentItem.author}
                           </p>
                         )}
@@ -698,7 +698,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                               href={currentItem.link}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center space-x-1 text-xs text-neutral-300 hover:text-[#C9A227] transition-colors uppercase tracking-[0.15em] font-sans accent-hover-text"
+                              className="inline-flex items-center space-x-1 text-xs text-neutral-300 hover:text-accent transition-colors uppercase tracking-[0.15em] font-body accent-hover-text"
                             >
                               <span>{t.readArticle}</span>
                               <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -725,7 +725,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                     <button
                       onClick={handlePrev}
                       aria-label="Previous review"
-                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#C9A227] hover:bg-white/[0.03] text-neutral-400 hover:text-white transition-all duration-300 cursor-pointer active:scale-95"
+                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-accent hover:bg-white/[0.03] text-neutral-400 hover:text-white transition-all duration-300 cursor-pointer active:scale-95"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -737,7 +737,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                     <button
                       onClick={handleNext}
                       aria-label="Next review"
-                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#C9A227] hover:bg-white/[0.03] text-neutral-400 hover:text-white transition-all duration-300 cursor-pointer active:scale-95"
+                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-accent hover:bg-white/[0.03] text-neutral-400 hover:text-white transition-all duration-300 cursor-pointer active:scale-95"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>

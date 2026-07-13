@@ -225,10 +225,10 @@ export default function VideoPlayer({
 
   if (items.length === 0 && !isEditMode) {
     return (
-      <div id="video-player-loading" className="w-full py-24 text-center border border-neutral-900 rounded bg-[var(--color-bg)] animate-pulse">
+      <div id="video-player-loading" className="w-full py-24 text-center border border-neutral-900 rounded bg-background animate-pulse">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-[1px] bg-[var(--color-bg)]" />
-          <span className="text-[10px] tracking-[0.3em] text-neutral-400 uppercase font-sans">
+          <div className="w-12 h-[1px] bg-background" />
+          <span className="text-[10px] tracking-[0.3em] text-neutral-400 uppercase font-body">
             Loading Repertoire Videos...
           </span>
         </div>
@@ -249,7 +249,7 @@ export default function VideoPlayer({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-sans flex items-center space-x-2 shadow-lg ${
+            className={`absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-body flex items-center space-x-2 shadow-lg ${
               notification.type === 'success'
                 ? 'border-emerald-500/30 bg-emerald-950/80 text-emerald-400 backdrop-blur-sm'
                 : 'border-rose-500/30 bg-rose-950/80 text-rose-400 backdrop-blur-sm'
@@ -265,7 +265,7 @@ export default function VideoPlayer({
       {user && (activeEditSection === 'none' || activeEditSection === 'videos') && (
         <div className="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-white/5 gap-4">
           <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+            <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
               ADMIN ACCESS
             </span>
           </div>
@@ -275,9 +275,9 @@ export default function VideoPlayer({
               <button
                 type="button"
                 onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-body font-medium"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+                <Edit3 className="w-3.5 h-3.5 text-accent" />
                 <span>Edit Videos</span>
               </button>
             ) : (
@@ -289,9 +289,9 @@ export default function VideoPlayer({
                       key={lang}
                       type="button"
                       onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
+                      className={`px-2.5 py-0.5 text-[10px] font-body font-bold tracking-wider rounded-sm transition-all ${
                         currentLang === lang
-                          ? 'bg-[#C9A227] text-black font-extrabold shadow-sm'
+                          ? 'bg-accent text-black font-extrabold shadow-sm'
                           : 'text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -303,7 +303,7 @@ export default function VideoPlayer({
                 <button
                   type="button"
                   onClick={startNewVideo}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-sm transition-all cursor-pointer font-body"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add Video</span>
@@ -322,7 +322,7 @@ export default function VideoPlayer({
                       setIsEditMode(false);
                     }
                   }}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-body"
                 >
                   <X className="w-3 h-3" />
                   <span>Exit Edit Mode</span>
@@ -340,9 +340,9 @@ export default function VideoPlayer({
         <div className="space-y-6">
           
           {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
+            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-accent/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
+                <h4 className="text-xs tracking-widest uppercase font-body font-semibold text-accent">
                   {editingItem.id ? 'Edit Video Details' : 'New Repertoire Video'}
                 </h4>
                 <button
@@ -360,14 +360,14 @@ export default function VideoPlayer({
                 {/* Left Side: Video Source */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">YouTube ID or Video URL</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">YouTube ID or Video URL</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. qR_b_V8_K8M or https://www.youtube.com/watch?v=..."
                       value={editingItem.youtubeId || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, youtubeId: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                   </div>
 
@@ -453,10 +453,10 @@ export default function VideoPlayer({
                 {/* Right Side: Title & Info */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1">REPERTOIRE PIECE TITLE</span>
+                    <span className="text-[9px] font-mono text-accent uppercase tracking-widest block font-bold mb-1">REPERTOIRE PIECE TITLE</span>
                     <div className="space-y-2.5">
                       <div>
-                        <label className="text-[9px] tracking-wider text-neutral-400 font-sans uppercase block mb-1">Title (EN)</label>
+                        <label className="text-[9px] tracking-wider text-neutral-400 font-body uppercase block mb-1">Title (EN)</label>
                         <input
                           type="text"
                           required
@@ -466,11 +466,11 @@ export default function VideoPlayer({
                             ...editingItem,
                             title: { ...editingItem.title, EN: e.target.value } as any
                           })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
+                          className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] tracking-wider text-neutral-400 font-sans uppercase block mb-1">Title (DE)</label>
+                        <label className="text-[9px] tracking-wider text-neutral-400 font-body uppercase block mb-1">Title (DE)</label>
                         <input
                           type="text"
                           placeholder="e.g. Madamina, il catalogo è questo (German)"
@@ -479,11 +479,11 @@ export default function VideoPlayer({
                             ...editingItem,
                             title: { ...editingItem.title, DE: e.target.value } as any
                           })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
+                          className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] tracking-wider text-neutral-400 font-sans uppercase block mb-1">Title (KO)</label>
+                        <label className="text-[9px] tracking-wider text-neutral-400 font-body uppercase block mb-1">Title (KO)</label>
                         <input
                           type="text"
                           placeholder="e.g. 카탈로그의 노래 (Korean)"
@@ -492,7 +492,7 @@ export default function VideoPlayer({
                             ...editingItem,
                             title: { ...editingItem.title, KO: e.target.value } as any
                           })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
+                          className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
                         />
                       </div>
                     </div>
@@ -505,14 +505,14 @@ export default function VideoPlayer({
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
+                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-body transition-all cursor-pointer"
                 >
                   {t.adminCancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
+                  className="px-5 py-2 bg-[var(--color-buttons)] text-background hover:bg-[var(--color-hover)] font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-body active:scale-95 shadow-md"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSaving ? t.adminSaving : t.adminSave}</span>
@@ -523,7 +523,7 @@ export default function VideoPlayer({
             /* Drag-and-drop Reorder List */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs tracking-wider text-neutral-400 font-sans uppercase">
+                <h3 className="text-xs tracking-wider text-neutral-400 font-body uppercase">
                   Reorder Repertoire reels • Drag handle on left • Click edit to translate
                 </h3>
               </div>
@@ -531,7 +531,7 @@ export default function VideoPlayer({
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <div className="divide-y divide-white/5 border border-white/10 bg-black/20 rounded-sm overflow-hidden">
                   {items.length === 0 ? (
-                    <div className="p-12 text-center text-neutral-500 text-xs font-sans">No videos available. Click Add Video above to publish repertoire!</div>
+                    <div className="p-12 text-center text-neutral-500 text-xs font-body">No videos available. Click Add Video above to publish repertoire!</div>
                   ) : (
                     <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
                       {items.map((item) => {
@@ -544,15 +544,15 @@ export default function VideoPlayer({
                           >
                             <div className="flex-1 min-w-0 pr-4">
                               <div className="flex items-center space-x-2">
-                                <span className="text-xs font-sans font-bold text-neutral-200">
+                                <span className="text-xs font-body font-bold text-neutral-200">
                                   {item.title[currentLang] || item.title['EN']}
                                 </span>
-                                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">
+                                <span className="text-[9px] font-mono text-accent uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">
                                   YT: {item.youtubeId}
                                 </span>
                               </div>
                               {item.role && (
-                                <p className="text-[11px] text-neutral-400 mt-0.5 font-sans">
+                                <p className="text-[11px] text-neutral-400 mt-0.5 font-body">
                                   {item.role[currentLang] || item.role['EN']}
                                 </p>
                               )}
@@ -622,14 +622,14 @@ export default function VideoPlayer({
                             <Play className="w-8 h-8 fill-black translate-x-0.5" />
                           </motion.button>
                           <div className="relative z-10 text-center mt-8 px-4">
-                            <span className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-sans block mb-2">
+                            <span className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-body block mb-2">
                               {t.watchNow}
                             </span>
-                            <h3 className="text-xl md:text-2xl font-serif font-light text-white tracking-wide">
+                            <h3 className="text-xl md:text-2xl font-heading font-light text-white tracking-wide">
                               {activeVideo.title[currentLang] || activeVideo.title['EN']}
                             </h3>
                             {activeVideo.role && (
-                              <p className="text-sm text-white/70 font-sans tracking-widest mt-2">
+                              <p className="text-sm text-white/70 font-body tracking-widest mt-2">
                                 {activeVideo.role[currentLang] || activeVideo.role['EN']}
                               </p>
                             )}
@@ -674,7 +674,7 @@ export default function VideoPlayer({
 
           {/* Right Column: Playlist Sidebar (4 cols) */}
           <div id="video-playlist-sidebar" className="lg:col-span-4 space-y-3">
-            <h3 className="text-xs tracking-[0.25em] text-neutral-400 uppercase font-sans font-semibold mb-4 px-2">
+            <h3 className="text-xs tracking-[0.25em] text-neutral-400 uppercase font-body font-semibold mb-4 px-2">
               Repertoire Reels
             </h3>
             <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
@@ -690,16 +690,16 @@ export default function VideoPlayer({
                     }}
                     className={`w-full text-left p-4 rounded-sm border transition-all duration-300 flex items-start space-x-3.5 group cursor-pointer ${
                       isSelected
-                        ? 'bg-[var(--color-bg)] border-white text-[var(--color-text)] shadow-md'
-                        : 'bg-[var(--color-bg)] border-neutral-900 text-neutral-400 hover:bg-[var(--color-bg)] hover:border-neutral-800 hover:text-[var(--color-text)]'
+                        ? 'bg-background border-white text-text-main shadow-md'
+                        : 'bg-background border-neutral-900 text-neutral-400 hover:bg-background hover:border-neutral-800 hover:text-text-main'
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">
                       {getIcon(video.role?.EN)}
                     </div>
                     <div className="space-y-1">
-                      <h4 className={`text-xs md:text-sm font-sans tracking-wide transition-colors ${
-                        isSelected ? 'text-[var(--color-text)] font-bold' : 'text-neutral-300 group-hover:text-[var(--color-text)]'
+                      <h4 className={`text-xs md:text-sm font-body tracking-wide transition-colors ${
+                        isSelected ? 'text-text-main font-bold' : 'text-neutral-300 group-hover:text-text-main'
                       }`}>
                         {video.title[currentLang] || video.title['EN']}
                       </h4>

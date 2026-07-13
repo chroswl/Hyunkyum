@@ -1,3 +1,4 @@
+import { useAppearance } from '../contexts/AppearanceContext';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -70,6 +71,7 @@ export default function PortfolioGallery({
   onRefreshData
 }: PortfolioGalleryProps) {
   const [activeCategory, setActiveCategory] = useState<'Portrait' | 'Stage' | 'Backstage' | null>(null);
+  const { appearance } = useAppearance();
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   
   // Edit mode states
@@ -331,7 +333,7 @@ export default function PortfolioGallery({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-sans flex items-center space-x-2 shadow-lg ${
+            className={`absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-body flex items-center space-x-2 shadow-lg ${
               notification.type === 'success'
                 ? 'border-emerald-500/30 bg-emerald-950/80 text-emerald-400 backdrop-blur-sm'
                 : 'border-rose-500/30 bg-rose-950/80 text-rose-400 backdrop-blur-sm'
@@ -347,7 +349,7 @@ export default function PortfolioGallery({
       {user && (activeEditSection === 'none' || activeEditSection === 'gallery') && (
         <div className="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-white/5 gap-4">
           <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+            <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
               ADMIN ACCESS
             </span>
           </div>
@@ -357,9 +359,9 @@ export default function PortfolioGallery({
               <button
                 type="button"
                 onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-body font-medium"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+                <Edit3 className="w-3.5 h-3.5 text-accent" />
                 <span>Edit Gallery</span>
               </button>
             ) : (
@@ -371,9 +373,9 @@ export default function PortfolioGallery({
                       key={lang}
                       type="button"
                       onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
+                      className={`px-2.5 py-0.5 text-[10px] font-body font-bold tracking-wider rounded-sm transition-all ${
                         currentLang === lang
-                          ? 'bg-[#C9A227] text-black font-extrabold shadow-sm'
+                          ? 'bg-accent text-black font-extrabold shadow-sm'
                           : 'text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -385,7 +387,7 @@ export default function PortfolioGallery({
                 <button
                   type="button"
                   onClick={startNewPhoto}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-sm transition-all cursor-pointer font-body"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add Photo</span>
@@ -404,7 +406,7 @@ export default function PortfolioGallery({
                       setIsEditMode(false);
                     }
                   }}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-body"
                 >
                   <X className="w-3 h-3" />
                   <span>Exit Edit Mode</span>
@@ -422,19 +424,19 @@ export default function PortfolioGallery({
         <div className="space-y-6">
           
           {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all relative">
+            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-accent/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all relative">
               <AnimatePresence>
                 {isOptimizing && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/85 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-sans rounded-lg"
+                    className="absolute inset-0 bg-black/85 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-body rounded-lg"
                   >
                     <div className="relative flex items-center justify-center">
-                      <div className="w-10 h-10 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                       {optimizeProgress !== null && (
-                        <span className="absolute text-[9px] font-mono text-[#C9A227] font-semibold">
+                        <span className="absolute text-[9px] font-mono text-accent font-semibold">
                           {optimizeProgress}%
                         </span>
                       )}
@@ -452,7 +454,7 @@ export default function PortfolioGallery({
               </AnimatePresence>
 
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
+                <h4 className="text-xs tracking-widest uppercase font-body font-semibold text-accent">
                   {editingItem.id ? 'Edit Photo Details' : 'New Gallery Photo'}
                 </h4>
                 <button
@@ -470,31 +472,31 @@ export default function PortfolioGallery({
                 {/* Left Side: Upload & Media source */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Image Source URL</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Image Source URL</label>
                     <input
                       type="url"
                       placeholder="https://images.unsplash.com/photo-..."
                       value={editingItem.url || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                     <GoogleDrivePicker onPick={url => setEditingItem({ ...editingItem, url: url })} />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Or Upload Local Photo</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Or Upload Local Photo</label>
                     <div className="flex items-center justify-center w-full relative">
                       <label className={`flex flex-col items-center justify-center w-full h-28 border border-white/10 border-dashed rounded-sm ${uploadProgress !== null ? 'bg-black/60 cursor-not-allowed' : 'cursor-pointer bg-black/20 hover:bg-black/40'} transition-colors`}>
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           {uploadProgress !== null ? (
                             <>
-                              <div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-2" />
-                              <p className="text-[10px] text-[#C9A227] tracking-wider font-sans uppercase">Uploading: {Math.round(uploadProgress)}%</p>
+                              <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2" />
+                              <p className="text-[10px] text-accent tracking-wider font-body uppercase">Uploading: {Math.round(uploadProgress)}%</p>
                             </>
                           ) : (
                             <>
                               <ImageIcon className="w-8 h-8 text-neutral-500 mb-2" />
-                              <p className="text-[10px] text-neutral-400 tracking-wider font-sans uppercase">Drag & Drop or Click to Select File</p>
+                              <p className="text-[10px] text-neutral-400 tracking-wider font-body uppercase">Drag & Drop or Click to Select File</p>
                             </>
                           )}
                         </div>
@@ -504,11 +506,11 @@ export default function PortfolioGallery({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Category</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Category</label>
                     <select
                       value={editingItem.category || 'Portrait'}
                       onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value as any })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     >
                       <option value="Portrait">Portrait</option>
                       <option value="Stage">Stage</option>
@@ -520,7 +522,7 @@ export default function PortfolioGallery({
                 {/* Right Side: Preview & Metadata */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Image Live Preview</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Image Live Preview</label>
                     <div className="w-full h-40 bg-black/40 rounded-sm border border-white/5 overflow-hidden flex items-center justify-center p-2 relative group/preview">
                       {editingItem.url ? (
                         <>
@@ -544,7 +546,7 @@ export default function PortfolioGallery({
                                 }
                               });
                             }}
-                            className="absolute inset-0 m-auto w-36 h-9 bg-black/80 hover:bg-black border border-[#C9A227] text-[#C9A227] hover:text-white text-[10px] tracking-wider uppercase font-sans font-medium rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                            className="absolute inset-0 m-auto w-36 h-9 bg-black/80 hover:bg-black border border-accent text-accent hover:text-white text-[10px] tracking-wider uppercase font-body font-medium rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                             <span>Crop & Adjust</span>
@@ -557,24 +559,24 @@ export default function PortfolioGallery({
                   </div>
 
                   <div className="space-y-1.5 pt-2">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Photo Credit / Copyright</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Photo Credit / Copyright</label>
                     <input
                       type="text"
                       placeholder="Photo © Klaudia Hart"
                       value={editingItem.copyright || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, copyright: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Copyright Link (URL)</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Copyright Link (URL)</label>
                     <input
                       type="url"
                       placeholder="https://..."
                       value={editingItem.copyrightUrl || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, copyrightUrl: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                   </div>
 
@@ -583,7 +585,7 @@ export default function PortfolioGallery({
                     <div className="space-y-2">
                       <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-1">
-                          <span className="text-[10px] font-sans font-bold text-neutral-500 uppercase block py-2">EN</span>
+                          <span className="text-[10px] font-body font-bold text-neutral-500 uppercase block py-2">EN</span>
                         </div>
                         <div className="col-span-2">
                           <input
@@ -594,13 +596,13 @@ export default function PortfolioGallery({
                               ...editingItem,
                               title: { ...editingItem.title, EN: e.target.value } as any
                             })}
-                            className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                            className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-1">
-                          <span className="text-[10px] font-sans font-bold text-neutral-500 uppercase block py-2">DE</span>
+                          <span className="text-[10px] font-body font-bold text-neutral-500 uppercase block py-2">DE</span>
                         </div>
                         <div className="col-span-2">
                           <input
@@ -611,13 +613,13 @@ export default function PortfolioGallery({
                               ...editingItem,
                               title: { ...editingItem.title, DE: e.target.value } as any
                             })}
-                            className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                            className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-1">
-                          <span className="text-[10px] font-sans font-bold text-neutral-500 uppercase block py-2">KO</span>
+                          <span className="text-[10px] font-body font-bold text-neutral-500 uppercase block py-2">KO</span>
                         </div>
                         <div className="col-span-2">
                           <input
@@ -628,7 +630,7 @@ export default function PortfolioGallery({
                               ...editingItem,
                               title: { ...editingItem.title, KO: e.target.value } as any
                             })}
-                            className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                            className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
                           />
                         </div>
                       </div>
@@ -642,14 +644,14 @@ export default function PortfolioGallery({
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
+                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-body transition-all cursor-pointer"
                 >
                   {t.adminCancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
+                  className="px-5 py-2 bg-[var(--color-buttons)] text-background hover:bg-[var(--color-hover)] font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-body active:scale-95 shadow-md"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSaving ? t.adminSaving : t.adminSave}</span>
@@ -660,7 +662,7 @@ export default function PortfolioGallery({
             /* Drag-and-drop Photo Listing Sortable */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs tracking-wider text-neutral-400 font-sans uppercase">
+                <h3 className="text-xs tracking-wider text-neutral-400 font-body uppercase">
                   Sort Photo Gallery • Drag handle on left • Click edit details
                 </h3>
               </div>
@@ -668,7 +670,7 @@ export default function PortfolioGallery({
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <div className="divide-y divide-white/5 border border-white/10 bg-black/20 rounded-sm overflow-hidden">
                   {items.length === 0 ? (
-                    <div className="p-12 text-center text-neutral-500 text-xs font-sans">No photos in the gallery. Click Add Photo above to upload some!</div>
+                    <div className="p-12 text-center text-neutral-500 text-xs font-body">No photos in the gallery. Click Add Photo above to upload some!</div>
                   ) : (
                     <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
                       {items.map((item) => {
@@ -689,10 +691,10 @@ export default function PortfolioGallery({
                                 return <img src={media.src} alt="Thumbnail preview" className="w-16 h-12 object-cover border border-white/5 rounded-sm shrink-0" referrerPolicy="no-referrer" />;
                               })()}
                               <div className="min-w-0">
-                                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded mr-2 inline-block">
+                                <span className="text-[9px] font-mono text-accent uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded mr-2 inline-block">
                                   {item.category}
                                 </span>
-                                <h4 className="text-xs font-sans text-neutral-200 truncate mt-1 inline-block">
+                                <h4 className="text-xs font-body text-neutral-200 truncate mt-1 inline-block">
                                   {titleText || "(Untitled Photo)"}
                                 </h4>
                               </div>
@@ -770,7 +772,11 @@ export default function PortfolioGallery({
             <motion.div 
               id="portfolio-grid"
               layout 
-              className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 pb-6 pt-1"
+              className="pb-6 pt-1"
+              style={{
+                columnCount: `var(--portfolio-columns, 3)`,
+                columnGap: `var(--portfolio-gap, 24px)`
+              }}
             >
               <AnimatePresence mode="popLayout">
                 {filteredItems.map((item, index) => (
@@ -785,7 +791,7 @@ export default function PortfolioGallery({
                       duration: 0.45, 
                       ease: [0.16, 1, 0.3, 1] // Custom premium easeOutExpo for ultra fluid motion
                     }}
-                    className="break-inside-avoid relative group overflow-hidden cursor-pointer bg-transparent/5 rounded-sm border border-black/10/60"
+                    className={`portfolio-card break-inside-avoid relative group overflow-hidden cursor-pointer border-transparent ${appearance.portfolio.roundedCorners ? 'rounded-lg' : 'rounded-none'} ${appearance.portfolio.hoverEffect ? 'hover:shadow-2xl hover:-translate-y-1 transition-all duration-300' : ''}`} style={{ marginBottom: `var(--portfolio-gap, 24px)` }}
                     onClick={() => setSelectedItemIndex(index)}
                   >
                   {/* Premium image wrapper */}
@@ -793,7 +799,7 @@ export default function PortfolioGallery({
                     <img
                       src={item.url}
                       alt={getTranslatedTitle(item) || item.category}
-                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                      className={`w-full h-auto object-cover transition-transform duration-700 ${appearance.portfolio.hoverEffect ? 'group-hover:scale-105' : ''}`}
                       referrerPolicy="no-referrer"
                       loading="lazy"
                       onContextMenu={(e) => e.preventDefault()}
@@ -803,7 +809,7 @@ export default function PortfolioGallery({
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
                       <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                         <div className="flex justify-between items-start">
-                          <span className="text-[10px] tracking-widest uppercase font-sans font-semibold">
+                          <span className="text-[10px] tracking-widest uppercase font-body font-semibold">
                             {item.category === 'Portrait' ? t.portraitCat : item.category === 'Stage' ? t.stageCat : item.category === 'Backstage' ? t.backstageCat : ''}
                           </span>
                           {user && (
@@ -819,11 +825,11 @@ export default function PortfolioGallery({
                             </button>
                           )}
                         </div>
-                        <h4 className="text-sm font-serif font-light tracking-wide mt-1">
+                        <h4 className="text-sm font-heading font-light tracking-wide mt-1">
                           {getTranslatedTitle(item)}
                         </h4>
                         {item.copyright && (
-                          <div className="mt-1 text-[9px] font-sans tracking-[0.15em] text-white/70 uppercase">
+                          <div className="mt-1 text-[9px] font-body tracking-[0.15em] text-white/70 uppercase">
                             {item.copyrightUrl ? (
                               <a href={item.copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
                                 {item.copyright.trim().startsWith('©') ? item.copyright : `© ${item.copyright.trim()}`}
@@ -917,13 +923,13 @@ export default function PortfolioGallery({
                         ? t.stageCat 
                         : t.backstageCat}
                     </span>
-                    <h3 className="text-lg md:text-xl font-serif font-light tracking-wide mt-1">
+                    <h3 className="text-lg md:text-xl font-heading font-light tracking-wide mt-1">
                       {getTranslatedTitle(filteredItems[selectedItemIndex])}
                     </h3>
                     {filteredItems[selectedItemIndex].copyright && (
-                      <div className="mt-2 text-[11px] font-sans tracking-[0.15em] text-neutral-400 uppercase">
+                      <div className="mt-2 text-[11px] font-body tracking-[0.15em] text-neutral-400 uppercase">
                         {filteredItems[selectedItemIndex].copyrightUrl ? (
-                          <a href={filteredItems[selectedItemIndex].copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" onClick={(e) => e.stopPropagation()}>
+                          <a href={filteredItems[selectedItemIndex].copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors" onClick={(e) => e.stopPropagation()}>
                             {filteredItems[selectedItemIndex].copyright.startsWith('©') ? filteredItems[selectedItemIndex].copyright : `© ${filteredItems[selectedItemIndex].copyright}`}
                           </a>
                         ) : (

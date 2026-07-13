@@ -91,9 +91,9 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
         bounds="window"
         className="z-[9999] admin-panel-exclude fixed"
       >
-        <div className="bg-neutral-950/90 border border-[#C9A227]/50 rounded-full px-4 py-2.5 shadow-2xl backdrop-blur-md text-white flex items-center justify-between">
+        <div className="bg-neutral-950/90 border border-accent/50 rounded-full px-4 py-2.5 shadow-2xl backdrop-blur-md text-white flex items-center justify-between">
           <div className="drag-handle flex items-center space-x-2 cursor-grab active:cursor-grabbing mr-4">
-            <LayoutTemplate className="w-4 h-4 text-[#C9A227]" />
+            <LayoutTemplate className="w-4 h-4 text-accent" />
             <span className="font-serif text-[11px] tracking-widest uppercase hidden sm:inline-block">Text Edit Mode</span>
           </div>
           <div className="flex items-center space-x-1.5">
@@ -115,7 +115,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
             </button>
             <button 
               onClick={() => setIsEditingText(false)}
-              className="bg-[#C9A227] hover:bg-[#ebd04e] text-black px-4 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-semibold transition-colors"
+              className="bg-accent hover:bg-[#ebd04e] text-black px-4 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-semibold transition-colors"
             >
               Done
             </button>
@@ -149,7 +149,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
       className="z-[9999] admin-panel-exclude fixed"
     >
       <div 
-        className="border border-[#C9A227]/50 rounded shadow-2xl backdrop-blur-md text-white flex flex-col h-full transition-opacity duration-200"
+        className="border border-accent/50 rounded shadow-2xl backdrop-blur-md text-white flex flex-col h-full transition-opacity duration-200"
         style={{ 
           backgroundColor: `rgba(10, 10, 10, ${opacity / 100})`,
         }}
@@ -157,13 +157,13 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
         {/* Header (Draggable) */}
         <div className="drag-handle flex items-center justify-between px-2 py-1.5 border-b border-neutral-900 cursor-grab active:cursor-grabbing bg-white/5 rounded-t">
           <div className="flex items-center space-x-1.5">
-            <Sliders className="w-4 h-4 text-[#C9A227]" />
+            <Sliders className="w-4 h-4 text-accent" />
             <span className="font-serif text-[11px] tracking-wider uppercase text-neutral-200 select-none">
               Hero Design Editor
             </span>
             {hasUnsavedChanges && (
-              <span className="text-[10px] text-[#C9A227] ml-2 flex items-center space-x-1 uppercase tracking-widest font-sans">
-                <span className="w-1.5 h-1 rounded-full bg-[#C9A227] animate-pulse"></span>
+              <span className="text-[10px] text-accent ml-2 flex items-center space-x-1 uppercase tracking-widest font-sans">
+                <span className="w-1.5 h-1 rounded-full bg-accent animate-pulse"></span>
                 <span>Unsaved</span>
               </span>
             )}
@@ -194,7 +194,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
             <div className="flex items-center justify-between pb-1">
               <button 
                 onClick={() => setIsEditingText(true)}
-                className="px-2.5 py-1.5 rounded bg-[#C9A227]/10 text-[#C9A227] hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[10px] uppercase tracking-wider font-semibold transition-colors flex items-center space-x-1"
+                className="px-2.5 py-1.5 rounded bg-accent/10 text-accent hover:bg-accent/20 border border-accent/30 text-[10px] uppercase tracking-wider font-semibold transition-colors flex items-center space-x-1"
               >
                 <LayoutTemplate className="w-3 h-3" />
                 <span>Text Edit Mode</span>
@@ -231,7 +231,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                       onClick={() => setTheme(prev => ({ ...prev, heroAlign: align }))}
                       className={`py-1 rounded border text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1 transition-all ${
                         (theme.heroAlign || 'center') === align 
-                          ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#C9A227] font-semibold' 
+                          ? 'border-accent bg-accent/10 text-accent font-semibold' 
                           : 'border-neutral-800 bg-neutral-950 text-neutral-400 hover:text-neutral-200'
                       }`}
                     >
@@ -249,13 +249,13 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                     type="range" min="-300" max="300" 
                     value={theme.heroOffsetY || 0} 
                     onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) || 0 }))} 
-                    className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                    className="w-full accent-accent bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                   />
                   <input 
                     type="number"
                     value={theme.heroOffsetY || 0} 
                     onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) || 0 }))} 
-                    className="w-12 bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1.5 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-6"
+                    className="w-12 bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1.5 py-0.5 rounded text-center focus:outline-none focus:border-accent font-mono h-6"
                   />
                 </div>
               </div>
@@ -287,7 +287,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                             [elem.keyY]: 0
                           }));
                         }}
-                        className="text-[9px] text-[#C9A227] hover:underline uppercase tracking-wider cursor-pointer font-semibold"
+                        className="text-[9px] text-accent hover:underline uppercase tracking-wider cursor-pointer font-semibold"
                       >
                         Reset
                       </span>
@@ -303,13 +303,13 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                           type="range" min="8" max="150" 
                           value={theme[elem.keySize as keyof ThemeSettings] as number || elem.defaultSize} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: parseInt(e.target.value) || elem.defaultSize }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          className="w-full accent-accent bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
                           value={theme[elem.keySize as keyof ThemeSettings] as number || elem.defaultSize} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: parseInt(e.target.value) || elem.defaultSize }))} 
-                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
+                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-accent font-mono h-5"
                         />
                       </div>
                       
@@ -319,13 +319,13 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                           type="range" min="-300" max="300" 
                           value={theme[elem.keyX as keyof ThemeSettings] as number || 0} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          className="w-full accent-accent bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
                           value={theme[elem.keyX as keyof ThemeSettings] as number || 0} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
+                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-accent font-mono h-5"
                         />
                       </div>
 
@@ -335,13 +335,13 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                           type="range" min="-300" max="300" 
                           value={theme[elem.keyY as keyof ThemeSettings] as number || 0} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          className="w-full accent-accent bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
                           value={theme[elem.keyY as keyof ThemeSettings] as number || 0} 
                           onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
+                          className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-accent font-mono h-5"
                         />
                       </div>
                     </div>
@@ -365,7 +365,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                 disabled={isSaving || !hasUnsavedChanges}
                 className={`px-4 py-2 rounded text-[10px] font-bold tracking-widest uppercase flex items-center space-x-1.5 transition-all ${
                   hasUnsavedChanges 
-                    ? 'bg-[#C9A227] hover:bg-[#ebd04e] text-black shadow-lg cursor-pointer' 
+                    ? 'bg-accent hover:bg-[#ebd04e] text-black shadow-lg cursor-pointer' 
                     : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
                 }`}
               >

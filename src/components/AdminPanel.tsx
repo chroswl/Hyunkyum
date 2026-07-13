@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogIn, X, LayoutDashboard, Calendar, Image as ImageIcon, FileText, Tv, Monitor, Layers, FileSignature, MessageSquare, Settings, LayoutGrid } from 'lucide-react';
+import { LogIn, X, LayoutDashboard, Calendar, Image as ImageIcon, FileText, Tv, Monitor, Layers, FileSignature, MessageSquare, Settings, LayoutGrid, Palette } from 'lucide-react';
 import { loginWithGoogle, auth } from '../firebase';
 import type { Language, ScheduleItem, PortfolioItem } from '../types';
 import type { User } from 'firebase/auth';
@@ -16,6 +16,7 @@ import AdminSlides from './admin/AdminSlides';
 import AdminBiography from './admin/AdminBiography';
 import AdminContact from './admin/AdminContact';
 import AdminSettings from './admin/AdminSettings';
+import AppearanceControlCenter from './admin/appearance/AppearanceControlCenter';
 import AdminFooter from './admin/AdminFooter';
 
 export type AdminTab = 
@@ -29,6 +30,7 @@ export type AdminTab =
   | 'biography' 
   | 'contact' 
   | 'footer'
+  | 'appearance'
   | 'settings';
 
 export interface AdminPanelProps {
@@ -56,15 +58,54 @@ export default function AdminPanel({
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
 
   useEffect(() => {
+    const handler = () => {
+      setActiveTab('appearance');
+    };
+    window.addEventListener('open-admin-appearance', handler);
+    return () => window.removeEventListener('open-admin-appearance', handler);
+  }, []);
+
+
+  useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       const savedTab = sessionStorage.getItem('adminActiveTab') as AdminTab;
       if (savedTab) setActiveTab(savedTab);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && activeTab !== 'appearance') {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.remove('appearance-preview-mode');
+    } else if (isOpen && activeTab === 'appearance') {
+      document.body.style.overflow = 'auto';
+      document.body.classList.add('appearance-preview-mode');
     } else {
       document.body.style.overflow = 'auto';
+      document.body.classList.remove('appearance-preview-mode');
     }
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [isOpen]);
+    return () => { 
+      document.body.style.overflow = 'auto'; 
+      document.body.classList.remove('appearance-preview-mode');
+    };
+  }, [isOpen, activeTab]);
+
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Shift + A to toggle Appearance
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        if (activeTab === 'appearance') {
+          handleTabChange('dashboard');
+        } else {
+          handleTabChange('appearance');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [activeTab]);
 
   const handleTabChange = (tab: AdminTab) => {
     setActiveTab(tab);
@@ -82,10 +123,15 @@ export default function AdminPanel({
     { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'content' },
     { id: 'contact', label: 'Contact', icon: MessageSquare, group: 'content' },
     { id: 'footer', label: 'Footer', icon: LayoutGrid, group: 'content' },
+    { id: 'appearance', label: 'Appearance', icon: Palette, group: 'system' },
     { id: 'settings', label: 'System Settings', icon: Settings, group: 'system' }
   ] as const;
 
   if (!isOpen) return null;
+
+  if (activeTab === 'appearance' && user) {
+    return <AppearanceControlCenter currentLang={currentLang} onClose={() => handleTabChange('dashboard')} />;
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex bg-black/90 backdrop-blur-sm">
@@ -96,7 +142,7 @@ export default function AdminPanel({
             <p className="text-sm text-neutral-400">Please sign in with your authorized Google account to access the control center.</p>
             <button
               onClick={loginWithGoogle}
-              className="w-full py-3 bg-[#C9A227] hover:bg-[#ebd04e] text-black rounded font-medium transition-colors flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-accent hover:bg-[#ebd04e] text-black rounded font-medium transition-colors flex items-center justify-center space-x-2"
             >
               <LogIn className="w-5 h-5" />
               <span>Sign in with Google</span>
@@ -109,7 +155,7 @@ export default function AdminPanel({
           {/* Sidebar */}
           <div className="w-64 bg-[#111] border-r border-neutral-900 flex flex-col h-full shrink-0">
             <div className="p-6 border-b border-neutral-900 flex justify-between items-center">
-              <h2 className="text-sm font-serif tracking-widest text-[#C9A227] uppercase">Control Center</h2>
+              <h2 className="text-sm font-serif tracking-widest text-accent uppercase">Control Center</h2>
             </div>
 
             {/* Global Language Switcher */}
@@ -120,7 +166,7 @@ export default function AdminPanel({
                   <button
                     key={lang}
                     onClick={() => setLang(lang)}
-                    className={`py-1 text-[10px] tracking-wider uppercase font-semibold transition-all rounded-[2px] ${currentLang === lang ? 'bg-[#C9A227] text-black font-bold' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}`}
+                    className={`py-1 text-[10px] tracking-wider uppercase font-semibold transition-all rounded-[2px] ${currentLang === lang ? 'bg-accent text-black font-bold' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}`}
                   >
                     {lang}
                   </button>
@@ -136,7 +182,7 @@ export default function AdminPanel({
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as AdminTab)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-[#C9A227]/10 text-[#C9A227]' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-accent/10 text-accent' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
                   >
                     <tab.icon className="w-4 h-4" />
                     <span>{tab.label}</span>
@@ -151,7 +197,7 @@ export default function AdminPanel({
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id as AdminTab)}
-                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-[#C9A227]/10 text-[#C9A227]' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
+                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-accent/10 text-accent' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
                     >
                       <tab.icon className="w-4 h-4" />
                       <span>{tab.label}</span>
@@ -166,7 +212,7 @@ export default function AdminPanel({
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as AdminTab)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-[#C9A227]/10 text-[#C9A227]' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded text-sm transition-colors ${activeTab === tab.id ? 'bg-accent/10 text-accent' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}
                   >
                     <tab.icon className="w-4 h-4" />
                     <span>{tab.label}</span>
@@ -205,6 +251,7 @@ export default function AdminPanel({
                 {activeTab === 'schedule' && <AdminSchedule currentLang={currentLang} />}
                 {activeTab === 'contact' && <AdminContact currentLang={currentLang} />}
                 {activeTab === 'footer' && <AdminFooter currentLang={currentLang} />}
+                {/* appearance is handled outside the main wrapper to float above the site */}
                 {activeTab === 'settings' && <AdminSettings currentLang={currentLang} />}
               
               </div>

@@ -1,3 +1,4 @@
+import { useAppearance } from '../contexts/AppearanceContext';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Globe, Lock, ShieldCheck } from 'lucide-react';
@@ -14,6 +15,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentLang, setLang, user, onAdminToggle, theme }: NavbarProps) {
+  const { appearance } = useAppearance();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -112,28 +114,34 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
     }, 120);
   };
 
+  const isCurrentlyTransparent = appearance.navigation.transparent && !isScrolled;
+
   return (
     <nav 
       id="navbar-root"
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b ${
-        isScrolled 
-          ? 'bg-black/95 backdrop-blur-md border-neutral-900 py-4' 
-          : 'bg-transparent border-transparent py-6'
+      className={`nav-container ${appearance.navigation.sticky ? 'fixed' : 'absolute'} top-0 left-0 w-full z-50 transition-all duration-700 border-b ${
+        isCurrentlyTransparent 
+          ? `nav-transparent ${appearance.navigation.blur ? 'backdrop-blur-sm' : ''}` 
+          : `nav-scrolled ${appearance.navigation.blur ? 'backdrop-blur-md' : ''}`
       }`}
+      style={{
+        height: isScrolled ? `calc(var(--nav-height, 80px) * 0.7)` : `calc(var(--nav-height, 80px) - 16px)`
+      }}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center h-full">
         {/* Logo / Brand Name */}
         <div 
           id="nav-logo"
           onClick={() => scrollTo('home')}
-          className="cursor-pointer font-serif text-xl md:text-2xl font-light tracking-[0.2em] text-white hover:text-white/80 transition-all"
+          className="cursor-pointer font-hero font-light tracking-[0.2em] nav-logo transition-all"
+          style={{ fontSize: 'var(--nav-logo-size, 24px)' }}
         >
           {theme?.footerBrandName || 'HYUNKYUM KIM'}
         </div>
 
         {/* Desktop Navigation */}
-        <div id="desktop-menu" className="hidden lg:flex items-center space-x-8">
-          <div className="flex items-center space-x-6">
+        <div id="desktop-menu" className="hidden lg:flex items-center" style={{ gap: 'var(--nav-menu-gap, 32px)' }}>
+          <div className="flex items-center" style={{ gap: 'calc(var(--nav-menu-gap, 32px) * 0.75)' }}>
             {menuItems.map((item) => {
               const isActive = activeSection === item.id;
               return (
@@ -141,15 +149,16 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
                 key={item.id}
                 id={`nav-link-${item.id}`}
                 onClick={() => scrollTo(item.id)}
-                className="relative font-sans text-xs tracking-[0.15em] transition-colors uppercase cursor-pointer py-1"
+                className="relative font-nav text-xs tracking-[0.15em] transition-colors uppercase cursor-pointer py-1"
               >
-                <span className={`transition-all duration-300 block ${isActive ? 'text-white' : 'text-neutral-400 hover:text-white'}`} style={{ textShadow: isActive ? '0 0 0.5px white' : 'none' }}>
+                <span className={`transition-all duration-300 block nav-link ${isActive ? "active font-medium" : ""}`}>
                   {item.label}
                 </span>
                 {isActive && (
                   <motion.div 
                     layoutId="navbarMainIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-white"
+                    className="absolute bottom-0 left-0 right-0 h-[1.5px]"
+                    style={{ backgroundColor: 'var(--current-nav-active)' }}
                     transition={{ type: 'spring', stiffness: 350, damping: 35 }}
                   />
                 )}
@@ -158,21 +167,21 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
             })}
           </div>
 
-          <div className="h-4 w-[1px] bg-neutral-800" />
+          <div className="h-4 w-[1px]" style={{ backgroundColor: 'var(--current-nav-text)', opacity: 0.2 }} />
 
           {/* Lang Selector */}
-          <div className="flex items-center space-x-2 text-xs font-sans">
-            <Globe className="w-3 h-3 text-neutral-400" />
+          <div className="flex items-center space-x-2 text-xs font-nav">
+            <Globe className="w-3 h-3" style={{ color: "var(--current-nav-text)", opacity: 0.6 }} />
             {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
               <button
                 key={lang}
                 id={`lang-btn-${lang}`}
                 onClick={() => setLang(lang)}
-                className={`px-1.5 py-0.5 rounded transition-all tracking-wider ${
-                  currentLang === lang 
-                    ? 'text-white font-medium border border-white/30 bg-white/5' 
-                    : 'text-neutral-400 hover:text-white'
-                }`}
+                className={`px-1.5 py-0.5 rounded transition-all tracking-wider nav-link ${currentLang === lang ? 'active font-semibold' : ''}`}
+                style={currentLang === lang ? { 
+                  border: '1px solid var(--current-nav-active)', 
+                  backgroundColor: 'color-mix(in srgb, var(--current-nav-active) 15%, transparent)' 
+                } : {}}
               >
                 {lang}
               </button>
@@ -199,9 +208,9 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
             <button
               id="mobile-lang-cycle"
               onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-              className="text-[10px] tracking-wider border border-neutral-800 px-2 py-1 bg-neutral-950 text-neutral-300 rounded flex items-center space-x-1"
+              className="text-[10px] tracking-wider rounded flex items-center space-x-1 nav-dropdown-bg" style={{ padding: "0.25rem 0.5rem", color: "var(--current-nav-text)" }}
             >
-              <Globe className="w-3 h-3 text-white" />
+              <Globe className="w-3 h-3" style={{ color: "var(--current-nav-text)" }} />
               <span>{currentLang}</span>
             </button>
             <AnimatePresence>
@@ -210,7 +219,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="absolute right-0 top-full mt-2 w-20 bg-neutral-950 border border-neutral-800 rounded shadow-xl overflow-hidden flex flex-col z-50"
+                  className="absolute right-0 top-full mt-2 w-20 rounded shadow-xl overflow-hidden flex flex-col z-50 nav-dropdown-bg border nav-border-color"
                 >
                   {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
                     <button
@@ -219,7 +228,8 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
                         setLang(lang);
                         setIsLangDropdownOpen(false);
                       }}
-                      className={`px-3 py-2 text-xs text-left ${currentLang === lang ? 'text-white bg-white/10' : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'}`}
+                      className={`px-3 py-2 text-xs text-left nav-link ${currentLang === lang ? "active font-medium" : ""}`}
+                      style={currentLang === lang ? { backgroundColor: "color-mix(in srgb, var(--current-nav-active) 20%, transparent)", color: "var(--current-nav-active)", opacity: 1 } : {}}
                     >
                       {lang}
                     </button>
@@ -233,7 +243,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
           <button 
             id="hamburger-btn"
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white hover:text-white transition-colors p-1"
+            className="transition-colors p-1" style={{ color: "var(--current-nav-text)" }}
             aria-label="Toggle Menu"
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -250,7 +260,11 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:hidden w-full bg-black/98 border-b border-neutral-900 absolute top-full left-0 overflow-hidden"
+            className="lg:hidden w-full nav-dropdown-bg absolute top-full left-0 overflow-y-auto scroll-smooth border-b nav-border-color"
+            style={{
+              maxHeight: 'calc(100vh - 100%)',
+              WebkitOverflowScrolling: 'touch'
+            }}
           >
             <div className="px-6 py-6 flex flex-col space-y-4">
               {menuItems.map((item) => (
@@ -258,21 +272,18 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
                   key={item.id}
                   id={`mobile-nav-link-${item.id}`}
                   onClick={() => scrollTo(item.id)}
-                  className={`text-left font-serif text-lg tracking-[0.1em] py-2 transition-all ${
-                    activeSection === item.id 
-                      ? 'text-white font-bold pl-2 border-l border-white' 
-                      : 'text-neutral-400 hover:text-white font-normal'
-                  }`}
+                  className={`text-left font-nav text-lg tracking-[0.1em] py-2 transition-all nav-link ${activeSection === item.id ? 'active font-bold pl-2 border-l' : 'font-normal'}`}
+                  style={activeSection === item.id ? { borderColor: 'var(--current-nav-active)' } : {}}
                 >
                   {item.label}
                 </button>
               ))}
 
-              <div className="h-[1px] bg-neutral-900 my-2" />
+              <div className="h-[1px] my-2" style={{ backgroundColor: 'var(--current-nav-border)' }} />
 
               {/* Language selection inside mobile drawer */}
               <div className="flex items-center space-x-3 py-2">
-                <Globe className="w-4 h-4 text-neutral-400" />
+                <Globe className="w-4 h-4" style={{ color: "var(--current-nav-text)", opacity: 0.6 }} />
                 <div className="flex space-x-2">
                   {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
                     <button
@@ -282,11 +293,13 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, them
                         setLang(lang);
                         setIsOpen(false);
                       }}
-                      className={`px-2.5 py-1 text-xs rounded border ${
-                        currentLang === lang 
-                          ? 'text-white border-white bg-white/5' 
-                          : 'text-neutral-400 border-neutral-800'
-                      }`}
+                      className={`px-2.5 py-1 text-xs rounded border nav-link ${currentLang === lang ? 'active font-semibold' : ''}`}
+                      style={currentLang === lang ? { 
+                        borderColor: 'var(--current-nav-active)', 
+                        backgroundColor: 'color-mix(in srgb, var(--current-nav-active) 15%, transparent)' 
+                      } : { 
+                        borderColor: 'color-mix(in srgb, var(--current-nav-text) 15%, transparent)' 
+                      }}
                     >
                       {lang === 'EN' ? 'EN' : lang === 'DE' ? 'DE' : 'KO'}
                     </button>

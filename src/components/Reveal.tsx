@@ -1,3 +1,4 @@
+import { useAppearance } from '../contexts/AppearanceContext';
 import React, { ReactNode } from 'react';
 import { motion } from 'motion/react';
 
@@ -20,6 +21,17 @@ export default function Reveal({
   x = 0,
   staggerChildren
 }: RevealProps) {
+  const { appearance } = useAppearance();
+  
+  if (!appearance.animation.enabled) {
+    return <div className={width}>{children}</div>;
+  }
+
+  const animStyle = appearance.animation.style;
+  const animSpeedMultiplier = appearance.animation.speed === 'fast' ? 0.5 : appearance.animation.speed === 'slow' ? 1.5 : 1;
+  const actualDuration = duration * animSpeedMultiplier;
+  const actualY = animStyle === 'fade' || animStyle === 'none' ? 0 : y;
+
   if (staggerChildren !== undefined) {
     // Parent container that staggers children
     const containerVariants = {
@@ -50,7 +62,7 @@ export default function Reveal({
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: y,
+      y: actualY,
       x: x
     },
     visible: { 
@@ -58,7 +70,7 @@ export default function Reveal({
       y: 0,
       x: 0,
       transition: { 
-        duration: duration, 
+        duration: actualDuration, 
         ease: [0.16, 1, 0.3, 1], // Luxury cubic bezier easing
         delay: delay 
       } 
@@ -90,14 +102,25 @@ export function RevealItem({
   x?: number;
   duration?: number;
 }) {
+  const { appearance } = useAppearance();
+
+  if (!appearance.animation.enabled) {
+    return <div className="w-full">{children}</div>;
+  }
+
+  const animStyle = appearance.animation.style;
+  const animSpeedMultiplier = appearance.animation.speed === 'fast' ? 0.5 : appearance.animation.speed === 'slow' ? 1.5 : 1;
+  const actualDuration = duration * animSpeedMultiplier;
+  const actualY = animStyle === 'fade' || animStyle === 'none' ? 0 : y;
+
   const itemVariants = {
-    hidden: { opacity: 0, y, x },
+    hidden: { opacity: 0, y: actualY, x },
     visible: { 
       opacity: 1, 
       y: 0, 
       x: 0,
       transition: {
-        duration,
+        duration: actualDuration,
         ease: [0.16, 1, 0.3, 1]
       }
     }

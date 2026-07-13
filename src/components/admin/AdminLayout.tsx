@@ -22,7 +22,7 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col min-w-0 border-r border-neutral-900 bg-[#0a0a0a]">
         <div className="h-14 border-b border-neutral-900 bg-[#111] flex items-center justify-between px-6 shrink-0">
            <div className="flex items-center space-x-6">
-              <span className="text-xs font-serif tracking-widest text-[#C9A227] uppercase">{title || 'Preview'}</span>
+              <span className="text-xs font-serif tracking-widest text-accent uppercase">{title || 'Preview'}</span>
               {toolbar}
            </div>
            <div className="flex items-center space-x-4">
@@ -48,7 +48,7 @@ export default function AdminLayout({
              <button onClick={onReset} className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Reset">
                <RotateCcw className="w-4 h-4" />
              </button>
-             <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-[#C9A227] text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
+             <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-accent text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
                {isSaving ? 'Saving...' : 'Save'}
              </button>
            </div>

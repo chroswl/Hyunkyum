@@ -172,7 +172,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
   ];
 
   return (
-    <section id="biography" className="page-section bg-transparent relative">
+    <section id="biography" className="page-section bio-bg relative border-t-0">
       <div className={`max-w-7xl mx-auto px-6 pt-10 pb-4 ${isEditMode ? '' : 'hidden'}`}></div>
       <div className={`max-w-7xl mx-auto w-full px-6 md:px-12 pt-12 space-y-8 md:space-y-10`}>
         {/* Toast Notifications */}
@@ -182,7 +182,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-sans flex items-center space-x-2 shadow-lg ${
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-body flex items-center space-x-2 shadow-lg ${
               notification.type === 'success' ? 'border-emerald-500/30 bg-emerald-950/80 text-emerald-400' : 'border-rose-500/30 bg-rose-950/80 text-rose-400'
             }`}
           >
@@ -193,9 +193,9 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
 
         {/* Admin Header & Edit Trigger */}
         {user && (activeEditSection === 'none' || activeEditSection === 'biography') && (
-          <div className="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-white/5 gap-4">
+          <div className="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-borders/5 gap-4">
             <div className="flex items-center space-x-3">
-              <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+              <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
                 ADMIN ACCESS
               </span>
             </div>
@@ -205,23 +205,23 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                 <button
                   type="button"
                   onClick={handleEnterEditMode}
-                  className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+                  className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-borders/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-body font-medium"
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+                  <Edit3 className="w-3.5 h-3.5 text-accent" />
                   <span>Edit Biography</span>
                 </button>
               ) : (
                 <div className="flex items-center space-x-3 flex-wrap gap-2">
-                  <div className="flex items-center space-x-1 bg-white/5 px-1.5 py-1 rounded-sm border border-white/10">
+                  <div className="flex items-center space-x-1 bg-white/5 px-1.5 py-1 rounded-sm border border-borders/10">
                     {(['EN', 'DE', 'KO'] as const).map((lang) => (
                       <button
                         key={lang}
                         type="button"
                         onClick={() => setLang(lang as any)}
-                        className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
+                        className={`px-2.5 py-0.5 text-[10px] font-body font-bold tracking-wider rounded-sm transition-all ${
                           currentLang === lang
-                            ? 'bg-[#C9A227] text-black font-extrabold shadow-sm'
-                            : 'text-neutral-400 hover:text-white'
+                            ? 'bg-accent text-black font-extrabold shadow-sm'
+                            : 'text-text-main/60 hover:text-text-main'
                         }`}
                       >
                         {lang}
@@ -233,7 +233,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
+                    className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-sm transition-all cursor-pointer font-body"
                   >
                     <Save className="w-3 h-3" />
                     <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
@@ -242,7 +242,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                   <button
                     type="button"
                     onClick={handleCancelEditMode}
-                    className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+                    className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-borders/10 hover:border-borders/25 hover:bg-white/5 rounded-sm text-text-main/60 hover:text-text-main transition-all cursor-pointer font-body"
                   >
                     <X className="w-3 h-3" />
                     <span>Exit Edit Mode</span>
@@ -256,7 +256,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
       
         <Reveal>
           <div className="text-center">
-            <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
+            <h2 className="text-xl md:text-3xl font-heading font-light uppercase tracking-[0.25em] leading-none">
               BIOGRAPHY
             </h2>
           </div>
@@ -276,18 +276,18 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="absolute inset-0 bg-black/80 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-sans rounded-sm"
+                          className="absolute inset-0 bg-black/80 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-body rounded-sm"
                         >
                           <div className="relative flex items-center justify-center">
-                            <div className="w-10 h-10 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                            <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                             {optimizeProgress !== null && (
-                              <span className="absolute text-[9px] font-mono text-[#C9A227] font-semibold">
+                              <span className="absolute text-[9px] font-mono text-accent font-semibold">
                                 {optimizeProgress}%
                               </span>
                             )}
                           </div>
                           <div className="text-center space-y-1">
-                            <p className="text-[11px] text-white uppercase tracking-wider font-semibold">
+                            <p className="text-[11px] text-text-main uppercase tracking-wider font-semibold">
                               Optimizing Image...
                             </p>
                           </div>
@@ -296,31 +296,31 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     </AnimatePresence>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Image Source URL</label>
+                      <label className="text-[10px] tracking-wider text-text-main/60 font-body uppercase block font-semibold">Image Source URL</label>
                       <input 
                         type="url" 
                         value={editedBio.bioImage || ''}
                         onChange={(e) => setEditedBio({...editedBio, bioImage: e.target.value})}
-                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        className="w-full bg-black/40 border border-borders/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-text-main focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                         placeholder="https://images.unsplash.com/photo-..."
                       />
                       <GoogleDrivePicker onPick={url => setEditedBio({...editedBio, bioImage: url})} />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Or Upload Local Photo</label>
+                      <label className="text-[10px] tracking-wider text-text-main/60 font-body uppercase block font-semibold">Or Upload Local Photo</label>
                       <div className="flex items-center justify-center w-full relative">
-                        <label className={`flex flex-col items-center justify-center w-full h-28 border border-white/10 border-dashed rounded-sm ${uploadProgress !== null ? 'bg-black/60 cursor-not-allowed' : 'cursor-pointer bg-black/20 hover:bg-black/40'} transition-colors`}>
+                        <label className={`flex flex-col items-center justify-center w-full h-28 border border-borders/10 border-dashed rounded-sm ${uploadProgress !== null ? 'bg-black/60 cursor-not-allowed' : 'cursor-pointer bg-black/20 hover:bg-black/40'} transition-colors`}>
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             {uploadProgress !== null ? (
                               <>
-                                <div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-2" />
-                                <p className="text-[10px] text-[#C9A227] tracking-wider font-sans uppercase">Uploading: {Math.round(uploadProgress)}%</p>
+                                <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2" />
+                                <p className="text-[10px] text-accent tracking-wider font-body uppercase">Uploading: {Math.round(uploadProgress)}%</p>
                               </>
                             ) : (
                               <>
-                                <Upload className="w-8 h-8 text-neutral-500 mb-2" />
-                                <p className="text-[10px] text-neutral-400 tracking-wider font-sans uppercase">Drag & Drop or Click to Select Photo/Video</p>
+                                <Upload className="w-8 h-8 text-text-main/50 mb-2" />
+                                <p className="text-[10px] text-text-main/60 tracking-wider font-body uppercase">Drag & Drop or Click to Select Photo/Video</p>
                               </>
                             )}
                           </div>
@@ -402,8 +402,8 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Media Live Preview</label>
-                      <div className="w-full h-40 bg-black/40 rounded-sm border border-white/5 overflow-hidden flex items-center justify-center p-2 relative group/preview">
+                      <label className="text-[10px] tracking-wider text-text-main/60 font-body uppercase block font-semibold">Media Live Preview</label>
+                      <div className="w-full h-40 bg-black/40 rounded-sm border border-borders/5 overflow-hidden flex items-center justify-center p-2 relative group/preview">
                         {editedBio.bioImage ? (
                           <>
                             {(() => {
@@ -438,7 +438,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                     }
                                   });
                                 }}
-                                className="absolute inset-0 m-auto w-36 h-9 bg-black/80 hover:bg-black border border-[#C9A227] text-[#C9A227] hover:text-white text-[10px] tracking-wider uppercase font-sans font-medium rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                                className="absolute inset-0 m-auto w-36 h-9 bg-black/80 hover:bg-black border border-accent text-accent hover:text-text-main text-[10px] tracking-wider uppercase font-body font-medium rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 <span>Crop & Adjust</span>
@@ -446,29 +446,29 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                             )}
                           </>
                         ) : (
-                          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">No Media Loaded</span>
+                          <span className="text-[10px] font-mono text-text-main/50 uppercase tracking-widest">No Media Loaded</span>
                         )}
                       </div>
                     </div>
 
                     <div className="space-y-1.5 pt-2">
-                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Photo Credit / Copyright</label>
+                      <label className="text-[10px] tracking-wider text-text-main/60 font-body uppercase block font-semibold">Photo Credit / Copyright</label>
                       <input 
                         type="text" 
                         value={editedBio.photoCredit || ''}
                         onChange={(e) => setEditedBio({...editedBio, photoCredit: e.target.value})}
-                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        className="w-full bg-black/40 border border-borders/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-text-main focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                         placeholder="Photo © Klaudia Hart"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Copyright Link (URL)</label>
+                      <label className="text-[10px] tracking-wider text-text-main/60 font-body uppercase block font-semibold">Copyright Link (URL)</label>
                       <input 
                         type="url" 
                         value={editedBio.photoCreditLink || ''}
                         onChange={(e) => setEditedBio({...editedBio, photoCreditLink: e.target.value})}
-                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        className="w-full bg-black/40 border border-borders/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-text-main focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                         placeholder="https://..."
                       />
                     </div>
@@ -509,13 +509,13 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     {/* Premium museum/gallery style dark gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-[700ms] ease-out flex flex-col justify-end p-6 pointer-events-none group-hover:pointer-events-auto">
                       {activeBio.photoCredit && (
-                        <div className="text-white/90 text-[11px] font-sans tracking-[0.2em] uppercase transition-all duration-[700ms] transform translate-y-3 group-hover:translate-y-0 ease-out">
+                        <div className="text-text-main/90 text-[11px] font-body tracking-[0.2em] uppercase transition-all duration-[700ms] transform translate-y-3 group-hover:translate-y-0 ease-out">
                           {activeBio.photoCreditLink ? (
                             <a 
                               href={activeBio.photoCreditLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="hover:text-[#C9A227] transition-colors inline-flex items-center space-x-1.5 cursor-pointer font-medium"
+                              className="hover:text-accent transition-colors inline-flex items-center space-x-1.5 cursor-pointer font-medium"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <span>{activeBio.photoCredit.startsWith('©') ? activeBio.photoCredit : `© ${activeBio.photoCredit}`}</span>
@@ -535,31 +535,31 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
           {/* Right: Text & Timeline */}
           <div id="bio-text-col" className="lg:col-span-7 space-y-8">
             <Reveal delay={0.25}>
-              <div className="space-y-5 font-sans text-sm md:text-base leading-relaxed font-light">
+              <div className="space-y-5 font-body text-sm md:text-base leading-relaxed font-light">
                 {isEditMode ? (
-                  <div className="space-y-4 border border-neutral-800 p-4 rounded bg-neutral-900/50">
+                  <div className="space-y-4 border border-borders/20 p-4 rounded bg-neutral-900/50">
                     <div>
-                      <label className="text-[10px] text-neutral-500 font-mono">SHORT INTRO ({currentLang})</label>
+                      <label className="text-[10px] text-text-main/50 font-mono">SHORT INTRO ({currentLang})</label>
                       <textarea
                         rows={3}
                         value={editedBio.bioIntro[currentLang]}
                         onChange={(e) => setEditedBio({...editedBio, bioIntro: {...editedBio.bioIntro, [currentLang]: e.target.value}})}
-                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-white rounded resize-y mt-1"
+                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-text-main rounded resize-y mt-1"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-neutral-500 font-mono">MAIN TEXT ({currentLang})</label>
+                      <label className="text-[10px] text-text-main/50 font-mono">MAIN TEXT ({currentLang})</label>
                       <textarea
                         rows={8}
                         value={editedBio.bioLong[currentLang]}
                         onChange={(e) => setEditedBio({...editedBio, bioLong: {...editedBio.bioLong, [currentLang]: e.target.value}})}
-                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-white rounded resize-y mt-1"
+                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-text-main rounded resize-y mt-1"
                       />
                     </div>
                   </div>
                 ) : (
                   <>
-                    <p className="font-medium text-base md:text-lg leading-relaxed">
+                    <p className="bio-highlight font-medium text-base md:text-lg leading-relaxed">
                       {activeBio.bioIntro[currentLang] || t.bioIntro}
                     </p>
                     <p className="whitespace-pre-line">
@@ -572,17 +572,22 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
 
             <Reveal delay={0.35}>
               <div id="timeline-tabs-container" className="space-y-0 pt-4">
-                <div className="flex flex-wrap border-b border-current/10 relative">
+                <div className="grid grid-cols-2 md:flex md:flex-wrap border-b border-current/10 relative">
                   {timelineTabs.map((tab) => {
                     const isActive = activeTimelineTab === tab.id;
+                    const borderClass = 
+                      tab.id === 'education' ? 'border-r border-b border-current/5 md:border-0' :
+                      tab.id === 'awards' ? 'border-b border-current/5 md:border-0' :
+                      tab.id === 'roles' ? 'border-r border-current/5 md:border-0' :
+                      'md:border-0';
                     return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTimelineTab(tab.id as any)}
-                      className="relative flex items-center justify-center px-6 py-4 text-xs font-sans tracking-wider uppercase transition-colors cursor-pointer select-none"
+                      className={`relative flex items-center justify-center px-3 py-3.5 md:px-6 md:py-4 text-[10px] sm:text-xs font-body tracking-wider uppercase transition-colors cursor-pointer select-none ${borderClass}`}
                     >
-                      <span className={`flex items-center space-x-2 transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`} style={{ textShadow: isActive ? '0 0 0.5px currentColor' : 'none' }}>
-                        {tab.icon}<span>{tab.label}</span>
+                      <span className={`flex items-center space-x-1.5 md:space-x-2 transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`} style={{ textShadow: isActive ? '0 0 0.5px currentColor' : 'none' }}>
+                        {tab.icon}<span className="truncate">{tab.label}</span>
                       </span>
                       {isActive && (
                         <motion.div
@@ -597,10 +602,10 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                 </div>
 
                 {isEditMode ? (
-                  <div className="bg-neutral-900/30 p-6 min-h-[160px] border border-neutral-800 rounded-b mt-[-1px]">
+                  <div className="bg-neutral-900/30 p-6 min-h-[160px] border border-borders/20 rounded-b mt-[-1px]">
                     {/* Category Title Edit */}
                     <div className="mb-6">
-                      <label className="text-[10px] text-neutral-500 font-mono">CATEGORY TITLE ({currentLang})</label>
+                      <label className="text-[10px] text-text-main/50 font-mono">CATEGORY TITLE ({currentLang})</label>
                       <input 
                         type="text" 
                         value={editedBio.timelineTitles?.[activeTimelineTab]?.[currentLang] || timelineTabs.find(t=>t.id===activeTimelineTab)?.label || ''}
@@ -610,7 +615,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                           newTitles[activeTimelineTab][currentLang] = e.target.value;
                           setEditedBio({ ...editedBio, timelineTitles: newTitles as any });
                         }}
-                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-white rounded mt-1"
+                        className="w-full bg-black border border-neutral-700 p-2 text-sm text-text-main rounded mt-1"
                       />
                     </div>
 
@@ -628,7 +633,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                               <SortableItem 
                                 key={item.id} 
                                 id={item.id}
-                                className="relative pl-10 bg-black/40 border border-neutral-800 p-4 rounded group"
+                                className="relative pl-10 bg-black/40 border border-borders/20 p-4 rounded group"
                                 handleClassName="absolute left-3 top-1/2 -translate-y-1/2 p-2"
                               >
                                 <button
@@ -646,7 +651,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                 <div className="space-y-3 pr-6">
                                   {!isEduOrAwards && (
                                     <div>
-                                      <label className="text-[10px] text-neutral-500 font-mono">{yearLabel}</label>
+                                      <label className="text-[10px] text-text-main/50 font-mono">{yearLabel}</label>
                                       <input
                                         type="text"
                                         value={item.year || ''}
@@ -655,12 +660,12 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                           newTimeline[activeTimelineTab][idx].year = e.target.value;
                                           setEditedBio({ ...editedBio, timeline: newTimeline });
                                         }}
-                                        className="w-full bg-black border border-neutral-700 p-1.5 text-xs text-white rounded mt-1"
+                                        className="w-full bg-black border border-neutral-700 p-1.5 text-xs text-text-main rounded mt-1"
                                       />
                                     </div>
                                   )}
                                   <div>
-                                    <label className="text-[10px] text-neutral-500 font-mono">{textLabel}</label>
+                                    <label className="text-[10px] text-text-main/50 font-mono">{textLabel}</label>
                                     <textarea
                                       rows={2}
                                       value={currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
@@ -670,7 +675,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                         newTimeline[activeTimelineTab][idx][field] = e.target.value;
                                         setEditedBio({ ...editedBio, timeline: newTimeline });
                                       }}
-                                      className="w-full bg-black border border-neutral-700 p-1.5 text-xs text-white rounded mt-1 resize-y"
+                                      className="w-full bg-black border border-neutral-700 p-1.5 text-xs text-text-main rounded mt-1 resize-y"
                                     />
                                   </div>
                                 </div>
@@ -688,14 +693,14 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         newTimeline[activeTimelineTab].push({ id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, year: '', textEN: '', textDE: '', textKO: '' });
                         setEditedBio({ ...editedBio, timeline: newTimeline });
                       }}
-                      className="w-full mt-6 py-3 border border-dashed border-neutral-700 text-neutral-400 hover:text-white hover:border-neutral-500 rounded text-xs tracking-wider uppercase transition-colors flex items-center justify-center space-x-2"
+                      className="w-full mt-6 py-3 border border-dashed border-neutral-700 text-text-main/60 hover:text-text-main hover:border-neutral-500 rounded text-xs tracking-wider uppercase transition-colors flex items-center justify-center space-x-2"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Add Item</span>
                     </button>
                   </div>
                 ) : (
-                  <div id="timeline-content-area" className="bg-current/[0.03] p-6 min-h-[160px]">
+                  <div id="timeline-content-area" className="bio-text bg-current/[0.03] p-6 min-h-[160px]">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={activeTimelineTab}
@@ -703,21 +708,24 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-5"
+                        className="divide-y divide-current/5"
                       >
                         {(activeBio.timeline?.[activeTimelineTab] || []).map((item: any, idx: number) => (
-                          <div key={`${activeTimelineTab}-${item.year || idx}-${idx}`} className="flex items-start space-x-4 group">
+                          <div key={`${activeTimelineTab}-${item.year || idx}-${idx}`} className="flex flex-col sm:flex-row items-start py-3 first:pt-0 last:pb-0 group sm:space-x-4">
                             {item.year ? (
                               <>
-                                <div className="font-serif font-medium text-sm md:text-base tracking-wide whitespace-nowrap min-w-[100px] pt-0.5">
+                                <div className="font-heading font-medium text-xs sm:text-sm md:text-base tracking-wide w-full sm:w-36 md:w-48 shrink-0 pb-1 sm:pb-0 sm:pt-0.5 text-text-main pr-3 break-words whitespace-normal">
                                   {item.year}
                                 </div>
-                                <div className="h-4 w-[1px] bg-transparent/10 self-center hidden sm:block" />
+                                <div className="flex-1 bio-text text-xs md:text-sm font-body leading-relaxed pl-0 sm:pl-4 border-l-0 sm:border-l border-current/10 min-h-[20px]">
+                                  {currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
+                                </div>
                               </>
-                            ) : null}
-                            <div className="group-hover: transition-colors text-xs md:text-sm font-sans leading-relaxed">
-                              {currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
-                            </div>
+                            ) : (
+                              <div className="flex-1 bio-text text-xs md:text-sm font-body leading-relaxed min-h-[20px]">
+                                {currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </motion.div>

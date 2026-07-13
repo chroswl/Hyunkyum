@@ -131,9 +131,9 @@ export default function HeroSection({
  className={`relative h-screen flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'} overflow-hidden`}
  >
   {user && (activeEditSection === 'none' || activeEditSection === 'hero') && (
-    <div className="absolute top-24 left-6 right-6 z-50 flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 border border-white/10 rounded-lg">
+    <div className="absolute top-24 left-6 right-6 z-50 flex justify-between items-center bg-[var(--color-bg)]/40 backdrop-blur-sm p-4 border border-[var(--color-text)]/10 rounded-lg">
       <div className="flex items-center space-x-3">
-        <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+        <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
           ADMIN ACCESS
         </span>
       </div>
@@ -142,16 +142,16 @@ export default function HeroSection({
           <button
             type="button"
             onClick={() => setActiveEditSection('hero')}
-            className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+            className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-[var(--color-text)]/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
           >
-            <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+            <Edit3 className="w-3.5 h-3.5 text-accent" />
             <span>Edit Hero</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={() => setActiveEditSection('none')}
-            className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+            className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-[var(--color-text)]/10 hover:border-[var(--color-text)]/25 hover:bg-white/5 rounded-sm text-[var(--color-text)]/60 hover:text-[var(--color-text)] transition-all cursor-pointer font-sans"
           >
             <X className="w-3 h-3" />
             <span>Exit Edit Mode</span>
@@ -255,7 +255,7 @@ export default function HeroSection({
  }
  })()}
  {/* Dark classic curtain gradient overlay */}
- <div id="hero-overlay" className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/45 to-black" />
+ <div id="hero-overlay" className="absolute inset-0" style={{ background: "var(--hero-gradient, linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.45), rgba(0,0,0,1)))", opacity: "var(--hero-overlay-opacity, 0.5)", backgroundColor: "var(--hero-overlay, transparent)" }} />
 
  {/* Hero Content */}
  <div 
@@ -283,14 +283,14 @@ export default function HeroSection({
      initial={{ opacity: 0, y: 15 + (theme.heroSubtitleOffsetY || 0), x: theme.heroSubtitleOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroSubtitleOffsetY || 0, x: theme.heroSubtitleOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1 }}
-     className={`font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
-     style={{ fontSize: theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined }}
+     className={`font-hero text-xs md:text-sm tracking-[0.4em] uppercase font-semibold ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+       style={{ color: "var(--hero-subtitle, var(--color-accent))", fontSize: theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Subtitle</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase">Subtitle</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroSubtitleKO ?? '') : currentLang === 'DE' ? (theme.heroSubtitleDE ?? '') : (theme.heroSubtitle ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -321,14 +321,14 @@ export default function HeroSection({
      initial={{ opacity: 0, scale: 0.98, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
      animate={{ opacity: 1, scale: 1, y: theme.heroTitleOffsetY || 0, x: theme.heroTitleOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1.2, delay: 0.2 }}
-     className={`text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
-     style={{ fontSize: theme.heroTitleSize ? `${theme.heroTitleSize}px` : undefined }}
+     className={`text-4xl sm:text-6xl md:text-8xl font-hero font-light tracking-[0.1em] uppercase leading-none ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+     style={{ fontSize: theme.heroTitleSize ? `${theme.heroTitleSize}px` : undefined, color: 'var(--hero-title, var(--color-primary))' }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Main Title</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase font-sans">Main Title</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroTitleKO ?? '') : currentLang === 'DE' ? (theme.heroTitleDE ?? '') : (theme.heroTitle ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -359,18 +359,17 @@ export default function HeroSection({
      initial={{ opacity: 0, y: 15 + (theme.heroDescOffsetY || 0), x: theme.heroDescOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroDescOffsetY || 0, x: theme.heroDescOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.4 }}
-     className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6 ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
-     style={{ 
-       fontSize: theme.heroDescSize ? `${theme.heroDescSize}px` : undefined,
+     className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6 ${isEditingHeroText ? `cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'}` : ''}`}
+       style={{ color: "var(--hero-text, var(--color-text))", fontSize: theme.heroDescSize ? `${theme.heroDescSize}px` : undefined,
        marginLeft: theme.heroAlign === 'right' ? 'auto' : theme.heroAlign === 'left' ? '0' : 'auto',
        marginRight: theme.heroAlign === 'left' ? 'auto' : theme.heroAlign === 'right' ? '0' : 'auto'
      }}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase">Description</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase">Description</span>}
      {isEditingHeroText ? (
        <textarea
          rows={2}
-         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text resize-none"
+         className="bg-transparent border-none w-full focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text resize-none"
          style={{ textAlign: theme.heroAlign || 'center' }}
          value={currentLang === 'KO' ? (theme.heroDescriptionKO ?? '') : currentLang === 'DE' ? (theme.heroDescriptionDE ?? '') : (theme.heroDescription ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -401,13 +400,13 @@ export default function HeroSection({
      initial={{ opacity: 0, y: 20 + (theme.heroButtonOffsetY || 0), x: theme.heroButtonOffsetX || 0 }}
      animate={{ opacity: 1, y: theme.heroButtonOffsetY || 0, x: theme.heroButtonOffsetX || 0 }}
      transition={isEditingHeroText ? { duration: 0 } : { duration: 1, delay: 0.6 }}
-     className={`pt-8 ${isEditingHeroText ? 'cursor-move p-2 border border-dashed border-[#C9A227]/50 hover:bg-white/5 rounded relative w-full flex flex-col items-center justify-center' : ''}`}
+     className={`pt-8 ${isEditingHeroText ? 'cursor-move p-2 border border-dashed border-accent/50 hover:bg-white/5 rounded relative w-full flex flex-col items-center justify-center' : ''}`}
    >
-     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-[#C9A227] tracking-widest uppercase font-sans">Button</span>}
+     {isEditingHeroText && <span className="absolute -top-4 left-0 text-[8px] text-accent tracking-widest uppercase font-sans">Button</span>}
      {isEditingHeroText ? (
        <input
          type="text"
-         className="bg-transparent border border-black/10 px-8 py-3.5 focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 rounded cursor-text text-center text-xs tracking-[0.25em] uppercase w-full max-w-[200px] block"
+         className="bg-transparent border border-black/10 px-8 py-3.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/50 rounded cursor-text text-center text-xs tracking-[0.25em] uppercase w-full max-w-[200px] block"
          style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
          value={currentLang === 'KO' ? (theme.heroDiscoverKO ?? '') : currentLang === 'DE' ? (theme.heroDiscoverDE ?? '') : (theme.heroDiscover ?? '')}
          onPointerDownCapture={(e) => e.stopPropagation()}
@@ -423,11 +422,12 @@ export default function HeroSection({
        <button
          id="discover-button"
          onClick={() => scrollToSection('biography')}
-         className="group px-8 py-3.5 border border-black/10 hover:text-black hover:bg-white font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
+         className="hero-btn group px-8 py-3.5 border font-button text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
+         
          style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
        >
          <span>{getHeroDiscover()}</span>
-         <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform group-hover:text-black" />
+         <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform" />
        </button>
      )}
    </motion.div>
@@ -435,9 +435,9 @@ export default function HeroSection({
  {/* Hero Background Copyright */}
  {theme.homeBgType === 'image' && theme.heroCopyright && (
    <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
-     <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
+     <div className="text-[9px] md:text-[10px] text-[var(--color-text)]/50 hover:text-[var(--color-text)]/80 transition-colors font-sans tracking-widest uppercase font-medium bg-[var(--color-bg)]/20 px-2 py-1 rounded backdrop-blur-sm">
        {theme.heroCopyrightUrl ? (
-         <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={theme.heroCopyright}>
+         <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors" title={theme.heroCopyright}>
            {theme.heroCopyright.startsWith('©') ? theme.heroCopyright : `© ${theme.heroCopyright}`}
          </a>
        ) : (
@@ -448,10 +448,10 @@ export default function HeroSection({
  )}
  {/* Scroll helper */}
  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex flex-col items-center animate-scroll-elegant select-none pointer-events-none">
- <span className="text-[10px] tracking-[0.5em] uppercase font-light mb-2">
+ <span className="text-[10px] tracking-[0.5em] uppercase font-light mb-2" style={{ color: "var(--hero-arrow, rgba(255,255,255,0.6))" }}>
  SCROLL
  </span>
- <div className="w-[1px] h-10 bg-white/60" />
+ <div className="w-[1px] h-10" style={{ backgroundColor: "var(--hero-arrow, rgba(255,255,255,0.6))" }} />
  </div>
  </section>
   );

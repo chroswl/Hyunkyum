@@ -289,7 +289,7 @@ export default function SelectedPerformances({
   const media = slide ? getMediaSource(slide.image || '', slide.mediaType) : null;
 
   return (
-    <div id="performances-slider-root" className={`w-full relative ${isEditMode ? 'min-h-[500px] py-12' : 'h-[450px] md:h-[550px] overflow-hidden'} bg-[var(--color-bg)] border-y border-neutral-900 flex flex-col justify-end`}>
+    <div id="performances-slider-root" className={`w-full relative ${isEditMode ? 'min-h-[500px] py-12' : 'h-[450px] md:h-[550px] overflow-hidden'} bg-background border-y border-neutral-900 flex flex-col justify-end`}>
       
       {/* Toast Notifications */}
       <AnimatePresence>
@@ -298,7 +298,7 @@ export default function SelectedPerformances({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-sans flex items-center space-x-2 shadow-lg ${
+            className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 border rounded-full text-xs tracking-wider uppercase font-body flex items-center space-x-2 shadow-lg ${
               notification.type === 'success' ? 'border-emerald-500/30 bg-emerald-950/80 text-emerald-400' : 'border-rose-500/30 bg-rose-950/80 text-rose-400'
             }`}
           >
@@ -312,7 +312,7 @@ export default function SelectedPerformances({
       {user && (activeEditSection === 'none' || activeEditSection === 'slides') && (
         <div className={`absolute top-4 left-6 right-6 z-50 flex justify-between items-center ${isEditMode ? '' : 'bg-black/40 backdrop-blur-sm'} p-4 border border-white/10 rounded-lg`}>
           <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
+            <span className="text-[9px] font-mono tracking-widest text-accent uppercase bg-white/5 px-2 py-1 rounded">
               ADMIN ACCESS
             </span>
           </div>
@@ -321,9 +321,9 @@ export default function SelectedPerformances({
               <button
                 type="button"
                 onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-sans font-medium"
+                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-accent hover:bg-white/10 rounded-sm text-neutral-300 transition-all cursor-pointer font-body font-medium"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
+                <Edit3 className="w-3.5 h-3.5 text-accent" />
                 <span>Edit Hero Slides</span>
               </button>
             ) : (
@@ -334,8 +334,8 @@ export default function SelectedPerformances({
                       key={lang}
                       type="button"
                       onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
-                        currentLang === lang ? 'bg-[#C9A227] text-black font-extrabold shadow-sm' : 'text-neutral-400 hover:text-white'
+                      className={`px-2.5 py-0.5 text-[10px] font-body font-bold tracking-wider rounded-sm transition-all ${
+                        currentLang === lang ? 'bg-[var(--color-accent)] text-background font-extrabold shadow-sm' : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {lang}
@@ -345,7 +345,7 @@ export default function SelectedPerformances({
                 <button
                   type="button"
                   onClick={startNewSlide}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-sm transition-all cursor-pointer font-body"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add Slide</span>
@@ -353,7 +353,7 @@ export default function SelectedPerformances({
                 <button
                   type="button"
                   onClick={() => setIsEditMode(false)}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-sans"
+                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white transition-all cursor-pointer font-body"
                 >
                   <X className="w-3 h-3" />
                   <span>Exit Edit Mode</span>
@@ -368,19 +368,19 @@ export default function SelectedPerformances({
       {isEditMode ? (
         <div className="relative z-10 max-w-4xl mx-auto w-full px-6 pt-16">
           {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 rounded-lg space-y-6 relative">
+            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-accent/20 p-6 rounded-lg space-y-6 relative">
               <AnimatePresence>
                 {isOptimizing && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/85 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-sans rounded-lg"
+                    className="absolute inset-0 bg-black/85 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-body rounded-lg"
                   >
                     <div className="relative flex items-center justify-center">
-                      <div className="w-10 h-10 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                       {optimizeProgress !== null && (
-                        <span className="absolute text-[9px] font-mono text-[#C9A227] font-semibold">
+                        <span className="absolute text-[9px] font-mono text-accent font-semibold">
                           {optimizeProgress}%
                         </span>
                       )}
@@ -397,7 +397,7 @@ export default function SelectedPerformances({
                 )}
               </AnimatePresence>
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
+                <h4 className="text-xs tracking-widest uppercase font-body font-semibold text-accent">
                   {editingItem.id ? 'Edit Slide' : 'New Slide'}
                 </h4>
                 <button type="button" onClick={handleCancelEdit} className="p-1 hover:bg-white/5 rounded text-neutral-400">
@@ -408,19 +408,19 @@ export default function SelectedPerformances({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Media Upload */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Media Upload (Image or Video)</label>
+                  <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Media Upload (Image or Video)</label>
                   <div className="relative">
                     <label className={`flex flex-col items-center justify-center w-full h-28 border border-white/10 border-dashed rounded-sm ${uploadProgress !== null ? 'bg-black/60 cursor-not-allowed' : 'cursor-pointer bg-black/20 hover:bg-black/40'} transition-colors`}>
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         {uploadProgress !== null ? (
                           <>
-                            <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-2" />
-                            <p className="text-[9px] text-[#C9A227] tracking-wider font-sans uppercase">Uploading: {Math.round(uploadProgress)}%</p>
+                            <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2" />
+                            <p className="text-[9px] text-accent tracking-wider font-body uppercase">Uploading: {Math.round(uploadProgress)}%</p>
                           </>
                         ) : (
                           <>
                             <ImageIcon className="w-6 h-6 text-neutral-500 mb-2" />
-                            <p className="text-[9px] text-neutral-400 tracking-wider font-sans uppercase text-center px-4">Upload New File</p>
+                            <p className="text-[9px] text-neutral-400 tracking-wider font-body uppercase text-center px-4">Upload New File</p>
                           </>
                         )}
                       </div>
@@ -431,7 +431,7 @@ export default function SelectedPerformances({
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Or Media URL (YouTube / Drive / Image)</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Or Media URL (YouTube / Drive / Image)</label>
                     {editingItem.mediaType === 'image' && editingItem.image && (
                       <button
                         type="button"
@@ -463,7 +463,7 @@ export default function SelectedPerformances({
                             }
                           });
                         }}
-                        className="text-[9px] text-[#C9A227] hover:text-white uppercase tracking-wider font-semibold transition-colors"
+                        className="text-[9px] text-accent hover:text-white uppercase tracking-wider font-semibold transition-colors"
                       >
                         Crop / Edit Image
                       </button>
@@ -473,7 +473,7 @@ export default function SelectedPerformances({
                     type="text"
                     value={editingItem.image || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, image: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white"
+                    className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white"
                   />
                   <div className="flex space-x-2 mt-2">
                     {['image', 'video', 'youtube', 'drive'].map(type => (
@@ -482,7 +482,7 @@ export default function SelectedPerformances({
                           type="radio"
                           checked={editingItem.mediaType === type}
                           onChange={() => setEditingItem({ ...editingItem, mediaType: type as any })}
-                          className="accent-[#C9A227]"
+                          className="accent-accent"
                         />
                         <span className="text-[10px] uppercase text-neutral-400">{type}</span>
                       </label>
@@ -492,22 +492,22 @@ export default function SelectedPerformances({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Copyright / Photo Credit</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Copyright / Photo Credit</label>
                     <input
                       type="text"
                       value={editingItem.copyright || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, copyright: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white"
                       placeholder="e.g. John Doe Photography"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Copyright URL (Optional)</label>
+                    <label className="text-[10px] tracking-wider text-neutral-400 font-body uppercase block font-semibold">Copyright URL (Optional)</label>
                     <input
                       type="url"
                       value={editingItem.copyrightUrl || ''}
                       onChange={(e) => setEditingItem({ ...editingItem, copyrightUrl: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white"
+                      className="w-full bg-black/40 border border-white/10 focus:border-accent rounded-sm px-3 py-2 text-xs text-white"
                       placeholder="https://"
                     />
                   </div>
@@ -516,7 +516,7 @@ export default function SelectedPerformances({
 
               {/* Multilingual Text */}
               <div className="space-y-4 pt-3 border-t border-white/5">
-                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1">TRANSLATIONS</span>
+                <span className="text-[9px] font-mono text-accent uppercase tracking-widest block font-bold mb-1">TRANSLATIONS</span>
                 
                 {['production', 'role', 'house'].map((field) => (
                   <div key={field} className="space-y-2">
@@ -543,10 +543,10 @@ export default function SelectedPerformances({
               </div>
 
               <div className="flex justify-end space-x-3 pt-3 border-t border-white/5">
-                <button type="button" onClick={handleCancelEdit} className="px-4 py-2 border border-white/10 hover:border-white/30 rounded-sm text-neutral-400 text-xs uppercase font-sans">
+                <button type="button" onClick={handleCancelEdit} className="px-4 py-2 border border-white/10 hover:border-white/30 rounded-sm text-neutral-400 text-xs uppercase font-body">
                   Cancel
                 </button>
-                <button type="submit" disabled={isSaving} className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs uppercase shadow-md">
+                <button type="submit" disabled={isSaving} className="px-5 py-2 bg-[var(--color-buttons)] text-background hover:bg-[var(--color-hover)] font-semibold rounded-sm text-xs uppercase shadow-md">
                   <Save className="w-3.5 h-3.5 inline mr-1.5" />
                   {isSaving ? 'Saving...' : 'Save'}
                 </button>
@@ -580,10 +580,10 @@ export default function SelectedPerformances({
                               </div>
                             )}
                             <div>
-                              <h4 className="text-xs font-sans font-bold text-neutral-200 mt-1 truncate">
+                              <h4 className="text-xs font-body font-bold text-neutral-200 mt-1 truncate">
                                 {item.production[currentLang] || item.production['EN']}
                               </h4>
-                              <p className="text-[11px] text-neutral-500 font-sans mt-0.5">
+                              <p className="text-[11px] text-neutral-500 font-body mt-0.5">
                                 {item.role[currentLang] || item.role['EN']} · {item.house[currentLang] || item.house['EN']}
                               </p>
                             </div>
@@ -644,9 +644,9 @@ export default function SelectedPerformances({
               {/* Copyright Info */}
               {media.type === 'image' && slide.copyright && (
                 <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
-                  <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
+                  <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-body tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
                     {slide.copyrightUrl ? (
-                      <a href={slide.copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}>
+                      <a href={slide.copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors" title={slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}>
                         {slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}
                       </a>
                     ) : (
@@ -665,14 +665,14 @@ export default function SelectedPerformances({
                     Selected Performances
                   </span>
                   <div className="space-y-1">
-                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text)] uppercase tracking-wider">
+                    <h3 className="font-heading text-3xl md:text-4xl lg:text-5xl font-light text-text-main uppercase tracking-wider">
                       {slide.production[currentLang]}
                     </h3>
-                    <p className="font-serif text-sm md:text-base text-neutral-300 tracking-wide">
+                    <p className="font-heading text-sm md:text-base text-neutral-300 tracking-wide">
                       {slide.role[currentLang]}
                     </p>
                   </div>
-                  <p className="text-xs text-neutral-400 font-sans tracking-widest uppercase">
+                  <p className="text-xs text-neutral-400 font-body tracking-widest uppercase">
                     {slide.house[currentLang]}
                   </p>
                 </div>
@@ -681,15 +681,15 @@ export default function SelectedPerformances({
                 <div className="flex items-center space-x-6">
                   <div className="flex space-x-2.5">
                     {slides.map((s, idx) => (
-                      <button key={`slider-tick-${s.id || 'slide'}-${idx}`} onClick={() => setCurrentIdx(idx)} className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${currentIdx === idx ? 'w-8 bg-white' : 'w-2 bg-[var(--color-bg)] hover:bg-[var(--color-bg)]'}`} aria-label={`Go to slide ${idx + 1}`} />
+                      <button key={`slider-tick-${s.id || 'slide'}-${idx}`} onClick={() => setCurrentIdx(idx)} className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${currentIdx === idx ? 'w-8 bg-white' : 'w-2 bg-background hover:bg-background'}`} aria-label={`Go to slide ${idx + 1}`} />
                     ))}
                   </div>
-                  <div className="h-6 w-[1px] bg-[var(--color-bg)]" />
+                  <div className="h-6 w-[1px] bg-background" />
                   <div className="flex space-x-2">
-                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border">
+                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-text-main flex items-center justify-center transition-all cursor-pointer accent-hover-border">
                       <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <button onClick={handleNext} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border">
+                    <button onClick={handleNext} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-text-main flex items-center justify-center transition-all cursor-pointer accent-hover-border">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>

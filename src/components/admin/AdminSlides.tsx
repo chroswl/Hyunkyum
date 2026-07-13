@@ -157,7 +157,7 @@ export default function AdminSlides({ currentLang }: { currentLang: Language }) 
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
          <span className="text-xs uppercase tracking-widest text-neutral-500">Slides</span>
-         <button onClick={handleAdd} className="text-[#C9A227] hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
+         <button onClick={handleAdd} className="text-accent hover:text-[#ebd04e] flex items-center space-x-1 text-[10px] uppercase tracking-widest">
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -169,7 +169,7 @@ export default function AdminSlides({ currentLang }: { currentLang: Language }) 
               {items.map(item => (
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-neutral-600 hover:text-white" onClick={() => setEditingId(item.id)}>
                   <div className="text-xs text-neutral-300 truncate">{item.production?.[currentLang] || item.production?.EN || 'Untitled'}</div>
-                  <div className="text-[9px] text-[#C9A227] tracking-widest uppercase mt-0.5 truncate">{item.house?.[currentLang] || item.house?.EN || 'No house'}</div>
+                  <div className="text-[9px] text-accent tracking-widest uppercase mt-0.5 truncate">{item.house?.[currentLang] || item.house?.EN || 'No house'}</div>
                   <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-600 hover:text-rose-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -228,11 +228,11 @@ export default function AdminSlides({ currentLang }: { currentLang: Language }) 
                    )}
 
                    <div className="space-y-2 mt-2">
-                     <label className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
+                     <label className="text-[10px] uppercase text-accent tracking-widest font-semibold block">Drag & Drop Upload (Photo/Video)</label>
                      <div 
                        className={`relative border-2 border-dashed rounded p-5 text-center transition-all ${
                          isDragOver 
-                           ? 'border-[#C9A227] bg-[#C9A227]/5' 
+                           ? 'border-accent bg-accent/5' 
                            : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700'
                        }`}
                        onDragOver={(e) => {
@@ -250,14 +250,14 @@ export default function AdminSlides({ currentLang }: { currentLang: Language }) 
                      >
                        {uploadProgress !== null ? (
                          <div className="flex flex-col items-center justify-center space-y-2 py-4">
-                           <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                            <span className="text-xs text-neutral-400 font-mono">Processing: {uploadProgress}%</span>
                          </div>
                        ) : (
                          <label className="cursor-pointer flex flex-col items-center justify-center space-y-1 py-1 w-full h-full">
                            <Upload className="w-5 h-5 text-neutral-500 mb-1" />
                            <span className="text-[11px] text-neutral-300 font-sans font-medium">
-                             Drag & Drop file here or <span className="text-[#C9A227] hover:underline">Browse</span>
+                             Drag & Drop file here or <span className="text-accent hover:underline">Browse</span>
                            </span>
                            <span className="text-[9px] text-neutral-500 font-sans">
                              Images and Videos up to 30MB • Drive Links Compatible

@@ -22,7 +22,7 @@ export default function ContactSection({
  <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
  <Reveal>
  <div className="text-center">
- <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
+ <h2 className="text-xl md:text-3xl font-heading font-light uppercase tracking-[0.25em] leading-none">
  INQUIRIES
  </h2>
  </div>
@@ -35,21 +35,21 @@ export default function ContactSection({
  <Reveal delay={0.15}>
  <div className="flex flex-col space-y-12">
  <div className="space-y-4">
- <h3 className="text-[11px] md:text-xs text-[#A0A0A0] tracking-[0.2em] uppercase font-sans font-medium">
+ <h3 className="text-[11px] md:text-xs text-[#A0A0A0] tracking-[0.2em] uppercase font-body font-medium">
  {contact.connectTitle?.[currentLang] || 'CONNECT'}
  </h3>
- <p className="text-sm md:text-base font-sans leading-relaxed font-light opacity-90">
+ <p className="text-sm md:text-base font-body leading-relaxed font-light opacity-90">
  {contact.connectDescription?.[currentLang] || 'Always open to new stages and conversations. Reach out directly via email or use the form below.'}
  </p>
  </div>
 
  <div className="space-y-3">
- <span className="text-[10px] tracking-[0.25em] text-[#A0A0A0] uppercase block font-sans">
+ <span className="text-[10px] tracking-[0.25em] text-[#A0A0A0] uppercase block font-body">
  {t.email}
  </span>
  <a 
  href={`mailto:${contact.email || 'info@hyunkyumbaritone.de'}`} 
- className="text-base font-serif font-light hover:opacity-70 transition-opacity duration-300 break-all block"
+ className="text-base font-heading font-light hover:opacity-70 transition-opacity duration-300 break-all block"
  >
  {contact.email || 'info@hyunkyumbaritone.de'}
  </a>
@@ -57,7 +57,7 @@ export default function ContactSection({
 
  {/* Social Channels */}
  <div className="space-y-4">
- <span className="text-[10px] tracking-[0.25em] text-[#A0A0A0] uppercase block font-sans">
+ <span className="text-[10px] tracking-[0.25em] text-[#A0A0A0] uppercase block font-body">
  Social Channels
  </span>
  <div className="flex space-x-4">

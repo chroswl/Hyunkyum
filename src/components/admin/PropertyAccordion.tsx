@@ -1,40 +1,33 @@
-import React, { useState, ReactNode } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PropertyAccordionProps {
   title: string;
-  children: ReactNode;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
   defaultOpen?: boolean;
 }
 
-export default function PropertyAccordion({ title, children, defaultOpen = false }: PropertyAccordionProps) {
+export default function PropertyAccordion({ title, icon, children, defaultOpen = false }: PropertyAccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-neutral-900">
+    <div className="bg-[#111] border border-neutral-900 rounded overflow-hidden">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-black/40 hover:bg-black/60 transition-colors"
       >
-        <span className="text-[10px] font-sans tracking-widest text-neutral-300 uppercase">{title}</span>
-        {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-neutral-500" /> : <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />}
+        <div className="flex items-center space-x-2 text-sm font-serif tracking-widest text-[#C9A227] uppercase">
+          {icon && icon}
+          <span>{title}</span>
+        </div>
+        {isOpen ? <ChevronUp className="w-4 h-4 text-neutral-500" /> : <ChevronDown className="w-4 h-4 text-neutral-500" />}
       </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-6 pb-6 pt-2 space-y-4">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <div className="p-4 border-t border-neutral-900">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
