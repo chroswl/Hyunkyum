@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Language, VideoItem } from '../../types';
 import { fetchVideos, saveVideoItem } from '../../firebase';
 import { Plus, Trash2, Edit, GripVertical, Video as VideoIcon } from 'lucide-react';
+import { getMediaSource } from '../../lib/mediaUtils';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from '../SortableItem';

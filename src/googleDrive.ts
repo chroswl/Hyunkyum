@@ -3,8 +3,10 @@ export const uploadToGoogleDrive = async (
   accessToken: string,
   onProgress?: (p: number) => void
 ): Promise<string> => {
+  console.log("Upload started");
+  
   if (!accessToken) {
-    throw new Error("Google access token is missing. Please log in again to authorize Google Drive access.");
+    throw new Error("Unauthorized: Google access token is missing. Please log in again to authorize Google Drive access.");
   }
 
   // 1. Prepare Blob, mimeType, and fileName
@@ -14,7 +16,7 @@ export const uploadToGoogleDrive = async (
 
   if (typeof fileOrBase64 === 'string') {
     if (!fileOrBase64.startsWith('data:')) {
-      throw new Error("Invalid base64 format");
+      throw new Error("Upload Failed: Invalid base64 format");
     }
     const arr = fileOrBase64.split(',');
     mimeType = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
@@ -45,11 +47,10 @@ export const uploadToGoogleDrive = async (
 
   const metadataPart = 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata);
 
-  // Convert blob to ArrayBuffer to construct the final multipart Body
   const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error("Upload Failed: Could not read file data"));
     reader.readAsArrayBuffer(blob);
   });
 
@@ -86,16 +87,23 @@ export const uploadToGoogleDrive = async (
           const response = JSON.parse(xhr.responseText);
           resolve(response);
         } catch (err) {
-          reject(new Error("Failed to parse upload response"));
+          reject(new Error("Upload Failed: Failed to parse upload response"));
         }
       } else {
         console.error("Google Drive upload failed:", xhr.responseText);
-        reject(new Error(`Google Drive upload failed: ${xhr.statusText}`));
+        if (xhr.status === 401) {
+            reject(new Error("Expired Token: Your session has expired. Please log in again."));
+        } else if (xhr.status === 403) {
+            reject(new Error("Permission Denied: You do not have permission to upload to this drive."));
+        } else {
+            reject(new Error(`Upload Failed: Server responded with status ${xhr.status} (${xhr.statusText})`));
+        }
       }
     };
 
     xhr.onerror = () => {
-      reject(new Error("Network error during Google Drive upload"));
+      console.error("Network error during Google Drive upload");
+      reject(new Error("Network Error: Please check your connection and try again."));
     };
 
     xhr.send(multipartBody);
@@ -103,28 +111,34 @@ export const uploadToGoogleDrive = async (
 
   const fileId = uploadResponse.id;
   if (!fileId) {
-    throw new Error("Upload succeeded but file ID was not returned");
+    throw new Error("Upload Failed: Upload succeeded but file ID was not returned");
   }
+  
+  console.log("Upload completed, file ID:", fileId);
 
   // 4. Set file permission to public (anyone reader)
-  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      role: 'reader',
-      type: 'anyone'
-    })
-  }).then(async (res) => {
-    if (!res.ok) {
-      const text = await res.text();
-      console.warn("Failed to set public permission on uploaded file:", text);
-    }
-  }).catch((err) => {
-    console.warn("Failed to set public permission:", err);
-  });
+  try {
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          role: 'reader',
+          type: 'anyone'
+        })
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn("Permission Denied: Failed to set public permission on uploaded file:", text);
+      } else {
+        console.log("Public permission set successfully");
+      }
+  } catch (err) {
+      console.warn("Network Error: Failed to set public permission:", err);
+  }
 
   // 5. Return direct view URL
   return `https://lh3.googleusercontent.com/d/${fileId}`;

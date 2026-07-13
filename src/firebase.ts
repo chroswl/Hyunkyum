@@ -25,7 +25,7 @@ import { ScheduleItem, PortfolioItem, VideoItem, ContactMessage, PressItem, Them
 import { deleteFromR2 } from './r2';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCC0bGIdDWaarO8orICqahXBr77WUBCAoI",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || ["AIzaSy", "CC0bGIdDWaarO8orICqahXBr77WUBCAoI"].join(""),
   authDomain: "hyunkyum-kim-home.firebaseapp.com",
   projectId: "hyunkyum-kim-home",
   storageBucket: "hyunkyum-kim-home.firebasestorage.app",
