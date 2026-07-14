@@ -637,20 +637,20 @@ export default function VideoPlayer({
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setIsPlaying(true)}
-                            className="relative z-10 w-16 h-16 md:w-20 md:h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] cursor-pointer transition-all duration-500 backdrop-blur-sm"
+                            className="relative z-10 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] cursor-pointer transition-all duration-500 backdrop-blur-sm shrink-0"
                             aria-label="Play Performance Video"
                           >
-                            <Play className="w-8 h-8 fill-black translate-x-0.5" />
+                            <Play className="w-6 h-6 sm:w-8 sm:h-8 fill-black translate-x-0.5" />
                           </motion.button>
-                          <div className="relative z-10 text-center mt-8 px-4">
-                            <span className="text-[10px] tracking-[0.4em] uppercase font-sans block mb-2" style={{ color: 'var(--color-text)' }}>
+                          <div className="relative z-10 text-center mt-4 sm:mt-8 px-2 sm:px-4 max-w-full sm:max-w-2xl w-full mx-auto overflow-hidden flex flex-col items-center">
+                            <span className="text-[9px] sm:text-[10px] tracking-widest sm:tracking-[0.4em] uppercase font-sans block mb-1.5 sm:mb-2 truncate w-full" style={{ color: 'var(--color-text)' }}>
                               {t.watchNow}
                             </span>
-                            <h3 className="text-xl md:text-2xl font-serif font-light tracking-wide" style={{ color: 'var(--color-text)' }}>
+                            <h3 className="text-sm sm:text-xl md:text-2xl font-serif font-light tracking-wide line-clamp-2 px-2" style={{ color: 'var(--color-text)' }}>
                               {activeVideo.title[currentLang] || activeVideo.title['EN']}
                             </h3>
                             {activeVideo.role && (
-                              <p className="text-sm font-sans tracking-widest mt-2" style={{ color: 'var(--color-text)' }}>
+                              <p className="text-xs sm:text-sm font-sans tracking-widest mt-1 sm:mt-2 truncate w-full px-2" style={{ color: 'var(--color-text)' }}>
                                 {activeVideo.role[currentLang] || activeVideo.role['EN']}
                               </p>
                             )}

@@ -31,17 +31,56 @@ export default function WebsiteContent(props: any) {
   } = props;
 
   const scrollToSection = (id: string) => {
+    if (id === 'home') {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      return;
+    }
+
     const el = document.getElementById(id);
     if (el) {
-      const navHeight = theme?.spacingNavHeight ?? 80;
-      let offset = navHeight + 48; // Clear the navbar with elegant spacious padding
-      if (id === 'home') {
-        offset = 0;
+      const navEl = document.getElementById('navbar-root');
+      const navHeight = navEl ? navEl.offsetHeight : (theme?.spacingNavHeight ?? 80);
+      
+      const rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+      const textScale = (theme?.websiteTextSize ?? 100) / 100;
+      const currentTextSize = rootFontSize * textScale;
+
+      const h2El = el.querySelector('h2');
+      let offsetPosition = 0;
+
+      if (h2El) {
+        const h2Rect = h2El.getBoundingClientRect();
+        const h2Top = h2Rect.top + window.scrollY;
+
+        // Visually optimal safe landing paddings per section type
+        let safeLandingPadding = currentTextSize * 2.5;
+        if (id === 'biography') {
+          safeLandingPadding = currentTextSize * 4.0;
+        } else if (id === 'press') {
+          safeLandingPadding = currentTextSize * 3.0;
+        } else if (id === 'portfolio') {
+          safeLandingPadding = currentTextSize * 2.5;
+        } else if (id === 'videos') {
+          safeLandingPadding = currentTextSize * 3.2;
+        } else if (id === 'schedule') {
+          safeLandingPadding = currentTextSize * 2.8;
+        } else if (id === 'contact') {
+          safeLandingPadding = currentTextSize * 3.5;
+        }
+
+        offsetPosition = h2Top - navHeight - safeLandingPadding;
+      } else {
+        const rect = el.getBoundingClientRect();
+        const sectionTop = rect.top + window.scrollY;
+        const fallbackPadding = currentTextSize * 2;
+        offsetPosition = sectionTop - navHeight - fallbackPadding;
       }
-      const rect = el.getBoundingClientRect();
-      const offsetPosition = rect.top + window.scrollY - offset;
+
       window.scrollTo({
-        top: offsetPosition,
+        top: Math.max(0, offsetPosition),
         behavior: 'smooth'
       });
     }
@@ -117,7 +156,8 @@ export default function WebsiteContent(props: any) {
           background-color: ${theme?.bg ? `${theme.bg}e6` : 'rgba(0,0,0,0.85)'} !important;
           backdrop-filter: blur(12px);
           border-color: ${theme?.text}1a !important;
-          height: var(--nav-height) !important;
+          min-height: var(--nav-height) !important;
+          height: auto !important;
         }
         #navbar-root .text-\\[10px\\] { font-size: calc(10px * var(--nav-scale)) !important; }
         #desktop-menu-links {
@@ -145,7 +185,7 @@ export default function WebsiteContent(props: any) {
       `}</style>
 
       {/* 1. STICKY NAVBAR */}
-      <Navbar currentLang={currentLang} setLang={setLang} user={user} onAdminToggle={() => setIsAdminOpen(true)} theme={theme} />
+      <Navbar currentLang={currentLang} setLang={setLang} user={user} onAdminToggle={() => setIsAdminOpen(true)} theme={theme} scrollToSection={scrollToSection} />
 
       {/* 2. HERO / HOME SECTION */}
       <HeroSection 

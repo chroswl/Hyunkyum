@@ -12,9 +12,10 @@ interface NavbarProps {
   user: User | null;
   onAdminToggle: () => void;
   theme?: ThemeSettings;
+  scrollToSection?: (id: string) => void;
 }
 
-export default function Navbar({ currentLang, setLang, user, onAdminToggle }: NavbarProps) {
+export default function Navbar({ currentLang, setLang, user, onAdminToggle, scrollToSection }: NavbarProps) {
   const { theme } = useAppearance();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -62,22 +63,59 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
 
       if (clickScrollInProgress.current) return;
 
-      // Use middle of screen for better intersection tracking
-      const scrollPosition = window.scrollY + window.innerHeight / 2;
+      const navEl = document.getElementById('navbar-root');
+      const navHeight = navEl ? navEl.offsetHeight : (theme?.spacingNavHeight ?? 80);
       
-      // Check if we are at the very bottom of the page
-      const isBottom = window.innerHeight + Math.round(window.scrollY) >= document.documentElement.scrollHeight - 50;
+      const rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+      const textScale = (theme?.websiteTextSize ?? 100) / 100;
+      const currentTextSize = rootFontSize * textScale;
 
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 150) {
+      // Check if we are at the very bottom of the page
+      const isBottom = window.innerHeight + Math.round(window.scrollY) >= document.documentElement.scrollHeight - 100;
+      if (isBottom) {
         setActiveSection(menuItems[menuItems.length - 1].id);
         return;
       }
 
-      let current = menuItems[0].id;
-      for (const item of menuItems) {
+      let current = 'home';
+      for (let i = menuItems.length - 1; i >= 0; i--) {
+        const item = menuItems[i];
+        if (item.id === 'home') continue;
+
         const el = document.getElementById(item.id);
-        if (el && scrollPosition >= el.offsetTop - 100) {
-          current = item.id;
+        if (el) {
+          const h2El = el.querySelector('h2');
+          let threshold = 0;
+
+          if (h2El) {
+            const h2Rect = h2El.getBoundingClientRect();
+            const h2Top = h2Rect.top + window.scrollY;
+
+            let safeLandingPadding = currentTextSize * 2.5;
+            if (item.id === 'biography') {
+              safeLandingPadding = currentTextSize * 4.0;
+            } else if (item.id === 'press') {
+              safeLandingPadding = currentTextSize * 3.0;
+            } else if (item.id === 'portfolio') {
+              safeLandingPadding = currentTextSize * 2.5;
+            } else if (item.id === 'videos') {
+              safeLandingPadding = currentTextSize * 3.2;
+            } else if (item.id === 'schedule') {
+              safeLandingPadding = currentTextSize * 2.8;
+            } else if (item.id === 'contact') {
+              safeLandingPadding = currentTextSize * 3.5;
+            }
+
+            // Trigger activation slightly before the perfect landing position for better visual synchronicity
+            threshold = h2Top - navHeight - safeLandingPadding - 24;
+          } else {
+            threshold = el.offsetTop - navHeight - 120;
+          }
+
+          if (window.scrollY >= threshold) {
+            current = item.id;
+            break;
+          }
         }
       }
       setActiveSection(current);
@@ -85,7 +123,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [menuItems]);
+  }, [menuItems, theme]);
 
   const scrollTo = (id: string) => {
     setActiveSection(id);
@@ -102,21 +140,25 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
     // Defer scroll slightly to allow the mobile drawer to start closing and 
     // prevent animation conflicts on mobile and tablet touch devices.
     setTimeout(() => {
-      const element = document.getElementById(id);
-      if (element) {
-        const navHeight = theme?.spacingNavHeight ?? 80;
-        let offset = navHeight + 48; // Base offset to clear navbar + elegant extra gap
-        if (id === 'home') {
-          offset = 0;
-        }
-        
-        const rect = element.getBoundingClientRect();
-        const offsetPosition = rect.top + window.scrollY - offset;
+      if (scrollToSection) {
+        scrollToSection(id);
+      } else {
+        const element = document.getElementById(id);
+        if (element) {
+          const navHeight = theme?.spacingNavHeight ?? 80;
+          let offset = navHeight + 48; // Base offset to clear navbar + elegant extra gap
+          if (id === 'home') {
+            offset = 0;
+          }
+          
+          const rect = element.getBoundingClientRect();
+          const offsetPosition = rect.top + window.scrollY - offset;
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
       }
     }, 120);
   };
@@ -130,7 +172,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
           : 'bg-transparent border-transparent'
       }`}
     >
-      <div className="global-container h-full px-6 md:px-12 flex justify-between items-center">
+      <div className="global-container min-h-full py-4 px-6 md:px-12 flex flex-wrap justify-between items-center gap-4">
         {/* Logo / Brand Name */}
         <div 
           id="nav-logo"
@@ -142,7 +184,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
 
         {/* Desktop Navigation */}
         <div id="desktop-menu" className="hidden lg:flex items-center space-x-8">
-          <div id="desktop-menu-links" className="flex items-center">
+          <div id="desktop-menu-links" className="flex flex-wrap items-center justify-end">
             {menuItems.map((item) => {
               const isActive = activeSection === item.id;
               return (

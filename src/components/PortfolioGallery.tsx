@@ -758,14 +758,14 @@ export default function PortfolioGallery({
           {/* Category Tabs */}
           <div 
             id="portfolio-tabs" 
-            className="flex flex-nowrap justify-center gap-1 min-[360px]:gap-2 sm:gap-4 transition-all duration-500 mb-8 px-1 sm:px-4"
+            className="flex flex-wrap justify-center gap-2 sm:gap-4 transition-all duration-500 mb-8 px-4"
           >
             {categories.map((cat) => (
               <button
                 key={cat}
                 id={`portfolio-tab-${cat.toLowerCase()}`}
                 onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
-                className={`px-2 min-[360px]:px-3 sm:px-5 py-1.5 sm:py-2 text-[9px] min-[360px]:text-[10px] sm:text-xs tracking-[0.05em] min-[360px]:tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
+                className={`px-3 sm:px-5 py-2 text-[10px] sm:text-xs tracking-wider sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
                   activeCategory === cat ? 'font-semibold shadow-sm' : 'font-normal'
                 }`}
                 style={{
