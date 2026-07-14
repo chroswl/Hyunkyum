@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Added Configurable Content and Typography for Selected Performances Section Label**: Added both text content input and font size control for the "Selected Performances" section header text to the "Hero Slides Editor" (AdminSlides.tsx), allowing users to customize both the label text and its appearance dynamically.
+- **Added Sync to Website Text Size for Selected Performances**: Added a sync button in the "Hero Slides Editor" to automatically scale the font sizes of the Selected Performances section title, content text, and labels based on the global "Website Text Size" setting.
+- **Added Hero Slide Font Size Controls to Theme & Hero Editor**: Exposed adjustable font size controls for the Hero Title, Subtitle, Description, and Button elements in both the Theme settings and the dedicated Hero Slides Editor, providing granular control over typography across the hero section.
 - **Optimized Biography Navigation Tabs Typography**: Fine-tuned and slightly reduced the base font sizes (`text-[10px]` on small devices scaling to `xl:text-xs`) and decreased horizontal padding of the Biography timeline navigation tabs to deliver a perfectly balanced, elegant, and space-efficient layout across all screen breakpoints.
 - **Fully Responsive Dynamic Layout Engine**: Refactored the website's navigation landing system. Eliminated every hardcoded pixel offset and replaced them with live DOM calculations of sticky navbar height, section heading (`h2`) coordinates, root font sizes, and custom-tailored safe landing paddings per section to ensure pristine, intentional alignments across Desktop, Tablet, and Mobile.
 - **Synchronized Active Navigation Highlighting**: Synchronized active section highlighting thresholds in the sticky navigation scroll listener to precisely match computed layout engine landing coordinates.

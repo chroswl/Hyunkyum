@@ -208,7 +208,9 @@ export default function WebsiteContent(props: any) {
       {/* 2.5 SELECTED PERFORMANCES SLIDER */}
       <section id="performances">
         <SelectedPerformances 
+          key={JSON.stringify(theme)}
           currentLang={currentLang} setLang={setLang} slides={slides} user={user}
+          theme={theme}
           activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
           onItemsUpdated={(items: any) => setSlides(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
         />

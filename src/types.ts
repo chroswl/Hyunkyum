@@ -121,6 +121,12 @@ export interface ThemeSettings {
   heroDescOffsetY?: number;
   heroButtonOffsetX?: number;
   heroButtonOffsetY?: number;
+  // Selected Performances
+  perfTextSize?: number;
+  perfTitleSize?: number;
+  perfHouseSize?: number;
+  perfSectionTitleSize?: number;
+  perfSectionTitle?: string;
   heroCopyright?: string;
   heroCopyrightUrl?: string;
   // Footer Customization

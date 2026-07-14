@@ -132,6 +132,8 @@ export default function AdminHero({
            <PropertySlider label="X Offset" value={theme.heroDescOffsetX ?? 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetX', v)} />
            <PropertySlider label="Y Offset" value={theme.heroDescOffsetY ?? 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetY', v)} />
         </div>
+
+
       </PropertyAccordion>
 
       <PropertyAccordion title="Background Settings">

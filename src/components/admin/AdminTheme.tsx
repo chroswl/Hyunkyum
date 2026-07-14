@@ -163,6 +163,7 @@ export default function AdminTheme({
             onChange={(v) => updateField('navFontSize', v)}
             unit="%"
           />
+
         </div>
       </PropertyAccordion>
 

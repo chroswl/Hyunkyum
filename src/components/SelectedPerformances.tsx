@@ -33,6 +33,7 @@ interface SelectedPerformancesProps {
   setLang: (lang: Language) => void;
   slides?: PerformanceSlide[];
   user?: User | null;
+  theme?: ThemeSettings | null;
   activeEditSection?: string;
   setActiveEditSection?: (section: any) => void;
   onItemsUpdated?: (items: PerformanceSlide[]) => void;
@@ -44,6 +45,7 @@ export default function SelectedPerformances({
   setLang,
   slides: propSlides,
   user,
+  theme,
   activeEditSection,
   setActiveEditSection,
   onItemsUpdated,
@@ -661,18 +663,18 @@ export default function SelectedPerformances({
                 
                 {/* Caption Info */}
                 <div className="space-y-4 max-w-lg">
-                  <span className="text-[10px] tracking-[0.4em] text-neutral-400 uppercase font-semibold block">
-                    Selected Performances
+                  <span className="tracking-[0.4em] text-neutral-400 uppercase font-semibold block" style={{ fontSize: `${theme?.perfSectionTitleSize || 10}px` }}>
+                    {theme?.perfSectionTitle || 'Selected Performances'}
                   </span>
                   <div className="space-y-1">
-                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider">
+                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider" style={theme?.perfTitleSize ? { fontSize: `${theme.perfTitleSize}px` } : {}}>
                       {slide.production[currentLang]}
                     </h3>
-                    <p className="font-serif text-sm md:text-base text-[var(--color-hero-slide-text)]/80 tracking-wide">
+                    <p className="font-serif text-sm md:text-base text-[var(--color-hero-slide-text)]/80 tracking-wide" style={theme?.perfTextSize ? { fontSize: `${theme.perfTextSize}px` } : {}}>
                       {slide.role[currentLang]}
                     </p>
                   </div>
-                  <p className="text-xs text-[var(--color-hero-slide-text)]/60 font-sans tracking-widest uppercase">
+                  <p className="text-xs text-[var(--color-hero-slide-text)]/60 font-sans tracking-widest uppercase" style={theme?.perfHouseSize ? { fontSize: `${theme.perfHouseSize}px` } : {}}>
                     {slide.house[currentLang]}
                   </p>
                 </div>

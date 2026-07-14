@@ -197,7 +197,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                 {/* For now we render the existing full components, but we will strip them down */}
                 {activeTab === 'dashboard' && <AdminDashboard currentLang={currentLang} setLang={setLang} scheduleItems={scheduleItems} portfolioItems={portfolioItems} onNavigate={handleTabChange} onClose={onClose} />}
                 {activeTab === 'hero' && <AdminHero currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'slides' && <AdminSlides currentLang={currentLang} slides={props.slides} setSlides={props.setSlides} onRefreshData={refreshData} onClose={onClose} />}
+                {activeTab === 'slides' && <AdminSlides currentLang={currentLang} theme={theme} setTheme={setTheme} slides={props.slides} setSlides={props.setSlides} onRefreshData={refreshData} onClose={onClose} />}
                 {activeTab === 'biography' && <AdminBiography currentLang={currentLang} bio={props.bio} setBio={props.setBio} onRefreshData={refreshData} onClose={onClose} />}
                 {activeTab === 'portfolio' && <AdminPortfolio currentLang={currentLang} portfolioItems={portfolioItems} setPortfolioItems={props.setPortfolioItems} onRefreshData={refreshData} onClose={onClose} />}
                 {activeTab === 'videos' && <AdminVideos currentLang={currentLang} videoItems={props.videoItems} setVideoItems={props.setVideoItems} onRefreshData={refreshData} onClose={onClose} />}

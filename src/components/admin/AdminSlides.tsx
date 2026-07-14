@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import type { Language, PerformanceSlide } from '../../types';
-import { fetchSelectedPerformances, saveSelectedPerformance } from '../../firebase';
+import type { Language, PerformanceSlide, ThemeSettings } from '../../types';
+import { fetchSelectedPerformances, saveSelectedPerformance, saveThemeSettings } from '../../firebase';
 import { Plus, Trash2, Edit, GripVertical, Image as ImageIcon, Upload } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from '../SortableItem';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
-import { PropertyInput, PropertySelect } from './PropertyFields';
+import { PropertyInput, PropertySelect, PropertySlider } from './PropertyFields';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import SelectedPerformances from '../SelectedPerformances';
 import ImageCropperModal from '../ImageCropperModal';
@@ -18,18 +18,24 @@ import { getMediaSource } from '../../lib/mediaUtils';
 
 export default function AdminSlides({ 
   currentLang, 
+  theme,
+  setTheme,
   onRefreshData,
   onClose,
   slides: items,
   setSlides: setItems
 }: { 
   currentLang: Language; 
+  theme: ThemeSettings | null;
+  setTheme: (t: ThemeSettings) => void;
   onRefreshData?: () => void;
   onClose?: () => void;
   slides: PerformanceSlide[];
   setSlides: (s: PerformanceSlide[]) => void;
 }) {
   const [initialItems, setInitialItems] = useState<PerformanceSlide[]>([]);
+  const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(theme);
+  const [localTheme, setLocalTheme] = useState<ThemeSettings | null>(theme);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<{ id: string, src: string } | null>(null);
@@ -37,6 +43,14 @@ export default function AdminSlides({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Only set initial theme once on mount
+    if (!initialTheme && theme) {
+        setInitialTheme(theme);
+        setLocalTheme(theme);
+    }
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -49,33 +63,52 @@ export default function AdminSlides({
     });
   }, []);
 
-  const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems);
+  const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems) || JSON.stringify(localTheme) !== JSON.stringify(initialTheme);
 
   const handleSave = async () => {
     setIsSaving(true);
     const batch = writeBatch(db);
     
-    // Items to delete
-    initialItems.forEach(item => {
-      if (!items.find(i => i.id === item.id)) {
-        batch.delete(doc(db, 'selectedPerformances', item.id));
-      }
-    });
-
-    // Items to add/update
-    items.forEach((item, index) => {
-       const ref = doc(db, 'selectedPerformances', item.id);
-       batch.set(ref, { ...item, order: index });
-    });
-    await batch.commit();
-    setInitialItems(items);
-    if (onRefreshData) onRefreshData();
-    setIsSaving(false);
+    try {
+        // Save theme settings
+        if (localTheme) {
+           await saveThemeSettings(localTheme);
+        }
+        
+        // Items to delete
+        initialItems.forEach(item => {
+          if (!items.find(i => i.id === item.id)) {
+            batch.delete(doc(db, 'selectedPerformances', item.id));
+          }
+        });
+    
+        // Items to add/update
+        items.forEach((item, index) => {
+           const ref = doc(db, 'selectedPerformances', item.id);
+           batch.set(ref, { ...item, order: index });
+        });
+        await batch.commit();
+        setInitialItems(items);
+        setInitialTheme(localTheme);
+        if (onRefreshData) onRefreshData();
+    } catch (error) {
+        console.error("Save failed:", error);
+        alert("Save failed: " + error);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
     setItems(initialItems);
+    setLocalTheme(initialTheme);
     setEditingId(null);
+  };
+
+  const updateTheme = (next: ThemeSettings) => {
+    setLocalTheme(next);
+    setTheme(next);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: next }));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -171,6 +204,34 @@ export default function AdminSlides({
          </button>
       </div>
       
+      <PropertyAccordion title="Section Settings" defaultOpen={true}>
+         <PropertySlider label="Title Size" value={localTheme?.perfTitleSize ?? 24} min={12} max={64} onChange={(v) => {
+            updateTheme({ ...localTheme!, perfTitleSize: v });
+         }} />
+         <PropertySlider label="Text Size" value={localTheme?.perfTextSize ?? 16} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...localTheme!, perfTextSize: v });
+         }} />
+         <PropertySlider label="House Text Size" value={localTheme?.perfHouseSize ?? 12} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...localTheme!, perfHouseSize: v });
+         }} />
+         <PropertySlider label="Section Title Size" value={localTheme?.perfSectionTitleSize ?? 10} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...localTheme!, perfSectionTitleSize: v });
+         }} />
+         <PropertyInput label="Section Title" value={localTheme?.perfSectionTitle || 'Selected Performances'} onChange={(v) => {
+            updateTheme({ ...localTheme!, perfSectionTitle: v });
+         }} />
+         <button className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold hover:underline mt-2" onClick={() => {
+             const base = (localTheme?.websiteTextSize || 100) / 100;
+             updateTheme({ 
+               ...localTheme!, 
+               perfTitleSize: Math.round(24 * base),
+               perfTextSize: Math.round(16 * base),
+               perfHouseSize: Math.round(12 * base),
+               perfSectionTitleSize: Math.round(10 * base)
+             });
+         }}>Sync to Website Text Size</button>
+      </PropertyAccordion>
+
       {!editingId ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
