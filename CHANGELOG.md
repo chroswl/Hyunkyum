@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Optimized Biography Mobile Tabs Grid Layout**: Adjusted the Biography timeline tabs on mobile to use a balanced 2x2 grid layout. Added subtle border dividers and optimized font sizes and spacing to ensure long German translated items (such as "OPERNROLLEN" and "Konzertrepertoire") wrap cleanly to the second row, maintaining a symmetrical, centered appearance with perfectly aligned selection lines.
 - **Optimized Mobile Category Tabs Layout**: Adjusted mobile font sizes (`text-[9px]`), letter-spacing, button paddings, and container gaps to ensure longer German translated tags (like "Hinter der Bühne") fit entirely onto a single line without wrapping (`flex-nowrap`) or causing layout overflows down to 320px screens.
 - **Fixed Contact Message Submission Permission Block**: Simplified and opened public write permissions (`allow create: if true;`) for the `contacts` collection in `firestore.rules` and successfully redeployed them, completely eliminating the "Missing or insufficient permissions" error for guest submissions.
 - **Connected Inquiries directly to barikyum@icloud.com**: Configured the contact form to submit all user messages directly to `barikyum@icloud.com` using the FormSubmit AJAX service, while maintaining the Firestore backup database storage.

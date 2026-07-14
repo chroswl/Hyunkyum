@@ -572,16 +572,16 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
 
             <Reveal delay={0.35}>
               <div id="timeline-tabs-container" className="space-y-0 pt-4">
-                <div className="grid grid-cols-2 md:flex border-b border-current/10 relative">
+                <div className="grid grid-cols-2 md:flex border-b border-current/10 relative justify-between md:justify-center w-full">
                   {timelineTabs.map((tab) => {
                     const isActive = activeTimelineTab === tab.id;
                     return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTimelineTab(tab.id as any)}
-                      className="relative flex items-center justify-center px-2 sm:px-6 py-4 text-[10px] sm:text-xs font-sans tracking-wider uppercase transition-colors cursor-pointer select-none"
+                      className="relative flex items-center justify-center px-2 py-3.5 sm:py-4 text-[10px] min-[360px]:text-[11px] sm:text-xs font-sans tracking-wide uppercase transition-colors cursor-pointer select-none border-b border-current/5 md:border-b-0"
                     >
-                      <span className={`flex items-center space-x-2 transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`} style={{ textShadow: isActive ? '0 0 0.5px currentColor' : 'none' }}>
+                      <span className={`flex items-center space-x-1.5 sm:space-x-2 transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`} style={{ textShadow: isActive ? '0 0 0.5px currentColor' : 'none' }}>
                         {tab.icon}<span className="whitespace-nowrap">{tab.label}</span>
                       </span>
                       {isActive && (
