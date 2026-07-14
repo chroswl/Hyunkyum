@@ -247,14 +247,14 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                 <div className="flex items-center space-x-1.5">
                   <input 
                     type="range" min="-300" max="300" 
-                    value={theme.heroOffsetY || 0} 
-                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) || 0 }))} 
-                    className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                    value={theme.heroOffsetY ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) ?? 0 }))} 
+                    className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                   />
                   <input 
                     type="number"
-                    value={theme.heroOffsetY || 0} 
-                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) || 0 }))} 
+                    value={theme.heroOffsetY ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) ?? 0 }))} 
                     className="w-12 bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1.5 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-6"
                   />
                 </div>
@@ -301,14 +301,14 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                         <span className="text-[9px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">Size</span>
                         <input 
                           type="range" min="8" max="150" 
-                          value={theme[elem.keySize as keyof ThemeSettings] as number || elem.defaultSize} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: parseInt(e.target.value) || elem.defaultSize }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          value={theme[elem.keySize as keyof ThemeSettings] as number ?? elem.defaultSize} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: !isNaN(parseInt(e.target.value)) ? parseInt(e.target.value) : elem.defaultSize }))} 
+                          className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
-                          value={theme[elem.keySize as keyof ThemeSettings] as number || elem.defaultSize} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: parseInt(e.target.value) || elem.defaultSize }))} 
+                          value={theme[elem.keySize as keyof ThemeSettings] as number ?? elem.defaultSize} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keySize]: !isNaN(parseInt(e.target.value)) ? parseInt(e.target.value) : elem.defaultSize }))} 
                           className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
                         />
                       </div>
@@ -317,14 +317,14 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                         <span className="text-[9px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">X-Offset</span>
                         <input 
                           type="range" min="-300" max="300" 
-                          value={theme[elem.keyX as keyof ThemeSettings] as number || 0} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          value={theme[elem.keyX as keyof ThemeSettings] as number ?? 0} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) ?? 0 }))} 
+                          className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
-                          value={theme[elem.keyX as keyof ThemeSettings] as number || 0} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) || 0 }))} 
+                          value={theme[elem.keyX as keyof ThemeSettings] as number ?? 0} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyX]: parseInt(e.target.value) ?? 0 }))} 
                           className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
                         />
                       </div>
@@ -333,14 +333,14 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                         <span className="text-[9px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">Y-Offset</span>
                         <input 
                           type="range" min="-300" max="300" 
-                          value={theme[elem.keyY as keyof ThemeSettings] as number || 0} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) || 0 }))} 
-                          className="w-full accent-[#C9A227] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                          value={theme[elem.keyY as keyof ThemeSettings] as number ?? 0} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) ?? 0 }))} 
+                          className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
                         />
                         <input 
                           type="number"
-                          value={theme[elem.keyY as keyof ThemeSettings] as number || 0} 
-                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) || 0 }))} 
+                          value={theme[elem.keyY as keyof ThemeSettings] as number ?? 0} 
+                          onChange={(e) => setTheme(prev => ({ ...prev, [elem.keyY]: parseInt(e.target.value) ?? 0 }))} 
                           className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
                         />
                       </div>

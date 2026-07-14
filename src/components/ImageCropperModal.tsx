@@ -408,7 +408,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               onChange={(e) => {
                 setZoom(Number(e.target.value));
               }}
-              className="w-full accent-[#C9A227]"
+              className="w-full accent-[var(--color-text)]"
             />
           </div>
           
@@ -424,7 +424,7 @@ export default function ImageCropperModal({ imageSrc, onCropDone, onCropCancel, 
               onChange={(e) => {
                 setRotation(Number(e.target.value));
               }}
-              className="w-full accent-[#C9A227]"
+              className="w-full accent-[var(--color-text)]"
             />
           </div>
         </div>

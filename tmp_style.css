@@ -1,0 +1,154 @@
+ ${getGoogleFontImport()}
+
+ :root {
+ --color-bg: ${theme.bg};
+ --color-text: ${theme.text};
+ --color-accent: ${theme.accent};
+ }
+ 
+ /* Apply Background Color to Public Website Sections */
+ body, html, #app-container, #biography, #contact, #videos, #main-footer, #navbar-root, #press, #portfolio, #schedule {
+ background-color: ${theme.bg} !important;
+ }
+
+ /* Global website text color overrides (Applying theme.text to all public sections and items) */
+ #navbar-root, #navbar-root *,
+ #home, #home *,
+ #biography, #biography *,
+ #press, #press *,
+ #portfolio, #portfolio *,
+ #videos, #videos *,
+ #schedule, #schedule *,
+ #contact, #contact *,
+ #main-footer, #main-footer *,
+  #app-container {
+   color: ${theme.text};
+ }
+
+ /* Specific Sticky Navbar Styling with Opacity/Blur and Custom Scroll Background */
+ #navbar-root {
+   background-color: ${theme.bg ? `${theme.bg}e6` : 'rgba(0,0,0,0.85)'} !important; /* e6 is ~90% opacity */
+   backdrop-filter: blur(12px);
+   border-color: ${theme.text}1a !important; /* light 10% opacity border */
+ }
+ #desktop-menu button, .nav-link {
+   color: ${theme.text} !important;
+   opacity: 0.65;
+   transition: all 0.3s ease;
+ }
+ #desktop-menu button:hover, .nav-link:hover {
+   opacity: 1 !important;
+ }
+ #desktop-menu button[id^="nav-link-"].text-white, .nav-link.text-white {
+   opacity: 1 !important;
+   font-weight: 700 !important;
+ }
+
+ /* Unified Font Override (Applies website-wide unified font except for the Admin Panel) */
+ ${theme.fontSans ? `
+   body, html, #app-container, #navbar-root, .navbar-item, .nav-link, .nav-font, p, span, h1, h2, h3, h4, h5, h6, input, textarea, button, select, a, li, label, .font-sans, .font-serif, .font-mono { 
+     font-family: "${theme.fontSans}", sans-serif !important; 
+   }
+ ` : ''}
+
+ /* Hero and Slider (Selected Performances) text color overrides unified */
+ ${theme.colorHeroSlideText ? `
+   #home,
+   #home h1,
+   #home h2,
+   #home h3,
+   #home p,
+   #home span,
+   #home button,
+   #home input,
+   #home textarea,
+   #home div:not(.admin-panel-exclude):not([id^="admin-"]) {
+     color: ${theme.colorHeroSlideText} !important;
+   }
+   #discover-button {
+     border-color: ${theme.colorHeroSlideText}4d !important;
+   }
+   #discover-button:hover {
+      border-color: ${theme.colorHeroSlideText} !important;
+      transform: translateY(-1px) !important;
+    }
+   #performances-slider-root,
+   #performances-slider-root h3,
+   #performances-slider-root p,
+   #performances-slider-root span,
+   #performances-slider-root div,
+   #performances-slider-root button,
+   #performances-slider-root svg {
+     color: ${theme.colorHeroSlideText} !important;
+   }
+ ` : ''}
+
+ 
+
+ .accent-color {
+ color: ${theme.accent} !important;
+ }
+ .accent-bg {
+ background-color: ${theme.accent} !important;
+ }
+ .accent-border {
+ border-color: ${theme.accent} !important;
+ }
+ .accent-hover-bg:hover {
+ background-color: ${theme.accent} !important;
+ color: ${theme.bg} !important;
+ }
+ .accent-hover-text:hover {
+ color: ${theme.accent} !important;
+ }
+ .accent-hover-border:hover {
+ border-color: ${theme.accent} !important;
+ }
+ ::selection {
+ background-color: ${theme.accent} !important;
+ color: ${theme.bg} !important;
+ }
+ /* Custom scrollbars */
+ ::-webkit-scrollbar-thumb {
+ background: ${theme.accent}80 !important;
+ }
+ ::-webkit-scrollbar-thumb:hover {
+ background: ${theme.accent} !important;
+ }
+
+ /* EXCLUDE ADMIN PANEL - COMPLETELY PROTECT IT FROM OVERRIDES */
+  #admin-panel-root,
+  #admin-panel-root *,
+  .admin-panel-exclude, 
+  .admin-panel-exclude *, 
+  [id^="admin-"], 
+  [id^="admin-"] *, 
+  #admin-panel-backdrop, 
+  #admin-panel-backdrop * {
+    font-family: 'Inter', sans-serif !important;
+    color: #ffffff !important;
+  }
+  #admin-panel-root input, 
+  #admin-panel-root textarea, 
+  #admin-panel-root select,
+  #admin-panel-root button {
+    color: #ffffff !important;
+  }
+  #admin-panel-root select option {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+  }
+  #admin-panel-root .text-neutral-400,
+  #admin-panel-root .text-neutral-400 * {
+    color: #a3a3a3 !important;
+  }
+  #admin-panel-root .text-neutral-500,
+  #admin-panel-root .text-neutral-500 * {
+    color: #737373 !important;
+  }
+  #admin-panel-root [class*="text-[#C9A227]"],
+  #admin-panel-root [class*="text-[#ebd04e]"] {
+    color: #C9A227 !important;
+  }
+ `}</style>
+

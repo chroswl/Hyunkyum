@@ -16,8 +16,19 @@ import { db } from '../../firebase';
 import { optimizeImageFile } from '../../lib/imageCompressor';
 import { getMediaSource } from '../../lib/mediaUtils';
 
-export default function AdminSlides({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
-  const [items, setItems] = useState<PerformanceSlide[]>([]);
+export default function AdminSlides({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  slides: items,
+  setSlides: setItems
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  slides: PerformanceSlide[];
+  setSlides: (s: PerformanceSlide[]) => void;
+}) {
   const [initialItems, setInitialItems] = useState<PerformanceSlide[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,7 +45,6 @@ export default function AdminSlides({ currentLang, onRefreshData }: { currentLan
 
   useEffect(() => {
     fetchSelectedPerformances().then(data => {
-      setItems(data);
       setInitialItems(data);
     });
   }, []);
@@ -71,11 +81,9 @@ export default function AdminSlides({ currentLang, onRefreshData }: { currentLan
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setItems(items => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      setItems(arrayMove(items, oldIndex, newIndex));
     }
   };
 
@@ -310,20 +318,7 @@ export default function AdminSlides({ currentLang, onRefreshData }: { currentLan
         isSaving={isSaving}
         onSave={handleSave}
         onReset={handleReset}
-        preview={
-          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
-            <SelectedPerformances 
-              slides={items} 
-              currentLang={currentLang} 
-              setLang={() => {}} 
-              user={null}
-              activeEditSection="none"
-              setActiveEditSection={() => {}}
-              onItemsUpdated={() => {}}
-              onRefreshData={() => {}}
-            />
-          </div>
-        }
+      onClose={onClose}
         properties={properties}
       />
       {cropTarget && (

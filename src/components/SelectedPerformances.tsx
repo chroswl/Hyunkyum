@@ -482,7 +482,7 @@ export default function SelectedPerformances({
                           type="radio"
                           checked={editingItem.mediaType === type}
                           onChange={() => setEditingItem({ ...editingItem, mediaType: type as any })}
-                          className="accent-[#C9A227]"
+                          className="accent-[var(--color-text)]"
                         />
                         <span className="text-[10px] uppercase text-neutral-400">{type}</span>
                       </label>
@@ -657,7 +657,7 @@ export default function SelectedPerformances({
               )}
 
               {/* Floating UI Content */}
-              <div className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-12 pb-16 md:pb-20 flex flex-col md:flex-row md:justify-between md:items-end gap-8">
+              <div className="relative z-10 global-container w-full px-6 md:px-12 pb-16 md:pb-20 flex flex-col md:flex-row md:justify-between md:items-end gap-8">
                 
                 {/* Caption Info */}
                 <div className="space-y-4 max-w-lg">
@@ -665,14 +665,14 @@ export default function SelectedPerformances({
                     Selected Performances
                   </span>
                   <div className="space-y-1">
-                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text)] uppercase tracking-wider">
+                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider">
                       {slide.production[currentLang]}
                     </h3>
-                    <p className="font-serif text-sm md:text-base text-neutral-300 tracking-wide">
+                    <p className="font-serif text-sm md:text-base text-[var(--color-hero-slide-text)]/80 tracking-wide">
                       {slide.role[currentLang]}
                     </p>
                   </div>
-                  <p className="text-xs text-neutral-400 font-sans tracking-widest uppercase">
+                  <p className="text-xs text-[var(--color-hero-slide-text)]/60 font-sans tracking-widest uppercase">
                     {slide.house[currentLang]}
                   </p>
                 </div>
@@ -686,10 +686,10 @@ export default function SelectedPerformances({
                   </div>
                   <div className="h-6 w-[1px] bg-[var(--color-bg)]" />
                   <div className="flex space-x-2">
-                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border">
+                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
                       <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <button onClick={handleNext} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer accent-hover-border">
+                    <button onClick={handleNext} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>

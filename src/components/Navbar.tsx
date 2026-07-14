@@ -23,9 +23,21 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
   const t = translations[currentLang];
 
   const menuItems = React.useMemo(() => {
+    if (currentLang === 'KO') {
+      return [
+        { id: 'home', label: '홈' },
+        { id: 'biography', label: '소개' },
+        { id: 'press', label: '언론보도' },
+        { id: 'portfolio', label: '갤러리' },
+        { id: 'videos', label: '영상' },
+        { id: 'schedule', label: '일정' },
+        { id: 'contact', label: '연락처' },
+      ];
+    }
     return currentLang === 'DE' ? [
       { id: 'home', label: 'STARTSEITE' },
       { id: 'biography', label: 'ICH' },
+      { id: 'press', label: 'PRESSE' },
       { id: 'portfolio', label: 'GALERIE' },
       { id: 'videos', label: 'VIDEOS' },
       { id: 'schedule', label: 'TERMINE' },
@@ -33,6 +45,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
     ] : [
       { id: 'home', label: 'HOME' },
       { id: 'biography', label: 'ME' },
+      { id: 'press', label: 'PRESS' },
       { id: 'portfolio', label: 'GALLERY' },
       { id: 'videos', label: 'VIDEOS' },
       { id: 'schedule', label: 'SCHEDULE' },
@@ -89,22 +102,16 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
     // Defer scroll slightly to allow the mobile drawer to start closing and 
     // prevent animation conflicts on mobile and tablet touch devices.
     setTimeout(() => {
-
       const element = document.getElementById(id);
       if (element) {
-        let offset = window.innerWidth >= 768 ? 80 : 60; // Base offset to clear navbar
-        
-        // Fine-tune offsets per user request:
-        // - Me (biography): arrow down once (~40px scroll down, so offset is reduced by 40)
-        // - Gallery (portfolio): arrow down once and a half (~60px scroll down, so offset is reduced by 60)
-        // - Schedule (schedule): arrow down once (~40px scroll down, so offset is reduced by 40)
-        if (id === 'biography') {
-          offset -= 80; // Biography (Me): Scrolled down further ("한칸정도 더 좁게")
-        } else if (id === 'portfolio' || id === 'schedule') {
-          offset -= 60; // Gallery (portfolio): -60, Schedule: -60 ("정말 반칸 더")
+        const navHeight = theme?.spacingNavHeight ?? 80;
+        let offset = navHeight + 48; // Base offset to clear navbar + elegant extra gap
+        if (id === 'home') {
+          offset = 0;
         }
-
-        const offsetPosition = element.offsetTop - offset;
+        
+        const rect = element.getBoundingClientRect();
+        const offsetPosition = rect.top + window.scrollY - offset;
 
         window.scrollTo({
           top: offsetPosition,
@@ -119,11 +126,11 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
       id="navbar-root"
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b ${
         isScrolled 
-          ? 'bg-black/95 backdrop-blur-md border-neutral-900 py-4' 
-          : 'bg-transparent border-transparent py-6'
+          ? 'bg-black/95 backdrop-blur-md border-neutral-900' 
+          : 'bg-transparent border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+      <div className="global-container h-full px-6 md:px-12 flex justify-between items-center">
         {/* Logo / Brand Name */}
         <div 
           id="nav-logo"
@@ -135,7 +142,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle }: Na
 
         {/* Desktop Navigation */}
         <div id="desktop-menu" className="hidden lg:flex items-center space-x-8">
-          <div className="flex items-center space-x-6">
+          <div id="desktop-menu-links" className="flex items-center">
             {menuItems.map((item) => {
               const isActive = activeSection === item.id;
               return (

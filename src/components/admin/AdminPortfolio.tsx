@@ -17,9 +17,20 @@ import ImageCropperModal from '../ImageCropperModal';
 import { getMediaSource } from '../../lib/mediaUtils';
 import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminPortfolio({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+export default function AdminPortfolio({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  portfolioItems: items,
+  setPortfolioItems: setItems
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  portfolioItems: PortfolioItem[];
+  setPortfolioItems: (items: PortfolioItem[]) => void;
+}) {
   const { theme } = useAppearance();
-  const [items, setItems] = useState<PortfolioItem[]>([]);
   const [initialItems, setInitialItems] = useState<PortfolioItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,7 +44,6 @@ export default function AdminPortfolio({ currentLang, onRefreshData }: { current
 
   useEffect(() => {
     fetchPortfolio().then(data => {
-      setItems(data);
       setInitialItems(data);
     });
   }, []);
@@ -70,11 +80,9 @@ export default function AdminPortfolio({ currentLang, onRefreshData }: { current
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setItems(items => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      setItems(arrayMove(items, oldIndex, newIndex));
     }
   };
 
@@ -106,7 +114,7 @@ export default function AdminPortfolio({ currentLang, onRefreshData }: { current
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
          <span className="text-xs uppercase tracking-widest" style={{ color: theme?.text }}>Gallery Items</span>
-         <button onClick={handleAdd} className="flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.accent }}>
+         <button onClick={handleAdd} className="flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.text }}>
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -118,7 +126,7 @@ export default function AdminPortfolio({ currentLang, onRefreshData }: { current
               {items.map(item => (
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1" style={{ color: theme?.text || 'inherit' }} onClick={() => setEditingId(item.id)}>
                   <div className="text-xs truncate" style={{ color: theme?.text || 'inherit' }}>{item.title?.[currentLang] || item.title?.EN || 'Untitled Image'}</div>
-                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.accent || 'inherit' }}>{item.category}</div>
+                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.text || 'inherit' }}>{item.category}</div>
                   <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-rose-500" style={{ color: theme?.text || 'inherit' }}>
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -191,21 +199,7 @@ export default function AdminPortfolio({ currentLang, onRefreshData }: { current
         isSaving={isSaving}
         onSave={handleSave}
         onReset={handleReset}
-        preview={
-          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
-            <PortfolioGallery 
-              items={items} 
-              currentLang={currentLang} 
-              setLang={() => {}} 
-              user={null}
-              activeEditSection="none"
-              setActiveEditSection={() => {}}
-              onItemsUpdated={() => {}}
-              onRefreshData={() => {}}
-              theme={theme || undefined}
-            />
-          </div>
-        }
+      onClose={onClose}
         properties={properties}
       />
       {cropTarget && (

@@ -19,10 +19,10 @@ export default function ContactSection({
 }: ContactSectionProps) {
   return (
     <section id="contact" className="page-section" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
-      <div className="max-w-7xl mx-auto space-y-8 md:space-y-10">
+      <div className="global-container space-y-8 md:space-y-10">
         <Reveal>
           <div className="text-center">
-            <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none" style={{ color: theme?.accent || theme?.text }}>
+            <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none" style={{ color: theme?.text }}>
               INQUIRIES
             </h2>
           </div>
@@ -35,7 +35,7 @@ export default function ContactSection({
             <Reveal delay={0.15}>
               <div className="flex flex-col space-y-12">
                 <div className="space-y-4">
-                  <h3 className="text-[11px] md:text-xs tracking-[0.2em] uppercase font-sans font-medium opacity-80" style={{ color: theme?.accent || theme?.text }}>
+                  <h3 className="text-[11px] md:text-xs tracking-[0.2em] uppercase font-sans font-medium opacity-80" style={{ color: theme?.text }}>
                     {contact.connectTitle?.[currentLang] || 'CONNECT'}
                   </h3>
                   <p className="text-sm md:text-base font-sans leading-relaxed font-light opacity-90">
@@ -44,7 +44,7 @@ export default function ContactSection({
                 </div>
 
                 <div className="space-y-3">
-                  <span className="text-[10px] tracking-[0.25em] uppercase block font-sans opacity-80" style={{ color: theme?.accent || theme?.text }}>
+                  <span className="text-[10px] tracking-[0.25em] uppercase block font-sans opacity-80" style={{ color: theme?.text }}>
                     {t.email}
                   </span>
                   <a 
@@ -57,7 +57,7 @@ export default function ContactSection({
 
                 {/* Social Channels */}
                 <div className="space-y-4">
-                  <span className="text-[10px] tracking-[0.25em] uppercase block font-sans opacity-80" style={{ color: theme?.accent || theme?.text }}>
+                  <span className="text-[10px] tracking-[0.25em] uppercase block font-sans opacity-80" style={{ color: theme?.text }}>
                     Social Channels
                   </span>
                   <div className="flex space-x-4">

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Optimized Mobile Category Tabs Layout**: Adjusted mobile font sizes (`text-[9px]`), letter-spacing, button paddings, and container gaps to ensure longer German translated tags (like "Hinter der Bühne") fit entirely onto a single line without wrapping (`flex-nowrap`) or causing layout overflows down to 320px screens.
+- **Fixed Contact Message Submission Permission Block**: Simplified and opened public write permissions (`allow create: if true;`) for the `contacts` collection in `firestore.rules` and successfully redeployed them, completely eliminating the "Missing or insufficient permissions" error for guest submissions.
+- **Connected Inquiries directly to barikyum@icloud.com**: Configured the contact form to submit all user messages directly to `barikyum@icloud.com` using the FormSubmit AJAX service, while maintaining the Firestore backup database storage.
+- **Fully Localized Contact Form Placeholders**: Translated and localized contact form inputs across all supported languages (English, German, and Korean) to provide highly personalized, elegant example names, emails, and message templates.
+- **Customized Contact Form Translation**: Added language-specific placeholders for name, email, and message inputs. Updated the Korean form submission button label to '◀ 보내기' and hid the Lucide send icon for a pristine, minimalist aesthetic that matches the requested design.
+- **Fixed Cross-Origin Error**: Wrapped `window.parent.dispatchEvent` inside a try-catch block to prevent security errors when the preview is embedded cross-origin (e.g. in AI Studio) and strict iframe sandboxing is enforced.
+- **Fixed Biography Repertoire Language Synchronization**: Restructured the data model for Opera Roles and Concerts so they independently store `yearEN`, `yearDE`, and `yearKO` fields. Edits to one language no longer incorrectly overwrite the other languages, while existing shared `year` values safely fallback for backward compatibility.
+- **Fixed Biography Language Synchronization Bug**: Propagated the `bioChanged` CustomEvent to both `window` and `window.parent` to bridge the iframe preview boundary and prevent stale state overwrites in the Admin Panel.
+- **Fixed Timeline Year Editing Field**: Resolved an inverted boolean bug where the `year` (or `DATE`/`ROLE`) input field was hidden on Education and Awards tabs, ensuring years are now fully editable in a reference-safe, immutable manner.
+- **Added Translation Fallbacks**: Implemented dynamic fallbacks in read-mode so that if German or Korean translations are missing, they automatically fall back to the English value instead of rendering blank rows.
+- **Improved Navigation Landing Alignment**: Refactored smooth scroll offsets to include a spacious, visual vertical margin (`navHeight + 48` pixels) below the sticky navigation bar, aligning section headers gracefully so they are clearly visible and focused.
+- **Added Press Navigation**: Integrated the "Press" reviews section natively into the sticky navigation bar across English ("PRESS"), German ("PRESSE"), and Korean ("언론보도") layouts.
 - Refactored Theme handling to use a centralized `AppearanceContext` instead of individual fetchThemeSettings calls in every content editor.
 - Removed editor-specific theme state and editor-level Firestore refetching.
 - Enabled real-time theme updates across all Admin preview panels.

@@ -73,17 +73,22 @@ export interface PressItem {
 export interface ThemeSettings {
   bg: string;
   text: string;
-  accent: string;
   homeBg?: string;
   homeBgType?: 'image' | 'video' | 'youtube';
   contactFormBg?: string;
   pressFontSize?: number;
   // Font Customization
-  fontSans?: string;
-  fontSerif?: string;
-  fontMono?: string;
-  fontNavbar?: string;
-  // Color Customization
+  websiteFont?: string;
+  websiteTextSize?: number;
+  navFontSize?: number;
+  // Spacing Customization
+  spacingContentWidth?: number;
+  spacingSection?: number;
+  spacingNavHeight?: number;
+  spacingNavGap?: number;
+  
+  // Font presets
+  fontPreset?: string;
   colorHeroSlideText?: string;
   colorPerformancesText?: string;
   colorContactText?: string;
@@ -166,6 +171,8 @@ export interface BiographySettings {
     KO: string;
   };
   bioImage?: string;
+  bioImageCopyright?: string;
+  bioImageCopyrightUrl?: string;
   photoCredit?: string;
   photoCreditLink?: string;
   timeline?: TimelineData;

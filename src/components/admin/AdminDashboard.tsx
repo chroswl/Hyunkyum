@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { Language, ScheduleItem, PortfolioItem, ThemeSettings } from '../../types';
 import { 
-  Monitor, Image, FileText, Tv, Calendar, MessageSquare, HardDrive, 
-  Activity, Globe, Settings, Layers, Shield, Sliders, User, ExternalLink, ArrowRight, Instagram, Youtube, Facebook, Twitter, LayoutGrid
+  Monitor, Image as ImageIcon, FileText, Tv, Calendar, MessageSquare, HardDrive, 
+  Activity, Globe, Settings, Layers, Shield, Sliders, User, ExternalLink, ArrowRight, Instagram, Youtube, Facebook, Twitter, LayoutGrid, X
 } from 'lucide-react';
 import { auth, fetchThemeSettings } from '../../firebase';
 
@@ -12,6 +12,7 @@ interface AdminDashboardProps {
   scheduleItems: ScheduleItem[];
   portfolioItems: PortfolioItem[];
   onNavigate: (tab: any) => void;
+  onClose?: () => void;
 }
 
 export default function AdminDashboard({ 
@@ -19,7 +20,8 @@ export default function AdminDashboard({
   setLang, 
   scheduleItems, 
   portfolioItems,
-  onNavigate
+  onNavigate,
+  onClose
 }: AdminDashboardProps) {
   const user = auth.currentUser;
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
@@ -31,7 +33,14 @@ export default function AdminDashboard({
   }, []);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 p-6 lg:p-10 max-w-6xl mx-auto overflow-y-auto h-full custom-scrollbar">
+    <div className="flex flex-col h-full bg-[#111]">
+      <div className="h-14 border-b border-neutral-900 flex items-center justify-between px-6 shrink-0">
+        <span className="text-xs font-serif tracking-widest text-[#C9A227] uppercase">Dashboard</span>
+        {onClose && (
+          <button onClick={onClose} className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/5 rounded-full"><X className="w-4 h-4" /></button>
+        )}
+      </div>
+      <div className="flex-1 space-y-6 animate-in fade-in duration-500 p-6 lg:p-10 max-w-6xl mx-auto overflow-y-auto w-full custom-scrollbar">
       
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-neutral-950 via-[#111] to-neutral-950 border border-neutral-900 rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -191,7 +200,7 @@ export default function AdminDashboard({
               onClick={() => onNavigate('portfolio')}
               className="flex items-center space-x-2.5 p-3 rounded bg-black/40 hover:bg-black/80 border border-neutral-900 hover:border-neutral-800 text-left transition-all"
             >
-              <Image className="w-4 h-4 text-[#C9A227]" />
+              <ImageIcon className="w-4 h-4 text-[#C9A227]" />
               <div className="min-w-0">
                 <span className="block text-[10px] uppercase tracking-wider text-white">Gallery</span>
               </div>
@@ -323,6 +332,7 @@ export default function AdminDashboard({
 
       </div>
 
+      </div>
     </div>
   );
 }

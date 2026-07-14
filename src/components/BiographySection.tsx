@@ -173,8 +173,8 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
 
   return (
     <section id="biography" className="page-section bg-transparent relative">
-      <div className={`max-w-7xl mx-auto px-6 pt-10 pb-4 ${isEditMode ? '' : 'hidden'}`}></div>
-      <div className={`max-w-7xl mx-auto w-full px-6 md:px-12 pt-12 space-y-8 md:space-y-10`} style={{ color: 'var(--color-text)' }}>
+      <div className={`global-container px-6 pt-10 pb-4 ${isEditMode ? '' : 'hidden'}`}></div>
+      <div className={`global-container w-full px-6 md:px-12 space-y-8 md:space-y-10`} style={{ color: 'var(--color-text)' }}>
         {/* Toast Notifications */}
       <AnimatePresence>
         {notification && (
@@ -644,21 +644,32 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                 </button>
                                 
                                 <div className="space-y-3 pr-6">
-                                  {!isEduOrAwards && (
-                                    <div>
-                                      <label className="text-[10px] text-neutral-500 font-mono">{yearLabel}</label>
-                                      <input
-                                        type="text"
-                                        value={item.year || ''}
-                                        onChange={(e) => {
-                                          const newTimeline = { ...editedBio.timeline } as any;
-                                          newTimeline[activeTimelineTab][idx].year = e.target.value;
-                                          setEditedBio({ ...editedBio, timeline: newTimeline });
-                                        }}
-                                        className="w-full bg-[var(--color-bg)] border border-[var(--color-text)] p-1.5 text-xs text-white rounded mt-1"
-                                      />
-                                    </div>
-                                  )}
+                                  <div>
+                                    <label className="text-[10px] text-neutral-500 font-mono">{yearLabel}</label>
+                                    <input
+                                      type="text"
+                                      value={
+                                        (isRoles || isConcert)
+                                          ? (currentLang === 'KO' ? (item.yearKO ?? item.year) : currentLang === 'DE' ? (item.yearDE ?? item.year) : (item.yearEN ?? item.year)) || ''
+                                          : item.year || ''
+                                      }
+                                      onChange={(e) => {
+                                        const newTimeline = { ...editedBio.timeline } as any;
+                                        const newItems = [...newTimeline[activeTimelineTab]];
+                                        if (isRoles || isConcert) {
+                                          newItems[idx] = { 
+                                            ...newItems[idx], 
+                                            [currentLang === 'KO' ? 'yearKO' : currentLang === 'DE' ? 'yearDE' : 'yearEN']: e.target.value 
+                                          };
+                                        } else {
+                                          newItems[idx] = { ...newItems[idx], year: e.target.value };
+                                        }
+                                        newTimeline[activeTimelineTab] = newItems;
+                                        setEditedBio({ ...editedBio, timeline: newTimeline });
+                                      }}
+                                      className="w-full bg-[var(--color-bg)] border border-[var(--color-text)] p-1.5 text-xs text-white rounded mt-1"
+                                    />
+                                  </div>
                                   <div>
                                     <label className="text-[10px] text-neutral-500 font-mono">{textLabel}</label>
                                     <textarea
@@ -666,8 +677,9 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                                       value={currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}
                                       onChange={(e) => {
                                         const newTimeline = { ...editedBio.timeline } as any;
-                                        const field = currentLang === 'KO' ? 'textKO' : currentLang === 'DE' ? 'textDE' : 'textEN';
-                                        newTimeline[activeTimelineTab][idx][field] = e.target.value;
+                                        const newItems = [...newTimeline[activeTimelineTab]];
+                                        newItems[idx] = { ...newItems[idx], [currentLang === 'KO' ? 'textKO' : currentLang === 'DE' ? 'textDE' : 'textEN']: e.target.value };
+                                        newTimeline[activeTimelineTab] = newItems;
                                         setEditedBio({ ...editedBio, timeline: newTimeline });
                                       }}
                                       className="w-full bg-[var(--color-bg)] border border-[var(--color-text)] p-1.5 text-xs text-white rounded mt-1 resize-y"
@@ -706,13 +718,36 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         className="space-y-5"
                       >
                         {(activeBio.timeline?.[activeTimelineTab] || []).map((item: any, idx: number) => {
-                          const isRolesOrConcert = activeTimelineTab === 'roles' || activeTimelineTab === 'concert';
+                          const text = (currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN) || item.textEN || '';
+                          const isRepertoire = activeTimelineTab === 'roles' || activeTimelineTab === 'concert';
+                          const displayYear = isRepertoire 
+                            ? ((currentLang === 'KO' ? item.yearKO : currentLang === 'DE' ? item.yearDE : item.yearEN) ?? item.year) 
+                            : item.year;
+
+                          if (isRepertoire) {
+                            return (
+                              <div key={`${activeTimelineTab}-${item.year || idx}-${idx}`} className="group text-left py-2 border-b border-current/5 last:border-0">
+                                <div className="grid grid-cols-1 md:grid-cols-[14rem_1fr] gap-y-1 md:gap-x-6 md:items-center">
+                                  <div className="font-serif font-medium text-sm md:text-base tracking-wide">
+                                    {displayYear}
+                                  </div>
+                                  <div className="text-xs md:text-sm font-sans leading-relaxed opacity-90">
+                                    {text}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+
                           return (
-                            <div key={`${activeTimelineTab}-${item.year || idx}-${idx}`} className="group text-left">
+                            <div key={`${activeTimelineTab}-${item.year || idx}-${idx}`} className="group text-left py-2 border-b border-current/5 last:border-0">
                               <div className="text-xs md:text-sm font-sans leading-relaxed">
-                                <span className="font-serif font-medium text-sm md:text-base tracking-wide">{item.year}</span>
-                                <span className="text-neutral-500 mx-2">/</span>
-                                <span>{currentLang === 'KO' ? item.textKO : currentLang === 'DE' ? item.textDE : item.textEN}</span>
+                                {displayYear && (
+                                  <div className="font-serif font-medium text-sm md:text-base tracking-wide mb-1">
+                                    {displayYear}
+                                  </div>
+                                )}
+                                <div className="whitespace-pre-line">{text}</div>
                               </div>
                             </div>
                           );

@@ -286,7 +286,7 @@ export default function VideoPlayer({
                   color: theme?.text || 'inherit'
                 }}
               >
-                <Edit3 className="w-3.5 h-3.5" style={{ color: theme?.accent }} />
+                <Edit3 className="w-3.5 h-3.5" style={{ color: theme?.text }} />
                 <span>Edit Videos</span>
               </button>
             ) : (
@@ -300,7 +300,7 @@ export default function VideoPlayer({
                       onClick={() => setLang(lang)}
                       className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all`}
                       style={{
-                        backgroundColor: currentLang === lang ? (theme?.accent || '#C9A227') : 'transparent',
+                        backgroundColor: currentLang === lang ? ('#C9A227') : 'transparent',
                         color: currentLang === lang ? (theme?.bg || 'black') : (theme?.text ? `${theme.text}60` : 'inherit')
                       }}
                     >
@@ -314,9 +314,9 @@ export default function VideoPlayer({
                   onClick={startNewVideo}
                   className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border rounded-sm transition-all cursor-pointer font-sans"
                   style={{
-                    backgroundColor: theme?.accent ? `${theme.accent}10` : 'rgba(201, 162, 39, 0.1)',
-                    borderColor: theme?.accent ? `${theme.accent}30` : 'rgba(201, 162, 39, 0.3)',
-                    color: theme?.accent || '#C9A227'
+                    backgroundColor: 'rgba(201, 162, 39, 0.1)',
+                    borderColor: 'rgba(201, 162, 39, 0.3)',
+                    color: '#C9A227'
                   }}
                 >
                   <Plus className="w-3 h-3" />
@@ -715,8 +715,8 @@ export default function VideoPlayer({
                         : ''
                     }`}
                     style={{
-                        backgroundColor: isSelected ? theme?.accent ? `${theme.accent}10` : 'rgba(var(--color-text-rgb), 0.1)' : theme?.bg ? `${theme.bg}80` : 'transparent',
-                        borderColor: isSelected ? theme?.accent || 'var(--color-text)' : 'rgba(var(--color-text-rgb), 0.2)',
+                        backgroundColor: isSelected ? 'rgba(var(--color-text-rgb), 0.1)' : theme?.bg ? `${theme.bg}80` : 'transparent',
+                        borderColor: isSelected ? 'var(--color-text)' : 'rgba(var(--color-text-rgb), 0.2)',
                         color: 'var(--color-text)'
                     }}
                   >

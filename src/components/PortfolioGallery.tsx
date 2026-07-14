@@ -101,7 +101,11 @@ export default function PortfolioGallery({
   const categories: ('Portrait' | 'Stage' | 'Backstage')[] = ['Portrait', 'Stage', 'Backstage'];
 
   const filteredItems = activeCategory === null 
-    ? [] 
+    ? [
+        items.find(item => item.category === 'Portrait'),
+        items.find(item => item.category === 'Stage'),
+        items.find(item => item.category === 'Backstage')
+      ].filter(Boolean) as PortfolioItem[]
     : items.filter(item => item.category === activeCategory);
 
   const getTranslatedTitle = (item: PortfolioItem) => {
@@ -367,7 +371,7 @@ export default function PortfolioGallery({
                   color: theme?.text || 'neutral-300'
                 }}
               >
-                <Edit3 className="w-3.5 h-3.5" style={{ color: theme?.accent }} />
+                <Edit3 className="w-3.5 h-3.5" style={{ color: theme?.text }} />
                 <span>Edit Gallery</span>
               </button>
             ) : (
@@ -385,7 +389,7 @@ export default function PortfolioGallery({
                           : ''
                       }`}
                       style={{
-                        backgroundColor: currentLang === lang ? (theme?.accent || '#C9A227') : 'transparent',
+                        backgroundColor: currentLang === lang ? ('#C9A227') : 'transparent',
                         color: currentLang === lang ? (theme?.bg || 'black') : (theme?.text ? `${theme.text}60` : '#999')
                       }}
                     >
@@ -399,9 +403,9 @@ export default function PortfolioGallery({
                   onClick={startNewPhoto}
                   className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border rounded-sm transition-all cursor-pointer font-sans"
                   style={{
-                    backgroundColor: theme?.accent ? `${theme.accent}10` : 'rgba(201, 162, 39, 0.1)',
-                    borderColor: theme?.accent ? `${theme.accent}30` : 'rgba(201, 162, 39, 0.3)',
-                    color: theme?.accent || '#C9A227'
+                    backgroundColor: 'rgba(201, 162, 39, 0.1)',
+                    borderColor: 'rgba(201, 162, 39, 0.3)',
+                    color: '#C9A227'
                   }}
                 >
                   <Plus className="w-3 h-3" />
@@ -754,27 +758,25 @@ export default function PortfolioGallery({
           {/* Category Tabs */}
           <div 
             id="portfolio-tabs" 
-            className={`flex justify-center space-x-2 md:space-x-4 overflow-x-auto pb-2 transition-all duration-500 ${
-              activeCategory !== null ? 'mb-8' : 'mb-0'
-            }`}
+            className="flex flex-nowrap justify-center gap-1 min-[360px]:gap-2 sm:gap-4 transition-all duration-500 mb-8 px-1 sm:px-4"
           >
             {categories.map((cat) => (
               <button
                 key={cat}
                 id={`portfolio-tab-${cat.toLowerCase()}`}
                 onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
-                className={`px-3 sm:px-5 py-2 text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
+                className={`px-2 min-[360px]:px-3 sm:px-5 py-1.5 sm:py-2 text-[9px] min-[360px]:text-[10px] sm:text-xs tracking-[0.05em] min-[360px]:tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
                   activeCategory === cat ? 'font-semibold shadow-sm' : 'font-normal'
                 }`}
                 style={{
                   backgroundColor: activeCategory === cat 
-                    ? (theme?.accent ? `${theme.accent}20` : 'rgba(var(--color-text-rgb), 0.15)') 
+                    ? ('rgba(var(--color-text-rgb), 0.15)') 
                     : 'transparent',
                   borderColor: activeCategory === cat 
-                    ? (theme?.accent || theme?.text || 'var(--color-text)') 
+                    ? (theme?.text || 'var(--color-text)') 
                     : (theme?.text ? `${theme.text}40` : 'var(--color-text)'),
                   color: activeCategory === cat 
-                    ? (theme?.accent || theme?.text || 'var(--color-text)') 
+                    ? (theme?.text || 'var(--color-text)') 
                     : (theme?.text || 'var(--color-text)')
                 }}
               >
@@ -783,24 +785,20 @@ export default function PortfolioGallery({
             ))}
           </div>
 
-          {/* Smooth height-expanding container for grid */}
+          {/* Grid Container */}
           <motion.div
-            initial={false}
-            animate={{
-              height: activeCategory !== null ? 'auto' : 0,
-              opacity: activeCategory !== null ? 1 : 0
-            }}
-            transition={{
-              height: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }, // Ultra smooth easeOutExpo
-              opacity: { duration: 0.4, ease: 'easeInOut' }
-            }}
-            className="overflow-hidden w-full"
+            layout
+            className="w-full"
           >
-            {/* Grid Layout (Columns approach for standard elegant masonry feel) */}
+            {/* Grid Layout */}
             <motion.div 
               id="portfolio-grid"
               layout 
-              className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 pb-6 pt-1"
+              className={`grid gap-2 sm:gap-4 md:gap-6 pb-6 pt-1 w-full ${
+                activeCategory === null 
+                  ? 'grid-cols-3 max-w-4xl mx-auto' 
+                  : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+              }`}
             >
               <AnimatePresence mode="popLayout">
                 {filteredItems.map((item, index) => (
@@ -815,7 +813,7 @@ export default function PortfolioGallery({
                       duration: 0.45, 
                       ease: [0.16, 1, 0.3, 1] // Custom premium easeOutExpo for ultra fluid motion
                     }}
-                    className="break-inside-avoid relative group overflow-hidden cursor-pointer bg-transparent/5 rounded-sm border border-black/10/60"
+                    className="relative group overflow-hidden cursor-pointer bg-transparent/5 rounded-sm border border-black/10/60 aspect-square"
                     onClick={() => setSelectedItemIndex(index)}
                   >
                   {/* Premium image wrapper */}
@@ -823,52 +821,30 @@ export default function PortfolioGallery({
                     <img
                       src={item.url}
                       alt={getTranslatedTitle(item) || item.category}
-                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                       referrerPolicy="no-referrer"
                       loading="lazy"
                       onContextMenu={(e) => e.preventDefault()}
                     />
                     
-                    {/* Luxury gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                        <div className="flex justify-between items-start">
-                          <span className="text-[10px] tracking-widest uppercase font-sans font-semibold">
-                            {item.category === 'Portrait' ? t.portraitCat : item.category === 'Stage' ? t.stageCat : item.category === 'Backstage' ? t.backstageCat : ''}
-                          </span>
-                          {user && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeletePhoto(item.id);
-                              }}
-                              className="p-2 bg-rose-500/80 hover:bg-rose-600 text-white rounded transition-colors"
-                              title="Delete Photo directly from Main Page"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                        <h4 className="text-sm font-serif font-light tracking-wide mt-1" style={{ color: theme?.text }}>
-                          {getTranslatedTitle(item)}
-                        </h4>
-                        {item.copyright && (
-                          <div className="mt-1 text-[9px] font-sans tracking-[0.15em] uppercase" style={{ color: theme?.text ? `${theme.text}B3` : 'rgba(255, 255, 255, 0.7)' }}>
-                            {item.copyrightUrl ? (
-                              <a href={item.copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                                {item.copyright.trim().startsWith('©') ? item.copyright : `© ${item.copyright.trim()}`}
-                              </a>
-                            ) : (
-                              <span>{item.copyright.trim().startsWith('©') ? item.copyright : `© ${item.copyright.trim()}`}</span>
-                            )}
-                          </div>
-                        )}
-                        <div className="mt-3 flex items-center space-x-1.5 text-[10px]" style={{ color: theme?.text }}>
-                          <Maximize2 className="w-3 h-3" />
-                          <span className="tracking-wider">{t.clickZoom}</span>
-                        </div>
+                    {/* Simplified subtle overlay */}
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    
+                    {/* Admin Delete Button */}
+                    {user && (
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePhoto(item.id);
+                          }}
+                          className="p-2 bg-rose-500/80 hover:bg-rose-600 text-white rounded transition-colors shadow-lg"
+                          title="Delete Photo directly from Main Page"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </motion.div>
               ))}

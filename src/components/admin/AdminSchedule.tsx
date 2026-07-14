@@ -15,9 +15,20 @@ import { writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminSchedule({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+export default function AdminSchedule({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  scheduleItems: items,
+  setScheduleItems: setItems
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  scheduleItems: ScheduleItem[];
+  setScheduleItems: (items: ScheduleItem[]) => void;
+}) {
   const { theme } = useAppearance();
-  const [items, setItems] = useState<ScheduleItem[]>([]);
   const [initialItems, setInitialItems] = useState<ScheduleItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -30,7 +41,6 @@ export default function AdminSchedule({ currentLang, onRefreshData }: { currentL
 
   useEffect(() => {
     fetchSchedule().then(data => {
-      setItems(data);
       setInitialItems(data);
     });
   }, []);
@@ -67,11 +77,9 @@ export default function AdminSchedule({ currentLang, onRefreshData }: { currentL
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setItems(items => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      setItems(arrayMove(items, oldIndex, newIndex));
     }
   };
 
@@ -161,21 +169,7 @@ export default function AdminSchedule({ currentLang, onRefreshData }: { currentL
         isSaving={isSaving}
         onSave={handleSave}
         onReset={handleReset}
-        preview={
-          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
-            <ScheduleSection 
-              items={items} 
-              currentLang={currentLang} 
-              setLang={() => {}} 
-              user={null}
-              activeEditSection="none"
-              setActiveEditSection={() => {}}
-              onItemsUpdated={() => {}}
-              onRefreshData={() => {}}
-              theme={theme || undefined}
-            />
-          </div>
-        }
+      onClose={onClose}
         properties={properties}
       />
       {deleteTargetId && (

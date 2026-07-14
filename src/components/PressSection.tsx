@@ -326,15 +326,15 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                     type="range"
                     min="14"
                     max="64"
-                    value={theme?.pressFontSize || 28}
+                    value={theme?.pressFontSize ?? 28}
                     onChange={(e) => onThemeUpdated({ ...theme, pressFontSize: parseInt(e.target.value, 10) })}
-                    className="w-16 md:w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#C9A227]"
+                    className="w-16 md:w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--color-text)]"
                   />
                   <input
                     type="number"
                     min="14"
                     max="64"
-                    value={theme?.pressFontSize || 28}
+                    value={theme?.pressFontSize ?? 28}
                     onChange={(e) => {
                       const val = parseInt(e.target.value, 10);
                       if (!isNaN(val)) {
@@ -398,7 +398,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
         <div className="space-y-6">
           
           {/* Live Preview Box */}
-          <div className="bg-white/[0.01] border border-white/5 rounded-sm p-6 text-center max-w-3xl mx-auto space-y-3">
+          <div className="bg-white/[0.01] border border-white/5 rounded-sm p-6 text-center w-full mx-auto space-y-3">
             <div className="flex justify-center items-center space-x-1.5">
               <Sparkles className="w-3 h-3 text-[#C9A227] animate-pulse" />
               <span className="text-[9px] font-mono tracking-widest text-[color:inherit] uppercase">FONT SIZE LIVE PREVIEW</span>
@@ -419,7 +419,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
 
           {/* Active Item Form Editor */}
           {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
+            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 w-full mx-auto transition-all">
               <div className="flex justify-between items-center pb-3 border-b border-white/5">
                 <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
                   {editingItem.id ? 'Edit Review Quote' : 'New Review Quote'}
@@ -548,7 +548,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
             </form>
           ) : (
             /* Drag-and-drop management list */
-            <div className="max-w-4xl mx-auto space-y-4">
+            <div className="w-full mx-auto space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
                   Drag and drop to sort • Click edit icon to change
@@ -598,7 +598,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                                 }}
                                 className={`px-2.5 py-1 text-[9px] font-sans tracking-wider rounded border transition-colors uppercase ${
                                   isCurrentlySelected
-                                    ? 'bg-[#C9A227]/10 border-[#C9A227] text-[#C9A227] accent-color font-bold'
+                                    ? 'bg-[#C9A227]/10 border-[#C9A227] text-[#C9A227] font-bold'
                                     : 'border-white/10 text-[color:inherit] hover:text-white'
                                 }`}
                               >
@@ -636,7 +636,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
         /* ========================================================
             READ-ONLY COMPACT EDITORIAL PRESS CAROUSEL
             ======================================================== */
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full mx-auto">
           {pressItems.length === 0 ? (
             <div className="text-center py-16 text-[color:inherit] text-xs font-sans">
               No press reviews published at the moment.
@@ -665,7 +665,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                         </div>
                         
                         <blockquote 
-                          className="font-serif italic leading-relaxed tracking-wide max-w-3xl mx-auto"
+                          className="font-serif italic leading-relaxed tracking-wide w-full mx-auto"
                           style={{
                             color: theme?.text,
                             fontSize: theme?.pressFontSize ? `clamp(16px, 4vw, ${theme.pressFontSize}px)` : undefined,
@@ -735,7 +735,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                         borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
                         color: theme?.text ? `${theme.text}80` : undefined
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.accent || 'white'}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.text || 'white'}
                       onMouseLeave={(e) => e.currentTarget.style.borderColor = theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)'}
                     >
                       <ChevronLeft className="w-5 h-5" />
@@ -753,7 +753,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                         borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
                         color: theme?.text ? `${theme.text}80` : undefined
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.accent || 'white'}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.text || 'white'}
                       onMouseLeave={(e) => e.currentTarget.style.borderColor = theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)'}
                     >
                       <ChevronRight className="w-5 h-5" />

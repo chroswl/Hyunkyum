@@ -13,9 +13,20 @@ import { getMediaSource } from '../../lib/mediaUtils';
 import { Upload } from 'lucide-react';
 import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminBiography({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+export default function AdminBiography({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  bio,
+  setBio
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  bio: BiographySettings;
+  setBio: (b: BiographySettings) => void;
+}) {
   const { theme } = useAppearance();
-  const [bio, setBio] = useState<BiographySettings | null>(null);
   const [initialBio, setInitialBio] = useState<BiographySettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [cropTarget, setCropTarget] = useState<{ src: string } | null>(null);
@@ -25,7 +36,6 @@ export default function AdminBiography({ currentLang, onRefreshData }: { current
 
   useEffect(() => {
     fetchBiographySettings().then(data => {
-      setBio(data);
       setInitialBio(data);
     });
   }, []);
@@ -33,14 +43,12 @@ export default function AdminBiography({ currentLang, onRefreshData }: { current
   if (!bio) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
   const hasChanges = JSON.stringify(bio) !== JSON.stringify(initialBio);
-  // ... rest of the file
 
   const handleSave = async () => {
     setIsSaving(true);
     await saveBiographySettings(bio);
     setInitialBio(bio);
     if (onRefreshData) onRefreshData();
-    window.dispatchEvent(new CustomEvent('bioChanged', { detail: bio }));
     setIsSaving(false);
   };
 
@@ -87,7 +95,7 @@ export default function AdminBiography({ currentLang, onRefreshData }: { current
         };
         reader.onload = (e) => {
           const base64 = e.target?.result as string;
-          setBio(prev => prev ? { ...prev, bioImage: base64 } : null);
+          setBio({ ...bio, bioImage: base64 });
           setIsOptimizing(false);
           setUploadProgress(null);
         };
@@ -103,11 +111,11 @@ export default function AdminBiography({ currentLang, onRefreshData }: { current
   };
 
   const updateIntro = (val: string) => {
-    setBio(prev => prev ? {...prev, bioIntro: {...(prev.bioIntro||{EN:'',DE:'',KO:''}), [currentLang]: val}} : prev);
+    setBio({...bio, bioIntro: {...(bio.bioIntro||{EN:'',DE:'',KO:''}), [currentLang]: val}});
   };
 
   const updateLong = (val: string) => {
-    setBio(prev => prev ? {...prev, bioLong: {...(prev.bioLong||{EN:'',DE:'',KO:''}), [currentLang]: val}} : prev);
+    setBio({...bio, bioLong: {...(bio.bioLong||{EN:'',DE:'',KO:''}), [currentLang]: val}});
   };
 
   const properties = (
@@ -213,20 +221,7 @@ export default function AdminBiography({ currentLang, onRefreshData }: { current
         isSaving={isSaving}
         onSave={handleSave}
         onReset={handleReset}
-        preview={
-          <div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
-            <BiographySection 
-              bio={bio} 
-              currentLang={currentLang} 
-              setLang={() => {}} 
-              t={translations[currentLang]} 
-              user={null} 
-              onBioUpdated={() => {}} 
-              activeEditSection="none" 
-              setActiveEditSection={() => {}} 
-            />
-          </div>
-        }
+      onClose={onClose}
         properties={properties}
       />
       {cropTarget && (

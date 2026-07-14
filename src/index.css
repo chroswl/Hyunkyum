@@ -80,6 +80,14 @@ img {
   animation: scrollElegant 3.2s ease-in-out infinite;
 }
 
+/* Global Content Container based on Theme Settings */
+.global-container {
+  width: 100%;
+  max-width: var(--content-max-width, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Unified premium page section spacing */
 .page-section {
   padding-top: 4.5rem; /* pt-18: comfortable, elegant clearance under the fixed navbar on mobile */

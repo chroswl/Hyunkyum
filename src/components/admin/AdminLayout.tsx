@@ -1,13 +1,14 @@
 import React, { ReactNode } from 'react';
-import { Undo, Redo, RotateCcw } from 'lucide-react';
+import { Undo, Redo, RotateCcw, X } from 'lucide-react';
 import { useAppearance } from '../../contexts/AppearanceContext';
 
 interface AdminLayoutProps {
-  toolbar?: ReactNode;
-  preview: ReactNode;
+  toolbar?: ReactNode; // Deprecated, kept for backward compatibility
+  preview?: ReactNode; // Deprecated, kept for backward compatibility
   properties: ReactNode;
   onSave?: () => void;
   onReset?: () => void;
+  onClose?: () => void;
   isSaving?: boolean;
   hasChanges?: boolean;
   title?: string;
@@ -15,63 +16,26 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({
-  toolbar, preview, properties, onSave, onReset, isSaving, hasChanges, title, lastSaved
+  properties, onSave, onReset, onClose, isSaving, hasChanges, title, lastSaved
 }: AdminLayoutProps) {
-  const { theme } = useAppearance();
   return (
-    <div className="flex w-full h-full bg-[#0a0a0a] overflow-hidden text-white font-sans animate-in fade-in duration-300">
-      {/* Center Panel (Preview) */}
-      <div className="flex-1 flex flex-col min-w-0 border-r border-neutral-900 bg-[#0a0a0a]">
-        <div className="h-14 border-b border-neutral-900 bg-[#111] flex items-center justify-between px-6 shrink-0">
-           <div className="flex items-center space-x-6">
-              <span className="text-xs font-serif tracking-widest text-[#C9A227] uppercase">{title || 'Preview'}</span>
-              {toolbar}
-           </div>
-           <div className="flex items-center space-x-4">
-              {lastSaved && <span className="text-[10px] text-neutral-500 uppercase tracking-widest">Last Saved: {lastSaved}</span>}
-              <div className="flex items-center space-x-1 border-l border-neutral-800 pl-4">
-                 <button className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Undo"><Undo className="w-4 h-4" /></button>
-                 <button className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Redo"><Redo className="w-4 h-4" /></button>
-              </div>
-           </div>
-        </div>
-        <div className="flex-1 overflow-hidden bg-neutral-950 p-6 flex flex-col relative items-center justify-center">
-           <div 
-             id="theme-preview-scope"
-             className="w-full h-full flex flex-col bg-black border border-neutral-900 rounded-lg overflow-hidden shadow-2xl relative"
-             style={theme ? {
-               '--color-bg': theme.bg,
-               '--color-text': theme.text,
-               '--color-accent': theme.accent,
-               '--color-contact-bg': theme.contactFormBg || '#0a0a0a',
-             } as React.CSSProperties : {}}
-            >
-              <style>{theme ? `
-                #theme-preview-scope, #theme-preview-scope * {
-                  color: var(--color-text) !important;
-                }
-              ` : ''}</style>
-              {preview}
-           </div>
-        </div>
+    <div className="flex flex-col w-full h-full bg-[#111] text-white font-sans animate-in fade-in duration-300">
+      <div className="h-14 border-b border-neutral-900 flex items-center justify-between px-6 shrink-0">
+         <span className="text-xs font-serif tracking-widest text-[#C9A227] uppercase">{title || 'Properties'}</span>
+         <div className="flex items-center space-x-3">
+           <button onClick={onReset} className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Reset">
+             <RotateCcw className="w-4 h-4" />
+           </button>
+           <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-[#C9A227] text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
+             {isSaving ? 'Saving...' : 'Save'}
+           </button>
+           {onClose && (
+             <button onClick={onClose} className="p-1.5 ml-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-full"><X className="w-4 h-4" /></button>
+           )}
+         </div>
       </div>
-      
-      {/* Right Panel (Properties) */}
-      <div className="w-[340px] xl:w-[380px] bg-[#111] flex flex-col shrink-0">
-        <div className="h-14 border-b border-neutral-900 bg-[#111] flex items-center justify-between px-6 shrink-0">
-           <span className="text-xs font-sans tracking-widest text-neutral-400 uppercase">Properties</span>
-           <div className="flex items-center space-x-3">
-             <button onClick={onReset} className="p-2 text-neutral-500 hover:text-white transition-colors rounded hover:bg-white/5" title="Reset">
-               <RotateCcw className="w-4 h-4" />
-             </button>
-             <button onClick={onSave} disabled={!hasChanges || isSaving} className={`px-4 py-1.5 rounded text-[10px] uppercase tracking-wider font-semibold transition-colors ${hasChanges ? 'bg-[#C9A227] text-black hover:bg-[#ebd04e]' : 'bg-neutral-800 text-neutral-500'}`}>
-               {isSaving ? 'Saving...' : 'Save'}
-             </button>
-           </div>
-        </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
-           {properties}
-        </div>
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
+         {properties}
       </div>
     </div>
   );

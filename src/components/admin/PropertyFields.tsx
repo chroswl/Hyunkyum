@@ -49,11 +49,52 @@ export function PropertySelect({ label, value, onChange, options }: { label: str
 }
 
 export function PropertySlider({ label, value, onChange, min = 0, max = 100, step = 1, unit = "" }: { label: string, value: number, onChange: (v: number) => void, min?: number, max?: number, step?: number, unit?: string }) {
+  const [localValue, setLocalValue] = React.useState(value.toString());
+
+  React.useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
+
+  const handleInputChange = (e) => {
+    setLocalValue(e.target.value);
+    const num = Number(e.target.value);
+    if (!isNaN(num)) {
+      onChange(num);
+    }
+  };
+
+  const handleBlur = () => {
+    let num = Number(localValue);
+    if (isNaN(num)) num = min;
+    if (num < min) num = min;
+    if (num > max) num = max;
+    setLocalValue(num.toString());
+    onChange(num);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleBlur();
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
          <label className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--color-text)' }}>{label}</label>
-         <span className="text-[9px] font-mono" style={{ color: 'var(--color-accent)' }}>{value}{unit}</span>
+         <div className="flex items-center space-x-1">
+           <input
+             type="number"
+             inputMode="decimal"
+             value={localValue}
+             onChange={handleInputChange}
+             onBlur={handleBlur}
+             onKeyDown={handleKeyDown}
+             className="w-16 bg-transparent border-b border-neutral-800 focus:border-[#C9A227] text-right text-[10px] font-mono outline-none transition-colors"
+             style={{ color: 'var(--color-text)' }}
+           />
+           {unit && <span className="text-[9px] font-mono text-neutral-500">{unit}</span>}
+         </div>
       </div>
       <input 
         type="range" 
@@ -63,12 +104,11 @@ export function PropertySlider({ label, value, onChange, min = 0, max = 100, ste
         value={value} 
         onChange={e => onChange(Number(e.target.value))} 
         className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer" 
-        style={{ accentColor: 'var(--color-accent)' }}
+        style={{ accentColor: 'var(--color-text)' }}
       />
     </div>
   );
 }
-
 export function PropertyColorPicker({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
   return (
     <div className="space-y-2">

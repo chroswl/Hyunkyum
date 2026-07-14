@@ -18,9 +18,20 @@ import { collection, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAppearance } from '../../contexts/AppearanceContext';
 
-export default function AdminVideos({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
+export default function AdminVideos({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  videoItems: items,
+  setVideoItems: setItems
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  videoItems: VideoItem[];
+  setVideoItems: (items: VideoItem[]) => void;
+}) {
   const { theme } = useAppearance();
-  const [items, setItems] = useState<VideoItem[]>([]);
   const [initialItems, setInitialItems] = useState<VideoItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,7 +44,6 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
 
   useEffect(() => {
     fetchVideos().then(data => {
-      setItems(data);
       setInitialItems(data);
     });
   }, []);
@@ -70,11 +80,9 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setItems(items => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      setItems(arrayMove(items, oldIndex, newIndex));
     }
   };
 
@@ -102,54 +110,13 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
     setEditingId(newItem.id);
   };
 
-  const handleSaveChanges = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem || (!editingItem.youtubeId && !editingItem.videoUrl)) {
-      alert("Please provide a valid YouTube ID or Video URL");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      // Clean up YouTube ID input if they pasted a full URL
-      let ytId = editingItem.youtubeId;
-      if (ytId) {
-        const parsed = getMediaSource(ytId);
-        if (parsed.ytId) {
-          ytId = parsed.ytId;
-        }
-      }
-
-      const saveItem = {
-        ...editingItem,
-        youtubeId: ytId,
-        videoUrl: editingItem.videoUrl
-      };
-
-      if (!saveItem.order) {
-        saveItem.order = items.length;
-      }
-
-      const saved = await saveVideoItem(saveItem as VideoItem);
-      
-      // Update local state to reflect the change
-      setItems(items.map(item => item.id === saved.id ? saved : item));
-      setInitialItems(items.map(item => item.id === saved.id ? saved : item));
-
-      setIsSaving(false);
-      setEditingId(null);
-    } catch (err) {
-      console.error("Error saving video:", err);
-      setIsSaving(false);
-    }
-  };
-
   const editingItem = items.find(i => i.id === editingId);
 
   const properties = (
     <div className="pb-20">
       <div className="px-6 py-4 border-b border-neutral-900 flex justify-between items-center">
          <span className="text-xs uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>Video Catalog</span>
-         <button onClick={handleAdd} className="hover:opacity-70 flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.accent || 'inherit' }}>
+         <button onClick={handleAdd} className="hover:opacity-70 flex items-center space-x-1 text-[10px] uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>
            <Plus className="w-3 h-3" /> <span>Add</span>
          </button>
       </div>
@@ -161,7 +128,7 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
               {items.map(item => (
                 <SortableItem key={item.id} id={item.id} className="relative pl-8 pr-12 bg-black/40 hover:bg-white/5 border border-neutral-900 p-3 rounded group cursor-pointer" handleClassName="absolute left-2 top-1/2 -translate-y-1/2 p-1" style={{ color: theme?.text || 'inherit' }} onClick={() => setEditingId(item.id)}>
                   <div className="text-xs truncate" style={{ color: theme?.text || 'inherit' }}>{item.title?.[currentLang] || item.title?.EN || 'Untitled Video'}</div>
-                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.accent || 'inherit' }}>{item.role?.[currentLang] || item.role?.EN || 'No Role'}</div>
+                  <div className="text-[9px] tracking-widest uppercase mt-0.5" style={{ color: theme?.text || 'inherit' }}>{item.role?.[currentLang] || item.role?.EN || 'No Role'}</div>
                   <button onClick={(e) => { e.stopPropagation(); setDeleteTargetId(item.id); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:text-rose-500" style={{ color: theme?.text || 'inherit' }}>
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -177,7 +144,7 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
              <button onClick={() => setEditingId(null)} className="text-xs uppercase tracking-widest" style={{ color: theme?.text || 'inherit' }}>← Back to List</button>
           </div>
           {editingItem && (
-            <form onSubmit={handleSaveChanges}>
+            <div>
               <PropertyAccordion title="Media" defaultOpen>
                 <div className="flex justify-between items-end gap-2">
                   <PropertyInput label="YouTube ID or Drive Link" value={editingItem.youtubeId || editingItem.videoUrl || ''} onChange={v => updateItem(editingItem.id, { youtubeId: v, videoUrl: v })} />
@@ -193,10 +160,7 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
                  <PropertyInput label={`Title (${currentLang})`} value={(currentLang === 'KO' ? editingItem.title?.KO : currentLang === 'DE' ? editingItem.title?.DE : editingItem.title?.EN) || ''} onChange={v => updateItem(editingItem.id, { title: {...(editingItem.title||{EN:'',DE:'',KO:''}), [currentLang]: v} })} />
                  <PropertyInput label={`Role (${currentLang})`} value={(currentLang === 'KO' ? editingItem.role?.KO : currentLang === 'DE' ? editingItem.role?.DE : editingItem.role?.EN) || ''} onChange={v => updateItem(editingItem.id, { role: {...(editingItem.role||{EN:'',DE:'',KO:''}), [currentLang]: v} })} />
               </PropertyAccordion>
-              <div className="px-6 pt-4">
-                <button type="submit" className="w-full bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold py-2 rounded text-xs uppercase tracking-wider">Save Changes</button>
-              </div>
-            </form>
+            </div>
           )}
         </>
       )}
@@ -211,21 +175,7 @@ export default function AdminVideos({ currentLang, onRefreshData }: { currentLan
         isSaving={isSaving}
         onSave={handleSave}
         onReset={handleReset}
-        preview={
-          <div className="w-full h-full overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme?.bg || 'black' }}>
-            <VideoPlayer 
-              items={items} 
-              currentLang={currentLang} 
-              setLang={() => {}} 
-              user={null}
-              activeEditSection="none"
-              setActiveEditSection={() => {}}
-              onItemsUpdated={() => {}}
-              onRefreshData={() => {}}
-              theme={theme || undefined}
-            />
-          </div>
-        }
+      onClose={onClose}
         properties={properties}
       />
       {deleteTargetId && (

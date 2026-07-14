@@ -10,20 +10,25 @@ import { translations } from '../../translations';
 import { optimizeImageFile } from '../../lib/imageCompressor';
 import { Upload } from 'lucide-react';
 
-export default function AdminHero({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
-  const [theme, setTheme] = useState<ThemeSettings | null>(null);
-  const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(null);
+export default function AdminHero({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  theme,
+  setTheme,
+  initialTheme
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  theme: ThemeSettings;
+  setTheme: (t: ThemeSettings) => void;
+  initialTheme: ThemeSettings | null;
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
-
-  useEffect(() => {
-    fetchThemeSettings().then(data => {
-      setTheme(data);
-      setInitialTheme(data);
-    });
-  }, []);
 
   if (!theme) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
@@ -32,7 +37,6 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
   const handleSave = async () => {
     setIsSaving(true);
     await saveThemeSettings(theme);
-    setInitialTheme(theme);
     if (onRefreshData) onRefreshData();
     setIsSaving(false);
   };
@@ -45,6 +49,7 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
     if (!theme) return;
     const next = { ...theme, [key]: val };
     setTheme(next);
+    // Kept for backward compatibility if needed
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: next }));
   };
 
@@ -61,7 +66,7 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
         const optimizedBase64 = await optimizeImageFile(file, (p) => {
           setUploadProgress(p);
         });
-        setTheme(prev => prev ? { ...prev, homeBg: optimizedBase64, homeBgType: 'image' } : null);
+        setTheme({ ...theme, homeBg: optimizedBase64, homeBgType: 'image' });
       } catch (err) {
         console.error("Failed to optimize image:", err);
       } finally {
@@ -80,7 +85,7 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
         };
         reader.onload = (e) => {
           const base64 = e.target?.result as string;
-          setTheme(prev => prev ? { ...prev, homeBg: base64, homeBgType: 'video' } : null);
+          setTheme({ ...theme, homeBg: base64, homeBgType: 'video' });
           setIsOptimizing(false);
           setUploadProgress(null);
         };
@@ -109,23 +114,23 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
         
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
            <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Title Adjustments</h4>
-           <PropertySlider label="Font Size" value={theme.heroTitleSize || 64} min={10} max={120} onChange={(v) => updateField('heroTitleSize', v)} />
-           <PropertySlider label="X Offset" value={theme.heroTitleOffsetX || 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetX', v)} />
-           <PropertySlider label="Y Offset" value={theme.heroTitleOffsetY || 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetY', v)} />
+           <PropertySlider label="Font Size" value={theme.heroTitleSize ?? 64} min={10} max={120} onChange={(v) => updateField('heroTitleSize', v)} />
+           <PropertySlider label="X Offset" value={theme.heroTitleOffsetX ?? 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetX', v)} />
+           <PropertySlider label="Y Offset" value={theme.heroTitleOffsetY ?? 0} min={-200} max={200} onChange={(v) => updateField('heroTitleOffsetY', v)} />
         </div>
 
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
            <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Subtitle Adjustments</h4>
-           <PropertySlider label="Font Size" value={theme.heroSubtitleSize || 14} min={8} max={40} onChange={(v) => updateField('heroSubtitleSize', v)} />
-           <PropertySlider label="X Offset" value={theme.heroSubtitleOffsetX || 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetX', v)} />
-           <PropertySlider label="Y Offset" value={theme.heroSubtitleOffsetY || 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetY', v)} />
+           <PropertySlider label="Font Size" value={theme.heroSubtitleSize ?? 14} min={8} max={40} onChange={(v) => updateField('heroSubtitleSize', v)} />
+           <PropertySlider label="X Offset" value={theme.heroSubtitleOffsetX ?? 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetX', v)} />
+           <PropertySlider label="Y Offset" value={theme.heroSubtitleOffsetY ?? 0} min={-100} max={100} onChange={(v) => updateField('heroSubtitleOffsetY', v)} />
         </div>
 
         <div className="pt-4 border-t border-neutral-800/50 space-y-4">
            <h4 className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold">Description Adjustments</h4>
-           <PropertySlider label="Font Size" value={theme.heroDescSize || 16} min={8} max={40} onChange={(v) => updateField('heroDescSize', v)} />
-           <PropertySlider label="X Offset" value={theme.heroDescOffsetX || 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetX', v)} />
-           <PropertySlider label="Y Offset" value={theme.heroDescOffsetY || 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetY', v)} />
+           <PropertySlider label="Font Size" value={theme.heroDescSize ?? 16} min={8} max={40} onChange={(v) => updateField('heroDescSize', v)} />
+           <PropertySlider label="X Offset" value={theme.heroDescOffsetX ?? 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetX', v)} />
+           <PropertySlider label="Y Offset" value={theme.heroDescOffsetY ?? 0} min={-100} max={100} onChange={(v) => updateField('heroDescOffsetY', v)} />
         </div>
       </PropertyAccordion>
 
@@ -196,21 +201,7 @@ export default function AdminHero({ currentLang, onRefreshData }: { currentLang:
       isSaving={isSaving}
       onSave={handleSave}
       onReset={handleReset}
-      preview={<div className="w-full h-full overflow-y-auto bg-black custom-scrollbar">
-          <HeroSection 
-            theme={theme}
-            setTheme={setTheme}
-            currentLang={currentLang}
-            t={translations[currentLang]}
-            user={null}
-            isAdminOpen={true}
-            activeEditSection="none"
-            setActiveEditSection={() => {}}
-            isEditingHeroText={false}
-            setIsEditingHeroText={() => {}}
-            scrollToSection={() => {}}
-          />
-        </div>}
+      onClose={onClose}
       properties={properties}
     />
   );

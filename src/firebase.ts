@@ -379,12 +379,12 @@ export const fetchThemeSettings = async (): Promise<ThemeSettings> => {
     const qSnapshot = await getDocs(collection(db, "settings"));
     let themeDoc = qSnapshot.docs.find(d => d.id === "theme");
     if (!themeDoc) {
-      return { bg: "#000000", text: "#ffffff", accent: "#C9A227", homeBg: "", homeBgType: 'image' };
+      return { bg: "#000000", text: "#ffffff", homeBg: "", homeBgType: 'image' };
     }
     return themeDoc.data() as ThemeSettings;
   } catch (error) {
     console.error("Error fetching theme settings:", error);
-    return { bg: "#000000", text: "#ffffff", accent: "#C9A227", homeBg: "", homeBgType: 'image' };
+    return { bg: "#000000", text: "#ffffff", homeBg: "", homeBgType: 'image' };
   }
 };
 

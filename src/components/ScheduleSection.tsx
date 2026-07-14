@@ -633,7 +633,7 @@ export default function ScheduleSection({
                   {/* Content details column (7 cols) */}
                   <div className="md:col-span-7 space-y-2.5">
                     <div className="flex items-center space-x-3">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] tracking-widest border uppercase font-semibold font-sans`} style={{ borderColor: theme?.accent || theme?.text, color: theme?.accent || theme?.text }}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] tracking-widest border uppercase font-semibold font-sans`} style={{ borderColor: theme?.text, color: theme?.text }}>
                         {item.category}
                       </span>
                     </div>

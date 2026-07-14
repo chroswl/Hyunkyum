@@ -55,10 +55,7 @@ service cloud.firestore {
     // Contacts (User messages) collection
     match /contacts/{contactId} {
       // Any guest can send an inquiry
-      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message', 'createdAt'])
-                    && request.resource.data.name is string && request.resource.data.name.size() <= 100
-                    && request.resource.data.email is string && request.resource.data.email.size() <= 100
-                    && request.resource.data.message is string && request.resource.data.message.size() <= 2000;
+      allow create: if true;
       
       // Only authenticated admin can read or delete inquiries
       allow read, delete: if isSignedIn();

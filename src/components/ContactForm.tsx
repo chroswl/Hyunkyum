@@ -20,10 +20,8 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
 
   const t = translations[currentLang];
 
-  // 폼 스피리(Formspree) 또는 Web3Forms 등의 무료 이메일 전송 API 엔드포인트 URL입니다.
-  // 이메일(barikyum@gmail.com) 수신을 위해 Formspree(https://formspree.io/)에 로그인 후
-  // 새로 생성한 폼의 엔드포인트 URL(예: https://formspree.io/f/xxxxxxxx)을 아래에 입력해 주세요!
-  const FORM_ENDPOINT = "https://formspree.io/f/your_form_id_here"; 
+  // 문의 내용을 이메일(barikyum@icloud.com)로 직접 전송하기 위한 FormSubmit AJAX 엔드포인트입니다.
+  const FORM_ENDPOINT = "https://formsubmit.co/ajax/barikyum@icloud.com"; 
 
   const validationMessages = {
     EN: {
@@ -109,8 +107,8 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
         createdAt: new Date().toISOString()
       });
 
-      // 2. Formspree/Web3Forms 엔드포인트가 세팅되어 있는 경우 이메일 전송 실행
-      if (FORM_ENDPOINT && !FORM_ENDPOINT.includes("your_form_id_here")) {
+      // 2. 이메일 전송 실행 (FormSubmit 서비스 이용)
+      if (FORM_ENDPOINT) {
         const response = await fetch(FORM_ENDPOINT, {
           method: 'POST',
           headers: {
@@ -120,15 +118,14 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
           body: JSON.stringify({
             name: name,
             email: email,
-            message: message
+            message: message,
+            _subject: `[Hyunkyum Kim Website] New Inquiry from ${name}`
           })
         });
 
         if (!response.ok) {
-          throw new Error('Formspree submission failed');
+          throw new Error('Email submission failed');
         }
-      } else {
-        console.warn("Formspree URL이 기본값입니다. 이메일 전송은 생략되며, Firebase 데이터베이스에만 백업용으로 저장되었습니다. 이메일 수신을 원하시면 FORM_ENDPOINT 값을 본인의 Formspree URL로 변경해 주세요.");
       }
 
       setSubmitStatus('success');
@@ -171,7 +168,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               name="name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g. Jean-Pierre"
+              placeholder={t.formNamePlaceholder || "e.g. Jean-Pierre"}
               className={`w-full border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
               style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
             />
@@ -198,7 +195,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               name="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              placeholder="e.g. jp@example.com"
+              placeholder={t.formEmailPlaceholder || "e.g. jp@example.com"}
               className={`w-full border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
               style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
             />
@@ -228,7 +225,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             rows={5}
             value={message}
             onChange={(e) => handleMessageChange(e.target.value)}
-            placeholder="..."
+            placeholder={t.formMessagePlaceholder || "..."}
             className={`w-full border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
             style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
           />
@@ -291,7 +288,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             </>
           ) : (
             <>
-              <Send className="w-3.5 h-3.5" />
+              {!t.formSend.startsWith('◀') && <Send className="w-3.5 h-3.5" />}
               <span>{t.formSend}</span>
             </>
           )}

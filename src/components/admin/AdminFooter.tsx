@@ -8,18 +8,23 @@ import { translations } from '../../translations';
 import { Instagram, Youtube, Facebook, Twitter, Lock, Mail } from 'lucide-react';
 import { LegalModal } from '../LegalModals';
 
-export default function AdminFooter({ currentLang, onRefreshData }: { currentLang: Language; onRefreshData?: () => void }) {
-  const [theme, setTheme] = useState<ThemeSettings | null>(null);
-  const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(null);
+export default function AdminFooter({ 
+  currentLang, 
+  onRefreshData,
+  onClose,
+  theme,
+  setTheme,
+  initialTheme
+}: { 
+  currentLang: Language; 
+  onRefreshData?: () => void;
+  onClose?: () => void;
+  theme: ThemeSettings;
+  setTheme: (t: ThemeSettings) => void;
+  initialTheme: ThemeSettings;
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const [openModal, setOpenModal] = useState<'impressum' | 'privacy' | null>(null);
-
-  useEffect(() => {
-    fetchThemeSettings().then(data => {
-      setTheme(data);
-      setInitialTheme(data);
-    });
-  }, []);
 
   if (!theme) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
@@ -28,7 +33,6 @@ export default function AdminFooter({ currentLang, onRefreshData }: { currentLan
   const handleSave = async () => {
     setIsSaving(true);
     await saveThemeSettings(theme);
-    setInitialTheme(theme);
     if (onRefreshData) onRefreshData();
     setIsSaving(false);
     // Dispatch event so live site updates immediately
@@ -40,7 +44,7 @@ export default function AdminFooter({ currentLang, onRefreshData }: { currentLan
   };
 
   const updateField = (key: keyof ThemeSettings, val: any) => {
-    setTheme(prev => prev ? { ...prev, [key]: val } : prev);
+    setTheme({ ...theme, [key]: val });
   };
 
   const t = translations[currentLang];
@@ -114,62 +118,17 @@ export default function AdminFooter({ currentLang, onRefreshData }: { currentLan
     </div>
   );
 
-  const preview = (
-    <div 
-      className="w-full h-full flex flex-col justify-between p-8 md:p-12 transition-all duration-300"
-      style={{ backgroundColor: theme.bg || '#000000', color: theme.text || '#ffffff' }}
-    >
-      <div className="flex-1 flex flex-col justify-center items-center text-center max-w-xl mx-auto space-y-4">
-        <span className="text-[10px] tracking-[0.4em] text-neutral-500 uppercase font-mono">Live Footer Preview</span>
-        <h4 className="text-sm font-sans tracking-widest text-neutral-400">
-          This shows how the live homepage footer adapts instantly to your changes.
-        </h4>
-      </div>
-
-      <div className="border-t border-neutral-900/60 pt-10 grid grid-cols-1 md:grid-cols-3 gap-6 items-center w-full">
-        <div className="space-y-2 text-center md:text-left">
-          <h4 className="font-serif text-sm tracking-widest uppercase">
-            {theme.footerBrandName || t.heroTitle}
-          </h4>
-          <p className="text-[10px] tracking-wider opacity-60">
-            {theme.footerContactEmail || t.footerDesc}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center text-center gap-3 text-[10px] tracking-wider">
-          <div className="opacity-75">
-            {theme.footerCopyrightText ? (
-              theme.footerCopyrightText.replace('{year}', new Date().getFullYear().toString())
-            ) : (
-              `© ${new Date().getFullYear()} ${theme.footerBrandName || t.heroTitle}. All Rights Reserved.`
-            )}
-          </div>
-          <div className="flex items-center space-x-3 opacity-60">
-            <button onClick={() => setOpenModal('impressum')} className="uppercase tracking-widest text-[9px] hover:text-white">Impressum</button>
-            <span>|</span>
-            <button onClick={() => setOpenModal('privacy')} className="uppercase tracking-widest text-[9px] hover:text-white">Privacy Policy</button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-4 justify-center md:justify-end">
-          {theme.footerSocialInstagram && (
-            <Instagram className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
-          )}
-          {theme.footerSocialYoutube && (
-            <Youtube className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
-          )}
-          {theme.footerSocialFacebook && (
-            <Facebook className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
-          )}
-          {theme.footerSocialTwitter && (
-            <Twitter className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
-          )}
-          <div className="flex items-center space-x-1 p-1 bg-white/5 rounded-sm opacity-50">
-            <Lock className="w-3 h-3 text-[#C9A227]" />
-            <span className="text-[8px] uppercase tracking-widest font-mono">Secure</span>
-          </div>
-        </div>
-      </div>
+  return (
+    <>
+      <AdminLayout 
+        title="Footer"
+        hasChanges={hasChanges}
+        isSaving={isSaving}
+        onSave={handleSave}
+        onReset={handleReset}
+      onClose={onClose}
+        properties={properties}
+      />
       {openModal && (
         <LegalModal
           isOpen={!!openModal}
@@ -179,18 +138,6 @@ export default function AdminFooter({ currentLang, onRefreshData }: { currentLan
           theme={theme}
         />
       )}
-    </div>
-  );
-
-  return (
-    <AdminLayout 
-      title="Footer"
-      hasChanges={hasChanges}
-      isSaving={isSaving}
-      onSave={handleSave}
-      onReset={handleReset}
-      preview={preview}
-      properties={properties}
-    />
+    </>
   );
 }
