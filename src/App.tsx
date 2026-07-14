@@ -363,7 +363,6 @@ export default function App() {
  --color-bg: ${theme.bg};
  --color-text: ${theme.text};
  --color-accent: ${theme.accent};
- --color-contact-bg: ${theme.contactFormBg || '#0a0a0a'};
  }
  
  /* Apply Background Color to Public Website Sections */
@@ -429,8 +428,8 @@ export default function App() {
      border-color: ${theme.colorHeroSlideText}4d !important;
    }
    #discover-button:hover {
-     background-color: ${theme.colorHeroSlideText} !important;
-     color: ${theme.bg || '#000000'} !important;
+      border-color: ${theme.colorHeroSlideText} !important;
+      transform: translateY(-1px) !important;
     }
    #performances-slider-root,
    #performances-slider-root h3,
@@ -819,11 +818,11 @@ export default function App() {
        <button
          id="discover-button"
          onClick={() => scrollToSection('biography')}
-         className="group px-8 py-3.5 border border-black/10 hover:text-black hover:bg-white font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
+          className="group px-8 py-3.5 border border-black/10 font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-500 flex items-center space-x-2 mx-auto cursor-pointer"
          style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
        >
          <span>{getHeroDiscover()}</span>
-         <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform group-hover:text-black" />
+          <ChevronDown className="w-4 h-4 transform group-hover:translate-y-1 transition-transform" />
        </button>
      )}
    </motion.div>

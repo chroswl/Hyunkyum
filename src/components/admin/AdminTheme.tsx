@@ -184,11 +184,6 @@ export default function AdminTheme({ currentLang, onRefreshData }: { currentLang
             value={theme.accent || '#C9A227'} 
             onChange={(v) => updateField('accent', v)} 
           />
-          <PropertyColorPicker 
-            label="문의 양식 배경색 (Contact Form BG)" 
-            value={theme.contactFormBg || '#0a0a0a'} 
-            onChange={(v) => updateField('contactFormBg', v)} 
-          />
         </div>
       </PropertyAccordion>
 

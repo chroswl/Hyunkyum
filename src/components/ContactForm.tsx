@@ -173,7 +173,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. Jean-Pierre"
               className={`w-full border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
+              style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
             />
             <AnimatePresence>
               {errors.name && (
@@ -200,7 +200,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="e.g. jp@example.com"
               className={`w-full border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
+              style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
             />
             <AnimatePresence>
               {errors.email && (
@@ -230,7 +230,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             onChange={(e) => handleMessageChange(e.target.value)}
             placeholder="..."
             className={`w-full border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
-            style={{ backgroundColor: theme?.contactFormBg, color: theme?.text, borderColor: theme?.border || 'rgba(var(--color-text-rgb), 0.2)' }}
+            style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
           />
           <AnimatePresence>
             {errors.message && (

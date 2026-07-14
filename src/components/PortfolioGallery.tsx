@@ -763,7 +763,7 @@ export default function PortfolioGallery({
                 key={cat}
                 id={`portfolio-tab-${cat.toLowerCase()}`}
                 onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
-                className={`px-5 py-2 text-xs tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
+                className={`px-3 sm:px-5 py-2 text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
                   activeCategory === cat ? 'font-semibold shadow-sm' : 'font-normal'
                 }`}
                 style={{

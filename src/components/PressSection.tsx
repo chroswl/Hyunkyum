@@ -580,7 +580,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                                 <span className="text-[10px] font-mono text-[color:inherit]">
                                   {item.date}
                                 </span>
-                                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded accent-color">
+                                 <span className="text-[9px] font-mono uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded" style={{ color: theme?.text }}>
                                   {item.type || 'Review'}
                                 </span>
                               </div>
@@ -659,7 +659,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       {/* Quote section */}
                       <div className="space-y-4 md:space-y-6">
                         <div className="flex justify-center items-center">
-                          <span className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: theme?.accent || theme?.text }}>
+                          <span className="text-[10px] font-mono tracking-[0.3em] uppercase" style={{ color: theme?.text }}>
                             {currentItem.type || 'Review'}
                           </span>
                         </div>
@@ -703,7 +703,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center space-x-1 text-xs uppercase tracking-[0.15em] font-sans"
-                              style={{ color: theme?.accent || theme?.text }}
+                              style={{ color: theme?.text }}
                             >
                               <span>{t.readArticle}</span>
                               <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />

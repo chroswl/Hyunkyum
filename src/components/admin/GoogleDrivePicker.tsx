@@ -136,8 +136,8 @@ export const GoogleDrivePicker = ({ onPick }: Props) => {
     <button
       onClick={openPicker}
       disabled={!pickerApiLoaded || isOpening}
-      className={`text-xs bg-neutral-800 text-white px-2 py-1 rounded transition-colors ${
-        (!pickerApiLoaded || isOpening) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-700'
+      className={`text-xs bg-[var(--color-bg)] border border-[var(--color-text)] text-[var(--color-text)] px-2 py-1 rounded transition-colors ${
+        (!pickerApiLoaded || isOpening) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--color-bg)]/80'
       }`}
     >
       {isOpening ? 'Loading...' : 'Google Drive'}

@@ -423,11 +423,11 @@ export default function HeroSection({
        <button
          id="discover-button"
          onClick={() => scrollToSection('biography')}
-         className="px-8 py-3.5 border border-white/20 hover:border-white/60 font-sans text-white text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer hover:-translate-y-0.5"
-         style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined }}
+         className="px-8 py-3.5 border border-white/20 hover:border-white/60 font-sans  text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer hover:-translate-y-0.5"
+          style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined, color: theme.text || "#ffffff" }}
        >
          <span>{getHeroDiscover()}</span>
-         <ChevronDown className="w-4 h-4 transform hover:translate-y-1 transition-transform" />
+         <ChevronDown className="w-4 h-4 transform hover:translate-y-1 transition-transform text-current" />
        </button>
      )}
    </motion.div>
