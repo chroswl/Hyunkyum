@@ -358,9 +358,9 @@ export default function App() {
    >
     <div className="relative flex flex-col items-center">
      <div className="w-16 h-16 border-2 border-[var(--color-text)] border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: theme.text || "#ffffff", borderTopColor: "transparent" }} />
-     <h1 className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
+     <div className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
       HYUNKYUM KIM
-     </h1>
+     </div>
      <p className="text-xs tracking-wider opacity-60 uppercase font-mono">
       Loading...
      </p>

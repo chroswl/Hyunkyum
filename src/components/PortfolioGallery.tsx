@@ -685,9 +685,9 @@ export default function PortfolioGallery({
             /* Drag-and-drop Photo Listing Sortable */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
+                <p className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
                   Sort Photo Gallery • Drag handle on left • Click edit details
-                </h3>
+                </p>
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -907,7 +907,7 @@ export default function PortfolioGallery({
                 >
                   <img
                     src={filteredItems[selectedItemIndex].url}
-                    alt="Hyunkyum Kim - Stage photography enlarged view"
+                    alt="Stage photography of Opera Singer Hyunkyum Kim performing"
                     className="max-w-full max-h-[75vh] object-contain rounded-sm border border-black/10 shadow-2xl cursor-pointer"
                     referrerPolicy="no-referrer"
                     onContextMenu={(e) => e.preventDefault()}

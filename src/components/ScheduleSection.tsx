@@ -523,9 +523,9 @@ export default function ScheduleSection({
             /* Drag-and-drop Reorder Listing */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs tracking-wider text-neutral-400 font-sans uppercase">
+                <p className="text-xs tracking-wider text-neutral-400 font-sans uppercase">
                   Sort Schedule • Drag handle on left • Click edit to translate
-                </h3>
+                </p>
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

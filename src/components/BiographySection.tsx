@@ -410,7 +410,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                               } else if (media.type === 'drive') {
                                 return <iframe src={media.src} className="max-w-full max-h-full" frameBorder="0" allowFullScreen />;
                               } else {
-                                return <img src={media.src} alt="Hyunkyum Kim - Baritone Profile Photo Preview" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />;
+                                return <img src={media.src} alt="South Korean Baritone Hyunkyum Kim profile photo" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />;
                               }
                             })()}
                             {getMediaSource(editedBio.bioImage).type === 'image' && (
@@ -495,7 +495,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                       return (
                         <img 
                           src={media.src} 
-                          alt="Hyunkyum Kim - South Korean Baritone Portrait" 
+                          alt="Portrait of Opera Singer Hyunkyum Kim" 
                           className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]"
                           referrerPolicy="no-referrer"
                           onContextMenu={(e) => e.preventDefault()}
@@ -534,14 +534,17 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <p className="font-medium text-base md:text-lg leading-relaxed">
+                  <article itemScope itemType="https://schema.org/Person">
+                    <meta itemProp="name" content="Hyunkyum Kim" />
+                    <meta itemProp="alternateName" content="바리톤 김현겸" />
+                    <meta itemProp="jobTitle" content="South Korean Baritone, Opera Singer" />
+                    <p itemProp="description" className="font-medium text-base md:text-lg leading-relaxed">
                       {activeBio.bioIntro[currentLang] || t.bioIntro}
                     </p>
-                    <p className="whitespace-pre-line">
+                    <div className="whitespace-pre-line">
                       {activeBio.bioLong[currentLang] || t.bioLong}
-                    </p>
-                  </>
+                    </div>
+                  </article>
                 )}
               </div>
             </Reveal>
@@ -809,7 +812,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                 return (
                   <img 
                     src={media.src} 
-                    alt="Hyunkyum Kim - High resolution portrait and biography view" 
+                    alt="High resolution portrait of South Korean Baritone Hyunkyum Kim" 
                     className="max-w-full max-h-[75vh] object-contain rounded-sm border border-[var(--color-text)]/10 shadow-2xl cursor-pointer"
                     referrerPolicy="no-referrer"
                     onClick={() => setIsLightboxOpen(false)}

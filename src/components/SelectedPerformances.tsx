@@ -578,7 +578,7 @@ export default function SelectedPerformances({
                                   if (media.type === 'video' || media.type === 'youtube' || media.type === 'drive') {
                                     return <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-500 uppercase">{media.type}</div>;
                                   }
-                                  return <img src={media.src} alt="Hyunkyum Kim - Performance slide thumbnail" className="w-full h-full object-cover" />;
+                                  return <img src={media.src} alt="Opera performance by South Korean Baritone Hyunkyum Kim" className="w-full h-full object-cover" />;
                                 })()}
                               </div>
                             )}
@@ -668,9 +668,9 @@ export default function SelectedPerformances({
                     {theme?.perfSectionTitle || 'Selected Performances'}
                   </span>
                   <div className="space-y-1">
-                    <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider" style={theme?.perfTitleSize ? { fontSize: `${theme.perfTitleSize}px` } : {}}>
+                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider" style={theme?.perfTitleSize ? { fontSize: `${theme.perfTitleSize}px` } : {}}>
                       {slide.production[currentLang]}
-                    </h3>
+                    </h2>
                     <p className="font-serif text-sm md:text-base text-[var(--color-hero-slide-text)]/80 tracking-wide" style={theme?.perfTextSize ? { fontSize: `${theme.perfTextSize}px` } : {}}>
                       {slide.role[currentLang]}
                     </p>

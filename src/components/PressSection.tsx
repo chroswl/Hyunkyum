@@ -550,9 +550,9 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
             /* Drag-and-drop management list */
             <div className="w-full mx-auto space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
+                <p className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
                   Drag and drop to sort • Click edit icon to change
-                </h3>
+                </p>
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

@@ -543,9 +543,9 @@ export default function VideoPlayer({
             /* Drag-and-drop Reorder List */
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs tracking-wider font-sans uppercase" style={{ color: theme?.text || 'inherit' }}>
+                <p className="text-xs tracking-wider font-sans uppercase" style={{ color: theme?.text || 'inherit' }}>
                   Reorder Repertoire reels • Drag handle on left • Click edit to translate
-                </h3>
+                </p>
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
