@@ -10,6 +10,13 @@
 :root {
   --color-bg: #000000;
   --color-text: #ffffff;
+  --navbar-height: 80px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --navbar-height: 64px;
+  }
 }
 html {
   scroll-behavior: smooth;

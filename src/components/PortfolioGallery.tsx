@@ -329,7 +329,7 @@ export default function PortfolioGallery({
   };
 
   return (
-    <div id="portfolio-gallery-root" className={`w-full relative transition-all duration-500 ${isEditMode || activeCategory !== null ? 'min-h-[400px]' : 'min-h-0'}`} style={{ backgroundColor: theme?.bg, color: theme?.text }}>
+    <div id="portfolio-gallery-root" className="w-full relative transition-all duration-500 min-h-[calc(100vh-var(--navbar-height,80px))]" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
       
       {/* Toast notifications */}
       <AnimatePresence>

@@ -18,17 +18,8 @@ export default function ContactSection({
   theme
 }: ContactSectionProps) {
   return (
-    <section id="contact" className="page-section" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
-      <div className="global-container space-y-8 md:space-y-10">
-        <Reveal>
-          <div className="text-center">
-            <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none" style={{ color: theme?.text }}>
-              INQUIRIES
-            </h2>
-          </div>
-        </Reveal>
-
-        <div id="contact-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+    <div className="w-full space-y-8 md:space-y-10">
+      <div id="contact-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 xl:gap-28">
           
           {/* Left Col: Contact Info details (5 cols) */}
           <div id="contact-info-col" className="lg:col-span-5 py-2">
@@ -95,8 +86,6 @@ export default function ContactSection({
           </div>
 
         </div>
-      </div>
-    </section>
-
+    </div>
   );
 }

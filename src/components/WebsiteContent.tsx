@@ -13,6 +13,7 @@ import ScheduleSection from './ScheduleSection';
 import ContactSection from './ContactSection';
 import { LegalModal } from './LegalModals';
 import Reveal from './Reveal';
+import GenericSection from './GenericSection';
 import HeroEditorPanel from './HeroEditorPanel';
 import { getMediaSource } from '../lib/mediaUtils';
 import { saveThemeSettings } from '../firebase';
@@ -30,56 +31,34 @@ export default function WebsiteContent(props: any) {
     adminMode, selectedBlock, onBlockSelect
   } = props;
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
   const scrollToSection = (id: string) => {
+    const currentDoc = containerRef.current?.ownerDocument || document;
+    const currentWin = currentDoc.defaultView || window;
+
     if (id === 'home') {
-      window.scrollTo({
+      currentWin.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
       return;
     }
 
-    const el = document.getElementById(id);
-    if (el) {
-      const navEl = document.getElementById('navbar-root');
+    // Locate the section's Landing Anchor or section container as fallback
+    const anchorEl = currentDoc.getElementById(`${id}-anchor`) || currentDoc.getElementById(id);
+    if (anchorEl) {
+      const navEl = currentDoc.getElementById('navbar-root');
       const navHeight = navEl ? navEl.offsetHeight : (theme?.spacingNavHeight ?? 80);
-      
-      const rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
-      const textScale = (theme?.websiteTextSize ?? 100) / 100;
-      const currentTextSize = rootFontSize * textScale;
 
-      const h2El = el.querySelector('h2');
-      let offsetPosition = 0;
+      const anchorRect = anchorEl.getBoundingClientRect();
+      const anchorTop = anchorRect.top + currentWin.scrollY;
 
-      if (h2El) {
-        const h2Rect = h2El.getBoundingClientRect();
-        const h2Top = h2Rect.top + window.scrollY;
+      // Apply one shared Landing Padding
+      const sharedLandingPadding = 48; 
+      const offsetPosition = anchorTop - navHeight - sharedLandingPadding;
 
-        // Visually optimal safe landing paddings per section type
-        let safeLandingPadding = currentTextSize * 2.5;
-        if (id === 'biography') {
-          safeLandingPadding = currentTextSize * 4.0;
-        } else if (id === 'press') {
-          safeLandingPadding = currentTextSize * 3.0;
-        } else if (id === 'portfolio') {
-          safeLandingPadding = currentTextSize * 2.5;
-        } else if (id === 'videos') {
-          safeLandingPadding = currentTextSize * 3.2;
-        } else if (id === 'schedule') {
-          safeLandingPadding = currentTextSize * 2.8;
-        } else if (id === 'contact') {
-          safeLandingPadding = currentTextSize * 3.5;
-        }
-
-        offsetPosition = h2Top - navHeight - safeLandingPadding;
-      } else {
-        const rect = el.getBoundingClientRect();
-        const sectionTop = rect.top + window.scrollY;
-        const fallbackPadding = currentTextSize * 2;
-        offsetPosition = sectionTop - navHeight - fallbackPadding;
-      }
-
-      window.scrollTo({
+      currentWin.scrollTo({
         top: Math.max(0, offsetPosition),
         behavior: 'smooth'
       });
@@ -101,7 +80,7 @@ export default function WebsiteContent(props: any) {
   const scale = (theme?.websiteTextSize ?? 100) / 100;
 
   return (
-    <div id="app-container" className="min-h-screen relative font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
+    <div ref={containerRef} id="app-container" className="min-h-screen relative font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
       <style>{`
         ${getGoogleFontImport()}
         #app-container {
@@ -139,7 +118,12 @@ export default function WebsiteContent(props: any) {
         #app-container, #app-container * {
           color: var(--color-text) !important;
         }
-        #app-container .page-section, #app-container footer {
+        #app-container .page-section {
+          background-color: var(--color-bg) !important;
+          padding-top: 0px !important;
+          padding-bottom: 0px !important;
+        }
+        #app-container footer {
           background-color: var(--color-bg) !important;
           padding-top: var(--section-spacing) !important;
           padding-bottom: var(--section-spacing) !important;
@@ -217,81 +201,73 @@ export default function WebsiteContent(props: any) {
       </section>
 
       {/* 3. BIOGRAPHY SECTION */}
-      <BiographySection 
-        bio={bio} currentLang={currentLang} setLang={setLang} t={t} user={user}
-        onBioUpdated={(b: any) => {
-          setBio(b);
-          const event = new CustomEvent('bioChanged', { detail: b });
-          window.dispatchEvent(event);
-          try {
-            if (window.parent && window.parent !== window) {
-              window.parent.dispatchEvent(new CustomEvent('bioChanged', { detail: b }));
+      <GenericSection id="biography" heading="BIOGRAPHY">
+        <BiographySection 
+          bio={bio} currentLang={currentLang} setLang={setLang} t={t} user={user}
+          onBioUpdated={(b: any) => {
+            setBio(b);
+            const event = new CustomEvent('bioChanged', { detail: b });
+            window.dispatchEvent(event);
+            try {
+              if (window.parent && window.parent !== window) {
+                window.parent.dispatchEvent(new CustomEvent('bioChanged', { detail: b }));
+              }
+            } catch (e) {
+              // Ignore cross-origin errors
             }
-          } catch (e) {
-            // Ignore cross-origin errors
-          }
-        }}
-        activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-      />
+          }}
+          activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
+        />
+      </GenericSection>
 
       {/* 3.5 PRESS REVIEWS SECTION */}
-      <section id="press" className="page-section bg-transparent p-12 md:p-20">
-        <div className="global-container space-y-8">
-          <Reveal><div className="text-center"><h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">PRESS</h2></div></Reveal>
-          <Reveal delay={0.15}>
-            <PressSection 
-              items={pressItems} currentLang={currentLang} setLang={setLang} user={user}
-              activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-              theme={theme} onThemeUpdated={setTheme}
-            />
-          </Reveal>
-        </div>
-      </section>
+      <GenericSection id="press" heading="PRESS">
+        <Reveal delay={0.15}>
+          <PressSection 
+            items={pressItems} currentLang={currentLang} setLang={setLang} user={user}
+            activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
+            theme={theme} onThemeUpdated={setTheme}
+          />
+        </Reveal>
+      </GenericSection>
 
       {/* 4. PORTFOLIO SECTION */}
-      <section id="portfolio" className="page-section bg-transparent/5/30 p-12 md:p-20">
-        <div className="global-container space-y-8">
-          <Reveal><div className="text-center"><h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">ARCHIVE</h2></div></Reveal>
-          <Reveal delay={0.15}>
-            <PortfolioGallery 
-              items={portfolioItems} currentLang={currentLang} setLang={setLang} user={user}
-              activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-              onItemsUpdated={(items: any) => setPortfolioItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
-            />
-          </Reveal>
-        </div>
-      </section>
+      <GenericSection id="portfolio" heading="ARCHIVE">
+        <Reveal delay={0.15}>
+          <PortfolioGallery 
+            items={portfolioItems} currentLang={currentLang} setLang={setLang} user={user}
+            activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
+            onItemsUpdated={(items: any) => setPortfolioItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+          />
+        </Reveal>
+      </GenericSection>
 
       {/* 5. VIDEOS SECTION */}
-      <section id="videos" className="page-section bg-transparent p-12 md:p-20">
-        <div className="global-container space-y-8">
-          <Reveal><div className="text-center"><h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">PERFORMANCES</h2></div></Reveal>
-          <Reveal delay={0.15}>
-            <VideoPlayer 
-              items={videoItems} currentLang={currentLang} setLang={setLang} user={user}
-              activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-              onItemsUpdated={(items: any) => setVideoItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
-            />
-          </Reveal>
-        </div>
-      </section>
+      <GenericSection id="videos" heading="PERFORMANCES">
+        <Reveal delay={0.15}>
+          <VideoPlayer 
+            items={videoItems} currentLang={currentLang} setLang={setLang} user={user}
+            activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
+            onItemsUpdated={(items: any) => setVideoItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+          />
+        </Reveal>
+      </GenericSection>
 
       {/* 6. SCHEDULE SECTION */}
-      <section id="schedule" className="page-section bg-transparent/5/30 p-12 md:p-20">
-        <div className="global-container space-y-8">
-          <Reveal><div className="text-center"><h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">UPCOMING</h2></div></Reveal>
-          <Reveal delay={0.15}>
-            <ScheduleSection 
-              items={scheduleItems} currentLang={currentLang} setLang={setLang} user={user}
-              activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-              onItemsUpdated={(items: any) => setScheduleItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
-            />
-          </Reveal>
-        </div>
-      </section>
+      <GenericSection id="schedule" heading="UPCOMING">
+        <Reveal delay={0.15}>
+          <ScheduleSection 
+            items={scheduleItems} currentLang={currentLang} setLang={setLang} user={user}
+            activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
+            onItemsUpdated={(items: any) => setScheduleItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+          />
+        </Reveal>
+      </GenericSection>
 
       {/* 7. CONTACT SECTION */}
-      <ContactSection contact={contact} currentLang={currentLang} t={t} />
+      <GenericSection id="contact" heading="INQUIRIES">
+        <ContactSection contact={contact} currentLang={currentLang} t={t} theme={theme} />
+      </GenericSection>
 
       {/* 8. FOOTER */}
       <footer id="main-footer" className="bg-transparent border-t border-black/10 py-12 px-6 text-center text-xs">
@@ -310,10 +286,12 @@ export default function WebsiteContent(props: any) {
               <button onClick={() => setLegalModal({ isOpen: true, type: 'privacy' })} className="hover:text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">Privacy Policy</button>
             </div>
           </div>
-          <button id="admin-lock-btn" onClick={() => setIsAdminOpen(true)} className="justify-self-center md:justify-self-end flex items-center space-x-1.5 hover:text-[var(--color-text)] transition-colors p-2 rounded cursor-pointer" title="Secure Admin Access">
-            <Lock className="w-3.5 h-3.5" />
-            <span className="text-[9px] uppercase tracking-widest">Secure Access</span>
-          </button>
+          {!props.isPreviewMode && (
+            <button id="admin-lock-btn" onClick={() => setIsAdminOpen(true)} className="justify-self-center md:justify-self-end flex items-center space-x-1.5 hover:text-[var(--color-text)] transition-colors p-2 rounded cursor-pointer" title="Secure Admin Access">
+              <Lock className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-widest">Secure Access</span>
+            </button>
+          )}
         </div>
       </footer>
     </div>

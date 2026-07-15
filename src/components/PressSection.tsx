@@ -665,10 +665,10 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                         </div>
                         
                         <blockquote 
-                          className="font-serif italic leading-relaxed tracking-wide w-full mx-auto"
+                          className="font-serif italic leading-[1.8] tracking-normal w-full max-w-4xl mx-auto"
                           style={{
                             color: theme?.text,
-                            fontSize: theme?.pressFontSize ? `clamp(16px, 4vw, ${theme.pressFontSize}px)` : undefined,
+                            fontSize: theme?.pressFontSize ? `clamp(18px, 3.5vw, ${theme.pressFontSize}px)` : undefined,
                             fontWeight: 300
                           }}
                         >
@@ -677,18 +677,18 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       </div>
 
                       {/* Source details and publication */}
-                      <div className="mt-6 md:mt-8 pt-6 border-t max-w-sm mx-auto w-full space-y-1" style={{ borderColor: theme?.text ? `${theme.text}20` : 'rgba(255, 255, 255, 0.05)' }}>
-                        <h4 className="font-serif text-sm md:text-base tracking-widest uppercase font-semibold" style={{ color: theme?.text }}>
+                      <div className="mt-8 md:mt-10 pt-8 border-t max-w-4xl mx-auto w-full space-y-1.5" style={{ borderColor: theme?.text ? `${theme.text}20` : 'rgba(255, 255, 255, 0.05)' }}>
+                        <h4 className="font-sans text-[11px] md:text-xs tracking-[0.2em] uppercase font-semibold" style={{ color: theme?.text ? `${theme.text}90` : undefined }}>
                           {currentItem.source}
                         </h4>
                         
                         {currentItem.author && (
-                          <p className="text-[10px] sm:text-xs font-sans" style={{ color: theme?.text ? `${theme.text}80` : undefined }}>
+                          <p className="text-[10px] sm:text-[11px] font-sans tracking-wide" style={{ color: theme?.text ? `${theme.text}70` : undefined }}>
                             {currentItem.author}
                           </p>
                         )}
                         
-                        <p className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest" style={{ color: theme?.text ? `${theme.text}60` : undefined }}>
+                        <p className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.15em]" style={{ color: theme?.text ? `${theme.text}50` : undefined }}>
                           {new Date(currentItem.date).toLocaleDateString(
                             currentLang === 'KO' ? 'ko-KR' : currentLang === 'DE' ? 'de-DE' : 'en-US', 
                             { year: 'numeric', month: 'long' }
@@ -702,11 +702,11 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                               href={currentItem.link}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center space-x-1 text-xs uppercase tracking-[0.15em] font-sans"
-                              style={{ color: theme?.text }}
+                              className="inline-flex items-center space-x-1 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-sans font-semibold hover:text-[#C9A227]! transition-colors"
+                              style={{ color: theme?.text ? `${theme.text}80` : undefined }}
                             >
                               <span>{t.readArticle}</span>
-                              <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                              <ChevronRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
                             </a>
                           ) : null}
                           {user && (

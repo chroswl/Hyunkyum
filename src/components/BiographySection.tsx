@@ -40,6 +40,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizeProgress, setOptimizeProgress] = useState<number | null>(null);
   const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const showNotification = (text: string, type: 'success' | 'error' = 'success') => {
     setNotification({ text, type });
@@ -172,9 +173,8 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
   ];
 
   return (
-    <section id="biography" className="page-section bg-transparent relative">
-      <div className={`global-container px-6 pt-10 pb-4 ${isEditMode ? '' : 'hidden'}`}></div>
-      <div className={`global-container w-full px-6 md:px-12 space-y-8 md:space-y-10`} style={{ color: 'var(--color-text)' }}>
+    <>
+      <div className="w-full space-y-8 md:space-y-10" style={{ color: 'var(--color-text)' }}>
         {/* Toast Notifications */}
       <AnimatePresence>
         {notification && (
@@ -254,15 +254,10 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
         )}
 
       
-        <Reveal>
-          <div className="text-center">
-            <h2 className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none">
-              BIOGRAPHY
-            </h2>
-          </div>
-        </Reveal>
 
-        <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+
+        <div className="max-w-5xl mx-auto w-full">
+          <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-20 items-start">
           {/* Left: Image */}
           <div id="bio-image-col" className="lg:col-span-5 relative group">
             <Reveal delay={0.15}>
@@ -474,14 +469,17 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <div 
+                    className="relative cursor-pointer w-full h-full overflow-hidden group"
+                    onClick={() => setIsLightboxOpen(true)}
+                  >
                     {(() => {
                       const media = getMediaSource(activeBio.bioImage || "/src/assets/images/hyunkyum_portrait_1783548337837.jpg");
                       if (media.type === 'video') {
                         return (
                           <video 
                             src={media.src} 
-                            className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]"
+                            className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]"
                             muted 
                             loop 
                             autoPlay 
@@ -490,52 +488,30 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                           />
                         );
                       } else if (media.type === 'youtube') {
-                        return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]" frameBorder="0" allowFullScreen />;
+                        return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]" frameBorder="0" allowFullScreen />;
                       } else if (media.type === 'drive') {
-                        return <iframe src={media.src} className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]" frameBorder="0" allowFullScreen />;
+                        return <iframe src={media.src} className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]" frameBorder="0" allowFullScreen />;
                       }
                       return (
                         <img 
                           src={media.src} 
                           alt="Portrait" 
-                          className="w-full h-auto object-cover aspect-[3/4] filter grayscale-[15%] group-hover:grayscale-0 transition-all duration-[800ms] scale-100 group-hover:scale-[1.02] group-hover:blur-[2px]"
+                          className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]"
                           referrerPolicy="no-referrer"
                           onContextMenu={(e) => e.preventDefault()}
                         />
                       );
                     })()}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none transition-opacity duration-700" />
-                    
-                    {/* Premium museum/gallery style dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-[700ms] ease-out flex flex-col justify-end p-6 pointer-events-none group-hover:pointer-events-auto">
-                      {activeBio.photoCredit && (
-                        <div className="text-white/90 text-[11px] font-sans tracking-[0.2em] uppercase transition-all duration-[700ms] transform translate-y-3 group-hover:translate-y-0 ease-out">
-                          {activeBio.photoCreditLink ? (
-                            <a 
-                              href={activeBio.photoCreditLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-[#C9A227] transition-colors inline-flex items-center space-x-1.5 cursor-pointer font-medium"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <span>{activeBio.photoCredit.startsWith('©') ? activeBio.photoCredit : `© ${activeBio.photoCredit}`}</span>
-                            </a>
-                          ) : (
-                            <span className="font-light">{activeBio.photoCredit.startsWith('©') ? activeBio.photoCredit : `© ${activeBio.photoCredit}`}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
             </Reveal>
           </div>
 
           {/* Right: Text & Timeline */}
-          <div id="bio-text-col" className="lg:col-span-7 space-y-8">
+          <div id="bio-text-col" className="lg:col-span-7 space-y-10">
             <Reveal delay={0.25}>
-              <div className="space-y-5 font-sans text-sm md:text-base leading-relaxed font-light">
+              <div className="space-y-6 font-sans text-sm md:text-base leading-relaxed font-light max-w-xl">
                 {isEditMode ? (
                   <div className="space-y-4 border border-[var(--color-text)] p-4 rounded bg-[var(--color-bg)]">
                     <div>
@@ -571,7 +547,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
             </Reveal>
 
             <Reveal delay={0.35}>
-              <div id="timeline-tabs-container" className="space-y-0 pt-4 w-full max-w-full">
+              <div id="timeline-tabs-container" className="space-y-0 pt-4 w-full max-w-xl">
                 <div className="grid grid-cols-2 md:grid-cols-4 border-b border-current/10 relative w-full gap-x-1 sm:gap-x-2 md:gap-x-4 px-1 md:px-0">
                   {timelineTabs.map((tab) => {
                     const isActive = activeTimelineTab === tab.id;
@@ -762,6 +738,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
           </div>
         </div>
       </div>
+    </div>
       {cropTarget && (
         <ImageCropperModal
           imageSrc={cropTarget.src}
@@ -772,6 +749,102 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
           onCropDone={(base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl)}
         />
       )}
-    </section>
+
+      {/* Biography Media Lightbox / Zoom Overlay */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-100 bg-transparent/98 backdrop-blur-md flex items-center justify-center p-4 md:p-8 select-none cursor-zoom-out"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute top-6 right-6 hover:transition-colors p-2 rounded-full border border-[var(--color-text)]/10 bg-[var(--color-text)]/5 hover:bg-[var(--color-text)]/10 transition-all cursor-pointer z-50 text-[var(--color-text)]"
+              aria-label="Close Lightbox"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Media Content Container */}
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', duration: 0.5 }}
+              className="max-w-5xl w-full max-h-[85vh] flex flex-col items-center justify-center relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {(() => {
+                const media = getMediaSource(activeBio.bioImage || "/src/assets/images/hyunkyum_portrait_1783548337837.jpg");
+                if (media.type === 'video') {
+                  return (
+                    <video 
+                      src={media.src} 
+                      className="max-w-full max-h-[75vh] object-contain rounded-sm border border-[var(--color-text)]/10 shadow-2xl cursor-pointer"
+                      muted 
+                      loop 
+                      autoPlay 
+                      playsInline 
+                      onClick={() => setIsLightboxOpen(false)}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  );
+                } else if (media.type === 'youtube') {
+                  return (
+                    <div className="w-[85vw] h-[47.8vw] max-w-[960px] max-h-[540px]" onClick={(e) => e.stopPropagation()}>
+                      <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-full rounded-sm border border-[var(--color-text)]/10 shadow-2xl" frameBorder="0" allowFullScreen />
+                    </div>
+                  );
+                } else if (media.type === 'drive') {
+                  return (
+                    <div className="w-[85vw] h-[113vw] max-w-[500px] max-h-[75vh]" onClick={(e) => e.stopPropagation()}>
+                      <iframe src={media.src} className="w-full h-full rounded-sm border border-[var(--color-text)]/10 shadow-2xl" frameBorder="0" allowFullScreen />
+                    </div>
+                  );
+                }
+                return (
+                  <img 
+                    src={media.src} 
+                    alt="Biography Portrait Zoom" 
+                    className="max-w-full max-h-[75vh] object-contain rounded-sm border border-[var(--color-text)]/10 shadow-2xl cursor-pointer"
+                    referrerPolicy="no-referrer"
+                    onClick={() => setIsLightboxOpen(false)}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                );
+              })()}
+
+              {/* Image Description Block */}
+              <div className="mt-4 text-center max-w-2xl px-4">
+                <span className="text-[10px] tracking-[0.2em] uppercase font-semibold text-[var(--color-text)]/60">
+                  Hyunkyum Kim
+                </span>
+                {activeBio.photoCredit && (
+                  <div className="mt-2 text-[11px] font-sans tracking-[0.15em] uppercase text-[var(--color-text)]/70">
+                    {activeBio.photoCreditLink ? (
+                      <a 
+                        href={activeBio.photoCreditLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="hover:text-[#C9A227] transition-colors font-medium" 
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {activeBio.photoCredit.startsWith('©') ? activeBio.photoCredit : `© ${activeBio.photoCredit}`}
+                      </a>
+                    ) : (
+                      <span>{activeBio.photoCredit.startsWith('©') ? activeBio.photoCredit : `© ${activeBio.photoCredit}`}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

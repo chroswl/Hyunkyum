@@ -65,6 +65,7 @@ export default function AdminPanel(props: AdminPanelProps) {
   } = props;
   
   const [activeTab, setActiveTab] = useState<AdminTab>('theme');
+  const [isPropertyPanelOpen, setIsPropertyPanelOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
@@ -83,6 +84,7 @@ export default function AdminPanel(props: AdminPanelProps) {
     setActiveTab(tab);
     sessionStorage.setItem('adminActiveTab', tab);
     setSelectedBlock(null);
+    setIsPropertyPanelOpen(true);
     
     // Auto-scroll the preview iframe to the corresponding section
     const sectionMap: Record<string, string> = {
@@ -114,6 +116,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       sessionStorage.setItem('adminActiveTab', tabId);
     }
     setSelectedBlock(blockId);
+    setIsPropertyPanelOpen(true);
   };
 
   const tabs = [
@@ -153,6 +156,13 @@ export default function AdminPanel(props: AdminPanelProps) {
             <div className="w-64 bg-[#111] border-r border-neutral-900 flex flex-col h-full shrink-0">
               <div className="p-6 border-b border-neutral-900 flex justify-between items-center">
                 <h2 className="text-sm font-serif tracking-widest text-[#C9A227] uppercase">Control Center</h2>
+                <button 
+                  onClick={onClose} 
+                  className="p-1.5 hover:bg-white/5 hover:text-white text-neutral-400 rounded-full transition-colors cursor-pointer"
+                  title="Exit Control Center"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
               
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -190,22 +200,29 @@ export default function AdminPanel(props: AdminPanelProps) {
             </div>
 
             {/* 2. Middle Panel (Properties) */}
-            <div className="w-[340px] xl:w-[380px] bg-[#111] border-r border-neutral-900 flex flex-col shrink-0 h-full">
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full">
-                {/* Dynamically render properties based on activeTab */}
-                {activeTab === 'theme' && <AdminTheme currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={onClose} />}
-                {/* For now we render the existing full components, but we will strip them down */}
-                {activeTab === 'dashboard' && <AdminDashboard currentLang={currentLang} setLang={setLang} scheduleItems={scheduleItems} portfolioItems={portfolioItems} onNavigate={handleTabChange} onClose={onClose} />}
-                {activeTab === 'hero' && <AdminHero currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'slides' && <AdminSlides currentLang={currentLang} theme={theme} setTheme={setTheme} slides={props.slides} setSlides={props.setSlides} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'biography' && <AdminBiography currentLang={currentLang} bio={props.bio} setBio={props.setBio} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'portfolio' && <AdminPortfolio currentLang={currentLang} portfolioItems={portfolioItems} setPortfolioItems={props.setPortfolioItems} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'videos' && <AdminVideos currentLang={currentLang} videoItems={props.videoItems} setVideoItems={props.setVideoItems} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'press' && <AdminPress currentLang={currentLang} pressItems={props.pressItems} setPressItems={props.setPressItems} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'schedule' && <AdminSchedule currentLang={currentLang} scheduleItems={scheduleItems} setScheduleItems={props.setScheduleItems} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'contact' && <AdminContact currentLang={currentLang} contact={props.contact} setContact={props.setContact} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'footer' && <AdminFooter currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={onClose} />}
-                {activeTab === 'settings' && <AdminSettings currentLang={currentLang} onClose={onClose} />}
+            <div 
+              className={`bg-[#111] flex flex-col shrink-0 h-full overflow-hidden transition-all duration-[280ms] ease-in-out ${
+                isPropertyPanelOpen 
+                  ? 'w-[340px] xl:w-[380px] opacity-100 border-r border-neutral-900' 
+                  : 'w-0 opacity-0 pointer-events-none border-r-0'
+              }`}
+            >
+              <div className="w-[340px] xl:w-[380px] h-full flex flex-col">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full">
+                  {/* Dynamically render properties based on activeTab */}
+                  {activeTab === 'theme' && <AdminTheme currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'dashboard' && <AdminDashboard currentLang={currentLang} setLang={setLang} scheduleItems={scheduleItems} portfolioItems={portfolioItems} onNavigate={handleTabChange} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'hero' && <AdminHero currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'slides' && <AdminSlides currentLang={currentLang} theme={theme} setTheme={setTheme} slides={props.slides} setSlides={props.setSlides} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'biography' && <AdminBiography currentLang={currentLang} bio={props.bio} setBio={props.setBio} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'portfolio' && <AdminPortfolio currentLang={currentLang} portfolioItems={portfolioItems} setPortfolioItems={props.setPortfolioItems} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'videos' && <AdminVideos currentLang={currentLang} videoItems={props.videoItems} setVideoItems={props.setVideoItems} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'press' && <AdminPress currentLang={currentLang} pressItems={props.pressItems} setPressItems={props.setPressItems} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'schedule' && <AdminSchedule currentLang={currentLang} scheduleItems={scheduleItems} setScheduleItems={props.setScheduleItems} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'contact' && <AdminContact currentLang={currentLang} contact={props.contact} setContact={props.setContact} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'footer' && <AdminFooter currentLang={currentLang} theme={theme} setTheme={setTheme} initialTheme={props.initialThemeRef.current} onRefreshData={refreshData} onClose={() => setIsPropertyPanelOpen(false)} />}
+                  {activeTab === 'settings' && <AdminSettings currentLang={currentLang} onClose={() => setIsPropertyPanelOpen(false)} />}
+                </div>
               </div>
             </div>
 
@@ -228,7 +245,9 @@ export default function AdminPanel(props: AdminPanelProps) {
                       <div className="relative min-h-screen">
                         <WebsiteContent 
                           {...props} 
-                          adminMode={true} 
+                          user={null}
+                          adminMode={false} 
+                          isPreviewMode={true}
                           selectedBlock={selectedBlock} 
                           onBlockSelect={handleBlockSelect} 
                         />

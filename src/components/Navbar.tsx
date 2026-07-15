@@ -23,6 +23,11 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const t = translations[currentLang];
 
+  const navRef = React.useRef<HTMLElement>(null);
+
+  const getDoc = () => navRef.current?.ownerDocument || document;
+  const getWin = () => navRef.current?.ownerDocument?.defaultView || window;
+
   const menuItems = React.useMemo(() => {
     if (currentLang === 'KO') {
       return [
@@ -58,20 +63,23 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
   const clickScrollTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const currentWin = getWin();
+    const currentDoc = getDoc();
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(currentWin.scrollY > 50);
 
       if (clickScrollInProgress.current) return;
 
-      const navEl = document.getElementById('navbar-root');
+      const navEl = currentDoc.getElementById('navbar-root');
       const navHeight = navEl ? navEl.offsetHeight : (theme?.spacingNavHeight ?? 80);
       
-      const rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+      const rootFontSize = parseFloat(currentWin.getComputedStyle(currentDoc.documentElement).fontSize) || 16;
       const textScale = (theme?.websiteTextSize ?? 100) / 100;
       const currentTextSize = rootFontSize * textScale;
 
       // Check if we are at the very bottom of the page
-      const isBottom = window.innerHeight + Math.round(window.scrollY) >= document.documentElement.scrollHeight - 100;
+      const isBottom = currentWin.innerHeight + Math.round(currentWin.scrollY) >= currentDoc.documentElement.scrollHeight - 100;
       if (isBottom) {
         setActiveSection(menuItems[menuItems.length - 1].id);
         return;
@@ -82,14 +90,14 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
         const item = menuItems[i];
         if (item.id === 'home') continue;
 
-        const el = document.getElementById(item.id);
+        const el = currentDoc.getElementById(item.id);
         if (el) {
           const h2El = el.querySelector('h2');
           let threshold = 0;
 
           if (h2El) {
             const h2Rect = h2El.getBoundingClientRect();
-            const h2Top = h2Rect.top + window.scrollY;
+            const h2Top = h2Rect.top + currentWin.scrollY;
 
             let safeLandingPadding = currentTextSize * 2.5;
             if (item.id === 'biography') {
@@ -112,7 +120,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
             threshold = el.offsetTop - navHeight - 120;
           }
 
-          if (window.scrollY >= threshold) {
+          if (currentWin.scrollY >= threshold) {
             current = item.id;
             break;
           }
@@ -121,9 +129,9 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
       setActiveSection(current);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [menuItems, theme]);
+    currentWin.addEventListener('scroll', handleScroll);
+    return () => currentWin.removeEventListener('scroll', handleScroll);
+  }, [menuItems, theme, navRef.current]);
 
   const scrollTo = (id: string) => {
     setActiveSection(id);
@@ -143,7 +151,9 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
       if (scrollToSection) {
         scrollToSection(id);
       } else {
-        const element = document.getElementById(id);
+        const currentDoc = getDoc();
+        const currentWin = getWin();
+        const element = currentDoc.getElementById(id);
         if (element) {
           const navHeight = theme?.spacingNavHeight ?? 80;
           let offset = navHeight + 48; // Base offset to clear navbar + elegant extra gap
@@ -152,9 +162,9 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
           }
           
           const rect = element.getBoundingClientRect();
-          const offsetPosition = rect.top + window.scrollY - offset;
+          const offsetPosition = rect.top + currentWin.scrollY - offset;
 
-          window.scrollTo({
+          currentWin.scrollTo({
             top: offsetPosition,
             behavior: 'smooth'
           });
@@ -165,6 +175,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
 
   return (
     <nav 
+      ref={navRef}
       id="navbar-root"
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b ${
         isScrolled 

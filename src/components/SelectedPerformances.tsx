@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ArrowRight, Edit3, Plus, Trash2, X, Save, GripVertical, Check, Image as ImageIcon } from 'lucide-react';
-import { Language, PerformanceSlide } from '../types';
+import { Language, PerformanceSlide, ThemeSettings } from '../types';
 import { fetchSelectedPerformances, saveSelectedPerformance, deleteSelectedPerformance, db, storage } from '../firebase';
 import { getMediaSource } from '../lib/mediaUtils';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -29,6 +29,7 @@ import {
 import { SortableItem } from './SortableItem';
 
 interface SelectedPerformancesProps {
+  key?: string;
   currentLang: Language;
   setLang: (lang: Language) => void;
   slides?: PerformanceSlide[];
