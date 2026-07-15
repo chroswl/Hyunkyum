@@ -3,12 +3,6 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-- **Premium Monogram Logo & Favicons**:
-  - Designed an original, minimalist luxury "HK" monogram logo using thin geometric lines, perfectly centered mathematically on both X and Y axes.
-  - Implemented responsive styling inside `favicon.svg` using `@media (prefers-color-scheme)` to automatically adapt the monogram's stroke color to light and dark browser tabs.
-  - Programmatically generated high-resolution assets (`favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, and `android-chrome-512x512.png`) using `sharp` to guarantee pixel-perfect rendering across iOS, Android, and desktop.
-  - Constructed a compliant `favicon.ico` enclosing a crisp 32x32 transparent version using custom raw binary ICO stream headers.
-  - Integrated `site.webmanifest` and updated the HTML `<head>` block with standard, modern multi-device linkage.
 - **SEO Optimization**:
   - Configured comprehensive search engine optimization meta tags in `index.html`.
   - Added JSON-LD structured data defining `Hyunkyum Kim` as a `Person` schema.
@@ -138,3 +132,20 @@ All notable changes to this project will be documented in this file.
 - Fix React state-update-during-render error inside AdminTheme/AdminHero panels by refactoring custom event dispatch logic outside of state updater functions.
 - Add a dedicated, real-time "Theme (테마)" content editor panel inside the Admin Control Center for controlling global and section-specific colors (Background, Text, Accent, Contact Form BG, and sectional text color overrides).
 - Fix Google Drive authentication issue in GoogleDrivePicker component.
+- **Refactored Layout System into Independent Layers**:
+  - Successfully refactored the layout system into two independent layers to eliminate redundancy and simplify the architectural foundation.
+  - Locked the production-sensitive Navbar, Hero, and Footer components so they no longer respond to theme-specific content width settings.
+  - Created a unified "Content Width Engine" for all public-facing sections (Biography, Press, Gallery, Videos, Schedule, Contact), ensuring they all inherit a single shared container and eliminating duplicated width-wrapper logic.
+  - Updated the global layout configuration to set a fixed default desktop content width of 1536px, and updated the Admin Theme content-width slider range to accurately match the usable design range (320px–1536px).
+- **Refactored Hero Content Editor panel**:
+  - Simplified Admin UI by removing individual X/Y offsets for Title, Subtitle, Description, and Button.
+  - Replaced individual offsets with a unified **Content Position** control to move the entire Hero block harmoniously.
+  - Added new **Button Font Size** control (Desktop only).
+  - Implemented responsive typography rules for the **Main Title**: Desktop honors Admin value, Tablet uses 52px, Mobile uses 36px.
+- **Fixed Hero Title & Button Responsive Constraints**:
+  - Implemented dynamic CSS `min()` calculations (`min(var(--hero-title-size), 36px)`) for Mobile and Tablet breakpoints.
+  - This preserves the upper limit (braking it from growing too large) while allowing the title and button to shrink freely if the Admin sets a smaller size.
+- **Typography Responsive Limits**:
+  - Implemented constraints for Hero Subtitle and Description to not exceed 20px on Mobile/Tablet (`min(..., 20px)`).
+  - Implemented constraints for Hero Button Text to not exceed 15px on Mobile/Tablet (`min(..., 15px)`).
+  - Implemented constraints for Hero Button Text to not fall below 15px on Desktop (`max(..., 15px)`).

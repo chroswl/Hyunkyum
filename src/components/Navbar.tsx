@@ -240,18 +240,6 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
               </button>
             ))}
           </div>
-
-          {/* Admin Indicator */}
-          {user && (
-            <button
-              id="nav-admin-indicator"
-              onClick={onAdminToggle}
-              className="flex items-center space-x-1.5 px-3 py-1 border border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] tracking-widest transition-all uppercase"
-            >
-              <ShieldCheck className="w-3 h-3" />
-              <span>Admin</span>
-            </button>
-          )}
         </div>
 
         {/* Mobile menu toggle & lang toggle */}
@@ -355,20 +343,6 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
                   ))}
                 </div>
               </div>
-
-              {user && (
-                <button
-                  id="mobile-nav-admin-toggle"
-                  onClick={() => {
-                    setIsOpen(false);
-                    onAdminToggle();
-                  }}
-                  className="w-full text-center py-2 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400 text-xs tracking-widest uppercase flex items-center justify-center space-x-2"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>{t.navAdmin}</span>
-                </button>
-              )}
             </div>
           </motion.div>
         )}

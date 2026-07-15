@@ -240,22 +240,45 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                   ))}
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex justify-between text-[10px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">
-                  <span>Global Y-Offset</span>
+              {/* Content Position */}
+              <div className="pt-3 border-t border-neutral-900/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[#C9A227] font-sans uppercase tracking-widest font-semibold">Content Position</span>
+                  <span 
+                    onClick={() => setTheme(prev => ({ ...prev, heroContentOffsetX: 0, heroContentOffsetY: 0, heroOffsetY: 0 }))}
+                    className="text-[9px] text-[#C9A227] hover:underline uppercase tracking-wider cursor-pointer font-semibold"
+                  >
+                    Reset All
+                  </span>
                 </div>
-                <div className="flex items-center space-x-1.5">
+                <div className="grid grid-cols-[55px_1fr_45px] gap-2 items-center">
+                  <span className="text-[9px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">X-Offset</span>
                   <input 
                     type="range" min="-300" max="300" 
-                    value={theme.heroOffsetY ?? 0} 
-                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) ?? 0 }))} 
-                    className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer" 
+                    value={theme.heroContentOffsetX ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroContentOffsetX: parseInt(e.target.value) ?? 0 }))} 
+                    className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer"
                   />
                   <input 
                     type="number"
-                    value={theme.heroOffsetY ?? 0} 
-                    onChange={(e) => setTheme(prev => ({ ...prev, heroOffsetY: parseInt(e.target.value) ?? 0 }))} 
-                    className="w-12 bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1.5 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-6"
+                    value={theme.heroContentOffsetX ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroContentOffsetX: parseInt(e.target.value) ?? 0 }))} 
+                    className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
+                  />
+                </div>
+                <div className="grid grid-cols-[55px_1fr_45px] gap-2 items-center">
+                  <span className="text-[9px] text-neutral-400 font-sans uppercase tracking-widest font-semibold">Y-Offset</span>
+                  <input 
+                    type="range" min="-300" max="300" 
+                    value={theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroContentOffsetY: parseInt(e.target.value) ?? 0 }))} 
+                    className="w-full accent-[var(--color-text)] bg-neutral-900 h-1 rounded-sm appearance-none cursor-pointer"
+                  />
+                  <input 
+                    type="number"
+                    value={theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0} 
+                    onChange={(e) => setTheme(prev => ({ ...prev, heroContentOffsetY: parseInt(e.target.value) ?? 0 }))} 
+                    className="w-full bg-neutral-900 border border-neutral-800 text-white text-[10px] px-1 py-0.5 rounded text-center focus:outline-none focus:border-[#C9A227] font-mono h-5"
                   />
                 </div>
               </div>
@@ -265,10 +288,10 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
 
             <div className="space-y-2 pt-3 border-t border-neutral-900">
               {[
-                { id: 'Subtitle', keySize: 'heroSubtitleSize', keyX: 'heroSubtitleOffsetX', keyY: 'heroSubtitleOffsetY', defaultSize: 14, label: 'Subtitle (소제목)' },
-                { id: 'Title', keySize: 'heroTitleSize', keyX: 'heroTitleOffsetX', keyY: 'heroTitleOffsetY', defaultSize: 64, label: 'Main Title (대제목)' },
-                { id: 'Desc', keySize: 'heroDescSize', keyX: 'heroDescOffsetX', keyY: 'heroDescOffsetY', defaultSize: 16, label: 'Description (설명)' },
-                { id: 'Button', keySize: 'heroButtonSize', keyX: 'heroButtonOffsetX', keyY: 'heroButtonOffsetY', defaultSize: 12, label: 'Button (버튼)' },
+                { id: 'Subtitle', keySize: 'heroSubtitleSize', defaultSize: 14, label: 'Subtitle (소제목)' },
+                { id: 'Title', keySize: 'heroTitleSize', defaultSize: 64, label: 'Main Title (대제목)' },
+                { id: 'Desc', keySize: 'heroDescSize', defaultSize: 16, label: 'Description (설명)' },
+                { id: 'Button', keySize: 'heroButtonSize', defaultSize: 11, label: 'Button (버튼)' },
               ].map(elem => (
                 <div key={elem.id} className="border border-neutral-800/80 rounded bg-neutral-950/40 overflow-hidden">
                   <button
@@ -283,8 +306,7 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
                           setTheme(prev => ({ 
                             ...prev, 
                             [elem.keySize]: elem.defaultSize,
-                            [elem.keyX]: 0,
-                            [elem.keyY]: 0
+                            
                           }));
                         }}
                         className="text-[9px] text-[#C9A227] hover:underline uppercase tracking-wider cursor-pointer font-semibold"

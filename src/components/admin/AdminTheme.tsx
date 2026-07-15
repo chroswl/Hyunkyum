@@ -70,7 +70,7 @@ export default function AdminTheme({
         newTheme.bg = '#FDFCF0';
         newTheme.text = '#1A1A1A';
         newTheme.colorHeroSlideText = '#1A1A1A';
-        newTheme.spacingContentWidth = 1000;
+        newTheme.spacingContentWidth = 1067;
         newTheme.spacingSection = 120;
         newTheme.spacingNavHeight = 90;
         newTheme.spacingNavGap = 40;
@@ -80,7 +80,7 @@ export default function AdminTheme({
         newTheme.bg = '#000000';
         newTheme.text = '#FFFFFF';
         newTheme.colorHeroSlideText = '#FFFFFF';
-        newTheme.spacingContentWidth = 1280;
+        newTheme.spacingContentWidth = 1365;
         newTheme.spacingSection = 96;
         newTheme.spacingNavHeight = 80;
         newTheme.spacingNavGap = 32;
@@ -90,7 +90,7 @@ export default function AdminTheme({
         newTheme.bg = '#111111';
         newTheme.text = '#00FF00';
         newTheme.colorHeroSlideText = '#00FF00';
-        newTheme.spacingContentWidth = 1440;
+        newTheme.spacingContentWidth = 1536;
         newTheme.spacingSection = 64;
         newTheme.spacingNavHeight = 64;
         newTheme.spacingNavGap = 24;
@@ -172,8 +172,8 @@ export default function AdminTheme({
         <div className="space-y-4">
           <PropertySlider
             label="Content Width"
-            value={theme.spacingContentWidth ?? 1280}
-            min={320} max={2560} step={10}
+            value={theme.spacingContentWidth ?? 1536}
+            min={320} max={1536} step={10}
             onChange={(v) => updateField('spacingContentWidth', v)}
             unit="px"
           />

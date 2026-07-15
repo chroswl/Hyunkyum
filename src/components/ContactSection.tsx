@@ -19,7 +19,7 @@ export default function ContactSection({
 }: ContactSectionProps) {
   return (
     <div className="w-full space-y-8 md:space-y-10">
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="mx-auto w-full">
         <div id="contact-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-20 items-start">
           
           {/* Left Col: Contact Info details (5 cols) */}
@@ -80,7 +80,7 @@ export default function ContactSection({
           </div>
 
           {/* Right Col: Contact Form (7 cols) */}
-          <div id="contact-form-col" className="lg:col-span-7 max-w-2xl">
+          <div id="contact-form-col" className="lg:col-span-7 w-full">
             <Reveal delay={0.25}>
               <ContactForm currentLang={currentLang} theme={theme} />
             </Reveal>

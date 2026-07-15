@@ -111,6 +111,8 @@ export interface ThemeSettings {
   heroTitleSize?: number;
   heroDescSize?: number;
   heroSubtitleSize?: number;
+  heroContentOffsetX?: number;
+  heroContentOffsetY?: number;
   heroButtonSize?: number;
 
   heroSubtitleOffsetX?: number;

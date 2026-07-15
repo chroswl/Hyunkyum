@@ -90,7 +90,7 @@ export default function WebsiteContent(props: any) {
           --color-hero-slide-text: ${theme?.colorHeroSlideText || theme?.text || '#ffffff'};
           
           /* Spacing Customization */
-          --content-max-width: ${theme?.spacingContentWidth ?? 1440}px;
+          --content-max-width: ${theme?.spacingContentWidth ?? 1536}px;
           --section-spacing: ${theme?.spacingSection ?? 96}px;
           --nav-height: ${theme?.spacingNavHeight ?? 80}px;
           --nav-gap: ${theme?.spacingNavGap ?? 32}px;
@@ -144,6 +144,13 @@ export default function WebsiteContent(props: any) {
           height: auto !important;
         }
         #navbar-root .text-\\[10px\\] { font-size: calc(10px * var(--nav-scale)) !important; }
+
+        @media (max-width: 767px) {
+          #navbar-root {
+            --nav-scale: 1.04 !important;
+          }
+        }
+
         #desktop-menu-links {
           gap: var(--nav-gap) !important;
         }
@@ -286,12 +293,6 @@ export default function WebsiteContent(props: any) {
               <button onClick={() => setLegalModal({ isOpen: true, type: 'privacy' })} className="hover:text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">Privacy Policy</button>
             </div>
           </div>
-          {!props.isPreviewMode && (
-            <button id="admin-lock-btn" onClick={() => setIsAdminOpen(true)} className="justify-self-center md:justify-self-end flex items-center space-x-1.5 hover:text-[var(--color-text)] transition-colors p-2 rounded cursor-pointer" title="Secure Admin Access">
-              <Lock className="w-3.5 h-3.5" />
-              <span className="text-[9px] uppercase tracking-widest">Secure Access</span>
-            </button>
-          )}
         </div>
       </footer>
     </div>

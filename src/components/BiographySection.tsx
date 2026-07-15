@@ -256,7 +256,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
       
 
 
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="mx-auto w-full">
           <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-20 items-start">
           {/* Left: Image */}
           <div id="bio-image-col" className="lg:col-span-5 relative group">

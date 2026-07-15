@@ -90,6 +90,12 @@ export default function App() {
  const [user, setUser] = useState<User | null>(null);
  const [isAdminOpen, setIsAdminOpen] = useState(false);
  
+ useEffect(() => {
+   if (window.location.pathname === "/admin") {
+     setIsAdminOpen(true);
+   }
+ }, []);
+
  const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(false);
  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'impressum' | 'privacy' }>({ isOpen: false, type: 'impressum' });

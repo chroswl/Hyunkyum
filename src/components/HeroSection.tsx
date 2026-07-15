@@ -156,18 +156,17 @@ export default function HeroSection({
           theme.heroAlign === 'right' ? 'text-right items-end ml-auto' :
           'text-center items-center mx-auto'
         }`}
-        style={{ transform: `translateY(${theme.heroOffsetY ?? 0}px)` }}
+        style={{ transform: `translate(${theme.heroContentOffsetX ?? 0}px, ${theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0}px)`, '--hero-title-size': theme.heroTitleSize ? `${theme.heroTitleSize}px` : '64px', '--hero-btn-size': theme.heroButtonSize ? `${theme.heroButtonSize}px` : '11px', '--hero-subtitle-size': theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined, '--hero-desc-size': theme.heroDescSize ? `${theme.heroDescSize}px` : undefined } as React.CSSProperties}
       >
         <EditableBlock
           id="hero-subtitle" adminMode={adminMode} selectedBlock={selectedBlock}
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
         >
           <motion.div
-            initial={{ opacity: 0, y: 15 + (theme.heroSubtitleOffsetY ?? 0), x: theme.heroSubtitleOffsetX ?? 0 }}
-            animate={{ opacity: 1, y: theme.heroSubtitleOffsetY ?? 0, x: theme.heroSubtitleOffsetX ?? 0 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className={`font-sans text-xs md:text-sm tracking-[0.4em] uppercase font-semibold`}
-            style={{ fontSize: theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined }}
+            className={`font-sans text-[length:min(var(--hero-subtitle-size,12px),20px)] lg:text-[length:var(--hero-subtitle-size,14px)] tracking-[0.4em] uppercase font-semibold`}
           >
             {getHeroSubtitle()}
           </motion.div>
@@ -178,11 +177,11 @@ export default function HeroSection({
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: theme.heroTitleOffsetY ?? 0, x: theme.heroTitleOffsetX ?? 0 }}
-            animate={{ opacity: 1, scale: 1, y: theme.heroTitleOffsetY ?? 0, x: theme.heroTitleOffsetX ?? 0 }}
+            initial={{ opacity: 0, scale: 0.98, y: 0 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.2 }}
-            className={`text-4xl sm:text-6xl md:text-8xl font-serif font-light tracking-[0.1em] uppercase leading-none`}
-            style={{ fontSize: theme.heroTitleSize ? `${theme.heroTitleSize}px` : undefined }}
+            className={`text-[length:min(var(--hero-title-size,64px),36px)] md:text-[length:min(var(--hero-title-size,64px),52px)] lg:text-[length:var(--hero-title-size,64px)] font-serif font-light tracking-[0.1em] uppercase leading-none`}
+            
           >
             {getHeroTitle()}
           </motion.div>
@@ -193,12 +192,12 @@ export default function HeroSection({
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
         >
           <motion.div
-            initial={{ opacity: 0, y: 15 + (theme.heroDescOffsetY ?? 0), x: theme.heroDescOffsetX ?? 0 }}
-            animate={{ opacity: 1, y: theme.heroDescOffsetY ?? 0, x: theme.heroDescOffsetX ?? 0 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className={`font-sans text-xs sm:text-sm md:text-base tracking-[0.2em] font-light max-w-xl uppercase pt-6`}
+            className={`font-sans text-[length:min(var(--hero-desc-size,16px),20px)] lg:text-[length:var(--hero-desc-size,16px)] tracking-[0.2em] font-light max-w-xl uppercase pt-6`}
             style={{ 
-              fontSize: theme.heroDescSize ? `${theme.heroDescSize}px` : undefined,
+
               marginLeft: theme.heroAlign === 'right' ? 'auto' : theme.heroAlign === 'left' ? '0' : 'auto',
               marginRight: theme.heroAlign === 'left' ? 'auto' : theme.heroAlign === 'right' ? '0' : 'auto'
             }}
@@ -212,16 +211,16 @@ export default function HeroSection({
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
         >
           <motion.div
-            initial={{ opacity: 0, y: 20 + (theme.heroButtonOffsetY ?? 0), x: theme.heroButtonOffsetX ?? 0 }}
-            animate={{ opacity: 1, y: theme.heroButtonOffsetY ?? 0, x: theme.heroButtonOffsetX ?? 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.6 }}
             className={`pt-8`}
           >
             <button
               id="discover-button"
               onClick={() => scrollToSection('biography')}
-              className="group px-8 py-3.5 border border-white/20 font-sans text-xs tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
-              style={{ fontSize: theme.heroButtonSize ? `${theme.heroButtonSize}px` : undefined, color: theme.text || "#ffffff" }}
+              className="group px-8 py-3.5 border border-white/20 font-sans text-[length:min(var(--hero-btn-size,11px),15px)] lg:text-[length:max(var(--hero-btn-size,11px),15px)] tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
+              style={{ color: theme.text || "#ffffff" }}
             >
               <span>{getHeroDiscover()}</span>
               <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:translate-y-1 text-current" />

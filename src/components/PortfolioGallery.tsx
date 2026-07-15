@@ -796,7 +796,7 @@ export default function PortfolioGallery({
               layout 
               className={`grid gap-2 sm:gap-4 md:gap-6 pb-6 pt-1 w-full ${
                 activeCategory === null 
-                  ? 'grid-cols-3 max-w-4xl mx-auto' 
+                  ? 'grid-cols-3' 
                   : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
               }`}
             >
