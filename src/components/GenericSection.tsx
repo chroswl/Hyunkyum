@@ -24,7 +24,7 @@ export default function GenericSection({ id, heading, children }: GenericSection
       />
       
       {/* 3. Heading */}
-      <div className="text-center mb-12 md:mb-16 lg:mb-20 w-full px-8 sm:px-16 md:px-24 lg:px-32 xl:px-44">
+      <div className="text-center mb-12 md:mb-16 lg:mb-20 w-full px-6 sm:px-12 md:px-16 lg:px-20 xl:px-24">
         <Reveal>
           <h2 
             className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none" 
@@ -36,7 +36,7 @@ export default function GenericSection({ id, heading, children }: GenericSection
       </div>
       
       {/* 4. Content */}
-      <div className="w-full px-8 sm:px-16 md:px-24 lg:px-32 xl:px-44 max-w-[var(--content-max-width)] mx-auto">
+      <div className="w-full px-6 sm:px-12 md:px-16 lg:px-20 xl:px-24 max-w-[var(--content-max-width)] mx-auto">
         {children}
       </div>
       

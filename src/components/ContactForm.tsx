@@ -20,8 +20,8 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
 
   const t = translations[currentLang];
 
-  // 문의 내용을 이메일(barikyum@icloud.com)로 직접 전송하기 위한 FormSubmit AJAX 엔드포인트입니다.
-  const FORM_ENDPOINT = "https://formsubmit.co/ajax/barikyum@icloud.com"; 
+  // 문의 내용을 이메일(contact@hyunkyumkim.com)로 직접 전송하기 위한 FormSubmit AJAX 엔드포인트입니다.
+  const FORM_ENDPOINT = "https://formsubmit.co/ajax/contact@hyunkyumkim.com"; 
 
   const validationMessages = {
     EN: {
@@ -109,22 +109,48 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
 
       // 2. 이메일 전송 실행 (FormSubmit 서비스 이용)
       if (FORM_ENDPOINT) {
-        const response = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            message: message,
-            _subject: `[Hyunkyum Kim Website] New Inquiry from ${name}`
-          })
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        if (!response.ok) {
-          throw new Error('Email submission failed');
+        try {
+          const response = await fetch(FORM_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              name: name,
+              email: email,
+              message: message,
+              _subject: `[Hyunkyum Kim Website] New Inquiry from ${name}`
+            }),
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            let errorText = '';
+            try {
+              errorText = await response.text();
+            } catch (e) {
+              errorText = 'Could not read response body';
+            }
+            console.error(`FormSubmit error: Status ${response.status} - ${errorText}`);
+            throw new Error('Email submission failed');
+          }
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+          if (fetchError.name === 'AbortError') {
+            console.error('FormSubmit error: Request timed out after 10 seconds.');
+            console.error('Root Cause Analysis: This usually happens for one of two reasons:');
+            console.error('1. Unverified Email: FormSubmit requires you to verify a new email address. It may hang or fail until you click the activation link sent to contact@hyunkyumkim.com.');
+            console.error('2. Blocked Request: Ad-blockers, brave browser shields, or preview environment proxies might be blocking the request to formsubmit.co.');
+          } else {
+            console.error('FormSubmit error:', fetchError);
+          }
+          throw fetchError;
         }
       }
 

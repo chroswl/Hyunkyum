@@ -133,7 +133,7 @@ export default function App() {
  bioLong: { EN: '', DE: '', KO: '' }
  });
  const [contact, setContact] = useState<ContactSettings>({
- email: 'info@hyunkyumbaritone.de',
+ email: 'contact@hyunkyumkim.com',
  phone: '+49 (0) 30 1234 5678',
  management: 'Aura Classical Artists Management GmbH, Berlin'
  });

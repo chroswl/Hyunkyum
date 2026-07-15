@@ -90,7 +90,7 @@ export default function WebsiteContent(props: any) {
           --color-hero-slide-text: ${theme?.colorHeroSlideText || theme?.text || '#ffffff'};
           
           /* Spacing Customization */
-          --content-max-width: ${theme?.spacingContentWidth ?? 1280}px;
+          --content-max-width: ${theme?.spacingContentWidth ?? 1440}px;
           --section-spacing: ${theme?.spacingSection ?? 96}px;
           --nav-height: ${theme?.spacingNavHeight ?? 80}px;
           --nav-gap: ${theme?.spacingNavGap ?? 32}px;

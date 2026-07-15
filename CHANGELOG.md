@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Fixed Cross-Origin Frame Error in LayoutSync**:
+  - Wrapped `window.parent` layout event dispatches in a `try...catch` block to elegantly suppress SecurityErrors caused by cross-origin iframe security policies when previewing the application in sandbox environments.
+- **Updated Global Contact Email Address**:
+  - Replaced all hardcoded fallback occurrences and configuration references of the old email (`barikyum@icloud.com` and `info@hyunkyumbaritone.de`) with the new centralized email `contact@hyunkyumkim.com`.
+  - Updated the FormSubmit AJAX endpoint inside the ContactForm component to securely route all public inquiries directly to the new `contact@hyunkyumkim.com` inbox.
+  - Ensured that all localized translation placeholders (English, German, Korean) now display the new email address across the contact forms.
+- **Upgraded Layout Synchronization System to a Layout Measurement System**:
+  - Expanded the `LayoutSync` system to become the single source of truth for dynamic layout measurements.
+  - Implemented a generic `LayoutMetrics` store that tracks viewport dimensions, navigation height, responsive breakpoint states, and layout bounding rectangles, along with sticky element positions.
+  - Generically measures anchor points and layout segments via standard attribute selectors (`[data-section-id]`, `[data-anchor]`, `section[id]`) instead of hardcoded logic, preserving the core principles of architectural future-proofing.
+  - Maintained complete visual compatibility without making any changes to the design, layout logic, rendering components, or existing browser reflow strategies.
+- **Introduced Layout Synchronization System**:
+  - Engineered a new internal `LayoutSync` system utility designed to cleanly recalculate and synchronize the layout engine following content changes in the CMS, fully adhering to the strict visual rules and without altering any underlying CSS values.
+  - Deployed an elegant `<AnimatePresence>` visual feedback overlay within the universal `AdminLayout` wrapper, which cascades to all CMS tabs (Biography, Gallery, Press, Schedule, Contact, etc.). It displays a multi-step confirmation toast (Saving Content -> Synchronizing Layout -> Navigation Updated -> Landing Updated -> Layout Synchronized).
+  - Wired the automated `LayoutSync` process to automatically trigger immediately after a successful save action in any CMS editor section.
+  - Added a manual "Recalculate Layout" execution button with real-time feedback status into the System Settings dashboard panel for manual intervention.
+  - Configured the system to meticulously trigger document reflows, `ResizeObserver` responses, and iframe `window.scroll`/`window.resize` dispatches to guarantee sticky navigation offsets and landing anchors are perfectly updated without requiring a page refresh.
+- **Refinement of Visual Spacing Between Gallery and Performances**:
+  - Rolled back the viewport-aligned min-height (`min-h-[calc(100vh-var(--navbar-height,80px))]`) spacing experiment on the `PortfolioGallery` root element.
+  - Slipped the Archive/Gallery section content container height down to its natural height, incorporating a standard internal padding bottom (`pb-4`) class to slightly reduce the empty visual space between the Archive/Gallery and the Performances/Videos sections without affecting any global layout systems, headings, or anchors.
+- **Expansive Global Page Width & Optimized Side Padding**:
+  - Fully widened the main landing container width (`--content-max-width`) to `1440px` in `WebsiteContent.tsx` and the fallback `.global-container` in `index.css` to allow all sections to span elegantly across wide viewports.
+  - Decreased excessive horizontal padding inside `GenericSection.tsx` from `px-8 sm:px-16 md:px-24 lg:px-32 xl:px-44` to `px-6 sm:px-12 md:px-16 lg:px-20 xl:px-24`, preventing layout squeezing on high-resolution screens and gaining extra active container canvas.
+  - Upgraded both Biography and Contact grid maximum width limits to `max-w-7xl` (1280px) and updated the contact form column wrapper constraint to `max-w-2xl` to ensure gorgeous wide grid balance.
+- **Slightly Expanded Global Content and Section Width**:
+  - Increased the default layout container width (`--content-max-width`) from `1280px` to `1360px` in `WebsiteContent.tsx` and updated the CSS fallback class `.global-container` in `index.css` to `1360px` to give the global layout a wider, more breathable presentation on desktop monitors.
+  - Upgraded both the Biography and Contact container alignments from `max-w-5xl` (1024px) to `max-w-6xl` (1152px) to match the global widening and maintain perfect vertical harmony between the two primary multi-column layout grids.
+- **Unified Contact Form & Section Width Alignment**:
+  - Enclosed the primary contact grid (`contact-grid`) within a responsive maximum-width container (`max-w-5xl mx-auto w-full`).
+  - Adjusted the grid gap (`gap-12 lg:gap-16 xl:gap-20`) and added vertical alignment (`items-start`) to match the Biography section grid parameters exactly.
+  - Implemented a `max-w-xl` constraint on the right-side form column container (`contact-form-col`) to mirror the biography text layout, eliminating right-side stretching on wide desktop displays and achieving perfect horizontal symmetry.
 - **Robust Browser-Agnostic Language Detection**:
   - Separated `localStorage` operations into isolated, gracefully-failing `try-catch` blocks.
   - Resolved a critical security-policy issue where restricted iframe environments (like our embedded preview window, mobile sandbox, or private browsing modes with blocked third-party storage cookies) would throw a fatal DOMException upon accessing `localStorage`, which previously aborted the browser language check entirely.
