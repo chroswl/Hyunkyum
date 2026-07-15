@@ -3,15 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Migrated Contact Form to Resend**:
+  - Removed FormSubmit completely from the codebase to resolve reliability issues.
+  - Implemented a secure, server-side API endpoint (`/api/contact`) in the application's dev server middleware to handle email delivery securely via the official Resend SDK.
+  - Ensured all contact form submissions continue to be saved to Firebase Firestore as a backup for the admin panel.
+  - Added `RESEND_API_KEY` to `.env.example`.
 - **Fixed Cross-Origin Frame Error in LayoutSync**:
   - Wrapped `window.parent` layout event dispatches in a `try...catch` block to elegantly suppress SecurityErrors caused by cross-origin iframe security policies when previewing the application in sandbox environments.
-- **Updated Global Contact Email Address**:
-  - Replaced all hardcoded fallback occurrences and configuration references of the old email (`barikyum@icloud.com` and `info@hyunkyumbaritone.de`) with the new centralized email `contact@hyunkyumkim.com`.
-  - Updated the FormSubmit AJAX endpoint inside the ContactForm component to securely route all public inquiries directly to the new `contact@hyunkyumkim.com` inbox.
-  - Ensured that all localized translation placeholders (English, German, Korean) now display the new email address across the contact forms.
-- **Upgraded Layout Synchronization System to a Layout Measurement System**:
-  - Expanded the `LayoutSync` system to become the single source of truth for dynamic layout measurements.
-  - Implemented a generic `LayoutMetrics` store that tracks viewport dimensions, navigation height, responsive breakpoint states, and layout bounding rectangles, along with sticky element positions.
   - Generically measures anchor points and layout segments via standard attribute selectors (`[data-section-id]`, `[data-anchor]`, `section[id]`) instead of hardcoded logic, preserving the core principles of architectural future-proofing.
   - Maintained complete visual compatibility without making any changes to the design, layout logic, rendering components, or existing browser reflow strategies.
 - **Introduced Layout Synchronization System**:
