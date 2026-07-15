@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Premium Monogram Logo & Favicons**:
+  - Designed an original, minimalist luxury "HK" monogram logo using thin geometric lines, perfectly centered mathematically on both X and Y axes.
+  - Implemented responsive styling inside `favicon.svg` using `@media (prefers-color-scheme)` to automatically adapt the monogram's stroke color to light and dark browser tabs.
+  - Programmatically generated high-resolution assets (`favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, and `android-chrome-512x512.png`) using `sharp` to guarantee pixel-perfect rendering across iOS, Android, and desktop.
+  - Constructed a compliant `favicon.ico` enclosing a crisp 32x32 transparent version using custom raw binary ICO stream headers.
+  - Integrated `site.webmanifest` and updated the HTML `<head>` block with standard, modern multi-device linkage.
+- **SEO Optimization**:
+  - Configured comprehensive search engine optimization meta tags in `index.html`.
+  - Added JSON-LD structured data defining `Hyunkyum Kim` as a `Person` schema.
+  - Setup Open Graph and Twitter Card tags to ensure premium rendering on social media.
+  - Implemented `robots.txt` and `sitemap.xml` in the `/public` directory to improve crawler indexability.
+  - Set `https://hyunkyumkim.com` as the canonical domain for the application.
 - **Fixed Vercel Deployment Error in Contact API**:
   - Removed client-side Firebase imports (`src/firebase`) and Firestore backup logic from `api/contact.ts`. 
   - Vercel Serverless Functions failed to compile because the client-side Firebase configuration relies on Vite-specific `import.meta.env` variables which are not available in the Node.js serverless environment.
