@@ -39,30 +39,42 @@ import HeroEditorPanel from './components/HeroEditorPanel';
 import { getMediaSource } from './lib/mediaUtils';
 
 const getInitialLang = (): Language => {
+  let saved: string | null = null;
   try {
-    const saved = localStorage.getItem('preferredLang');
-    if (saved === 'EN' || saved === 'DE' || saved === 'KO') {
-      return saved as Language;
-    }
-    
+    saved = localStorage.getItem('preferredLang');
+  } catch (e) {
+    // Ignore localStorage access errors (e.g. in restricted sandboxed iframes)
+  }
+
+  if (saved === 'EN' || saved === 'DE' || saved === 'KO') {
+    return saved as Language;
+  }
+
+  try {
     const browserLangs = navigator.languages || [navigator.language];
     for (let lang of browserLangs) {
       if (!lang) continue;
       const lowerLang = lang.toLowerCase();
       if (lowerLang.startsWith('de')) {
-        localStorage.setItem('preferredLang', 'DE');
+        try {
+          localStorage.setItem('preferredLang', 'DE');
+        } catch (e) {}
         return 'DE';
       }
       if (lowerLang.startsWith('ko')) {
-        localStorage.setItem('preferredLang', 'KO');
+        try {
+          localStorage.setItem('preferredLang', 'KO');
+        } catch (e) {}
         return 'KO';
       }
     }
-    
-    localStorage.setItem('preferredLang', 'EN');
   } catch (e) {
-    // Ignore localStorage errors in restricted iframes
+    // Ignore navigator or language array access errors
   }
+
+  try {
+    localStorage.setItem('preferredLang', 'EN');
+  } catch (e) {}
   return 'EN';
 };
 

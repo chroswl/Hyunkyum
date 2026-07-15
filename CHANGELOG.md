@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Robust Browser-Agnostic Language Detection**:
+  - Separated `localStorage` operations into isolated, gracefully-failing `try-catch` blocks.
+  - Resolved a critical security-policy issue where restricted iframe environments (like our embedded preview window, mobile sandbox, or private browsing modes with blocked third-party storage cookies) would throw a fatal DOMException upon accessing `localStorage`, which previously aborted the browser language check entirely.
+  - Guaranteed that automatic translation routing (`DE` for German locales, `KO` for Korean, and default fallback `EN` for all other global locales) executes seamlessly across all modern browsers and restrictive sandboxes regardless of cookie permissions.
 - **Robust YouTube Media Link Extraction**:
   - Engineered an extremely reliable YouTube parameter extractor (`getYouTubeParams`) capable of resolving all modern formats.
   - Successfully supports direct 11-character video IDs, standard desktop/mobile URLs (`watch?v=`), share-friendly short links (`youtu.be/`), video embed URLs (`/embed/`), YouTube Shorts (`/shorts/`), and live streaming links (`/live/`).
