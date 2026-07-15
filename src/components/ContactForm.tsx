@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { saveContactMessage } from '../firebase';
 import { Language, ThemeSettings } from '../types';
 import { translations } from '../translations';
 
@@ -99,14 +98,6 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
     setSubmitStatus('idle');
 
     try {
-      // 1. Firebase Firestore 백업 저장 (관리자 패널에서도 실시간 확인 가능하도록 유지)
-      await saveContactMessage({
-        name,
-        email,
-        message,
-        createdAt: new Date().toISOString()
-      });
-
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
