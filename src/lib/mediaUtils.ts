@@ -4,16 +4,95 @@
 export function getYouTubeParams(url: string): { id: string; start: number } {
   if (!url) return { id: '', start: 0 };
 
-  // Extract ID
-  const idMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-  const id = idMatch ? idMatch[1] : '';
+  const trimmed = url.trim();
+
+  // 1. Direct 11-character ID (consisting of letters, numbers, hyphens, and underscores)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return { id: trimmed, start: 0 };
+  }
+
+  let id = '';
+
+  // 2. Try URL object parsing first
+  try {
+    // If it doesn't have a protocol, prepend https:// to make it a valid URL for the URL parser
+    let urlString = trimmed;
+    if (!/^https?:\/\//i.test(urlString)) {
+      urlString = 'https://' + urlString;
+    }
+
+    const parsedUrl = new URL(urlString);
+    const hostname = parsedUrl.hostname.toLowerCase();
+
+    if (hostname.includes('youtu.be')) {
+      // youtu.be/<id>
+      // pathname starts with '/' so substring(1) is the ID
+      const path = parsedUrl.pathname.substring(1);
+      const parts = path.split('/');
+      if (parts[0]) {
+        id = parts[0];
+      }
+    } else if (hostname.includes('youtube.com') || hostname.includes('youtube-nocookie.com')) {
+      const pathname = parsedUrl.pathname;
+      
+      if (pathname.startsWith('/watch')) {
+        // youtube.com/watch?v=<id>
+        id = parsedUrl.searchParams.get('v') || '';
+      } else if (pathname.startsWith('/embed/')) {
+        // youtube.com/embed/<id>
+        const parts = pathname.split('/');
+        id = parts[2] || '';
+      } else if (pathname.startsWith('/v/')) {
+        // youtube.com/v/<id>
+        const parts = pathname.split('/');
+        id = parts[2] || '';
+      } else if (pathname.startsWith('/shorts/')) {
+        // youtube.com/shorts/<id>
+        const parts = pathname.split('/');
+        id = parts[2] || '';
+      } else if (pathname.startsWith('/live/')) {
+        // youtube.com/live/<id>
+        const parts = pathname.split('/');
+        id = parts[2] || '';
+      }
+    }
+  } catch (e) {
+    // Fallback if URL parsing fails
+    console.warn("Failed to parse URL, using regex fallback", e);
+  }
+
+  // 3. Fallback regexes if URL parsing didn't find a valid 11-char ID
+  if (!id || id.length !== 11) {
+    // Try matching '/shorts/<id>', '/live/<id>', '/embed/<id>', '/v/<id>'
+    const pathMatch = trimmed.match(/\/(?:shorts|live|embed|v)\/([a-zA-Z0-9_-]{11})/i);
+    if (pathMatch) {
+      id = pathMatch[1];
+    } else {
+      // Try matching '?v=<id>' or '&v=<id>'
+      const queryMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+      if (queryMatch) {
+        id = queryMatch[1];
+      } else {
+        // Try matching 'youtu.be/<id>'
+        const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+        if (shortMatch) {
+          id = shortMatch[1];
+        }
+      }
+    }
+  }
+
+  // Ensure extracted ID is exactly 11 characters, otherwise reset it
+  if (id && id.length !== 11) {
+    id = '';
+  }
 
   // Extract start time in seconds
   let start = 0;
   
   // 1. Check for standard t=XX or start=XX parameters (seconds)
-  const tMatch = url.match(/[?&]t=(\d+)/);
-  const startMatch = url.match(/[?&]start=(\d+)/);
+  const tMatch = trimmed.match(/[?&]t=(\d+)/);
+  const startMatch = trimmed.match(/[?&]start=(\d+)/);
   
   if (tMatch) {
     start = parseInt(tMatch[1], 10);
@@ -21,7 +100,7 @@ export function getYouTubeParams(url: string): { id: string; start: number } {
     start = parseInt(startMatch[1], 10);
   } else {
     // 2. Check for format like t=1m30s
-    const timeFormatMatch = url.match(/[?&]t=(?:(\d+)m)?(?:(\d+)s)?/);
+    const timeFormatMatch = trimmed.match(/[?&]t=(?:(\d+)m)?(?:(\d+)s)?/);
     if (timeFormatMatch && (timeFormatMatch[1] || timeFormatMatch[2])) {
       const minutes = timeFormatMatch[1] ? parseInt(timeFormatMatch[1], 10) : 0;
       const seconds = timeFormatMatch[2] ? parseInt(timeFormatMatch[2], 10) : 0;

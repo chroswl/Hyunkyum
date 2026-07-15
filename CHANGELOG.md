@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Robust YouTube Media Link Extraction**:
+  - Engineered an extremely reliable YouTube parameter extractor (`getYouTubeParams`) capable of resolving all modern formats.
+  - Successfully supports direct 11-character video IDs, standard desktop/mobile URLs (`watch?v=`), share-friendly short links (`youtu.be/`), video embed URLs (`/embed/`), YouTube Shorts (`/shorts/`), and live streaming links (`/live/`).
+  - Ensures seamless video playback within the cinematic theater frame, regardless of how the end-user shares or copies the source URL.
 - **Unified Press Layout Width Alignment**:
   - Expanded the maximum width constraints of both the blockquote container and the source/publication details container (including the elegant top divider line) to a spacious and unified `max-w-4xl mx-auto`.
   - Solved the visual mismatch where the Press reviews were squeezed into a narrow strip, beautifully integrating them on the same vertical alignment grid as other editorial sections.
