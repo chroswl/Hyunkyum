@@ -907,7 +907,7 @@ export default function PortfolioGallery({
                 >
                   <img
                     src={filteredItems[selectedItemIndex].url}
-                    alt="Enlarged stage photography"
+                    alt="Hyunkyum Kim - Stage photography enlarged view"
                     className="max-w-full max-h-[75vh] object-contain rounded-sm border border-black/10 shadow-2xl cursor-pointer"
                     referrerPolicy="no-referrer"
                     onContextMenu={(e) => e.preventDefault()}

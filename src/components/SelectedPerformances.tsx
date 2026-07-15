@@ -578,7 +578,7 @@ export default function SelectedPerformances({
                                   if (media.type === 'video' || media.type === 'youtube' || media.type === 'drive') {
                                     return <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-500 uppercase">{media.type}</div>;
                                   }
-                                  return <img src={media.src} alt="thumb" className="w-full h-full object-cover" />;
+                                  return <img src={media.src} alt="Hyunkyum Kim - Performance slide thumbnail" className="w-full h-full object-cover" />;
                                 })()}
                               </div>
                             )}

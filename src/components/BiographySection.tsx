@@ -410,7 +410,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                               } else if (media.type === 'drive') {
                                 return <iframe src={media.src} className="max-w-full max-h-full" frameBorder="0" allowFullScreen />;
                               } else {
-                                return <img src={media.src} alt="Preview" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />;
+                                return <img src={media.src} alt="Hyunkyum Kim - Baritone Profile Photo Preview" className="max-w-full max-h-full object-contain rounded-sm" referrerPolicy="no-referrer" />;
                               }
                             })()}
                             {getMediaSource(editedBio.bioImage).type === 'image' && (
@@ -495,7 +495,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                       return (
                         <img 
                           src={media.src} 
-                          alt="Portrait" 
+                          alt="Hyunkyum Kim - South Korean Baritone Portrait" 
                           className="w-full h-auto object-cover aspect-[3/4] transition-transform duration-700 group-hover:scale-[1.02]"
                           referrerPolicy="no-referrer"
                           onContextMenu={(e) => e.preventDefault()}
@@ -809,7 +809,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                 return (
                   <img 
                     src={media.src} 
-                    alt="Biography Portrait Zoom" 
+                    alt="Hyunkyum Kim - High resolution portrait and biography view" 
                     className="max-w-full max-h-[75vh] object-contain rounded-sm border border-[var(--color-text)]/10 shadow-2xl cursor-pointer"
                     referrerPolicy="no-referrer"
                     onClick={() => setIsLightboxOpen(false)}
