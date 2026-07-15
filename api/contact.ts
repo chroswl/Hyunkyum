@@ -1,6 +1,4 @@
 import { Resend } from 'resend';
-import { db } from '../src/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -32,19 +30,6 @@ export default async function handler(req: any, res: any) {
 
     if (!name || !email || !message) {
       return res.status(400).json({ error: "Missing required fields: name, email, message" });
-    }
-
-    // 1. Save to Firestore as a backup
-    try {
-        await addDoc(collection(db, "contacts"), {
-            name,
-            email,
-            message,
-            createdAt: new Date().toISOString()
-        });
-    } catch (dbError) {
-        console.error("Firestore backup error:", dbError);
-        // Continue even if Firestore fails
     }
 
     // 2. Send email via Resend

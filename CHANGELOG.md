@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Fixed Vercel Deployment Error in Contact API**:
+  - Removed client-side Firebase imports (`src/firebase`) and Firestore backup logic from `api/contact.ts`. 
+  - Vercel Serverless Functions failed to compile because the client-side Firebase configuration relies on Vite-specific `import.meta.env` variables which are not available in the Node.js serverless environment.
+  - Prioritized Resend email delivery stability in production; the Firestore backup was disabled to eliminate module resolution errors and ensure the API successfully builds and deploys.
 - **Migrated Contact Form to Resend**:
   - Removed FormSubmit completely from the codebase to resolve reliability issues.
   - Implemented a secure, server-side API endpoint (`/api/contact`) in the application's dev server middleware to handle email delivery securely via the official Resend SDK.
