@@ -260,7 +260,7 @@ export default function Navbar({ currentLang, setLang, user, onAdminToggle, scro
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="absolute right-0 top-full mt-2 w-20 bg-[var(--color-bg)] border border-[var(--color-text)]/20 rounded shadow-xl overflow-hidden flex flex-col z-50"
+                  className="absolute right-0 top-full mt-2 w-fit bg-[var(--color-bg)] border border-[var(--color-text)]/20 rounded shadow-xl overflow-hidden flex flex-col z-50"
                 >
                   {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
                     <button

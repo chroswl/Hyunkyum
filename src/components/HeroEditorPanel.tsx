@@ -288,10 +288,10 @@ export default function HeroEditorPanel({ theme, setTheme, isEditingText, setIsE
 
             <div className="space-y-2 pt-3 border-t border-neutral-900">
               {[
-                { id: 'Subtitle', keySize: 'heroSubtitleSize', defaultSize: 14, label: 'Subtitle (소제목)' },
-                { id: 'Title', keySize: 'heroTitleSize', defaultSize: 64, label: 'Main Title (대제목)' },
-                { id: 'Desc', keySize: 'heroDescSize', defaultSize: 16, label: 'Description (설명)' },
-                { id: 'Button', keySize: 'heroButtonSize', defaultSize: 11, label: 'Button (버튼)' },
+                { id: 'Subtitle', keySize: 'heroSubtitleSize', keyX: 'heroSubtitleX', keyY: 'heroSubtitleY', defaultSize: 14, label: 'Subtitle (소제목)' },
+                { id: 'Title', keySize: 'heroTitleSize', keyX: 'heroTitleX', keyY: 'heroTitleY', defaultSize: 64, label: 'Main Title (대제목)' },
+                { id: 'Desc', keySize: 'heroDescSize', keyX: 'heroDescX', keyY: 'heroDescY', defaultSize: 16, label: 'Description (설명)' },
+                { id: 'Button', keySize: 'heroButtonSize', keyX: 'heroButtonX', keyY: 'heroButtonY', defaultSize: 11, label: 'Button (버튼)' },
               ].map(elem => (
                 <div key={elem.id} className="border border-neutral-800/80 rounded bg-neutral-950/40 overflow-hidden">
                   <button

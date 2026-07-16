@@ -93,7 +93,31 @@ export const translations = {
     fieldCategory: "Category",
     fieldImage: "Image",
     fieldImageCategory: "Gallery Category",
-    fieldImageUrl: "Image URL"
+    fieldImageUrl: "Image URL",
+
+    privacyTitle: "Privacy Policy",
+    privacySubtitle: "Data Protection Information",
+    privacyIntro: "We take the protection of your personal data seriously. This privacy policy explains what information we collect, how we use it, and what rights you have, specifically addressing the technologies powering this website.",
+    privacySec1Title: "1. Hosting & Infrastructure",
+    privacySec1Text: "This website is hosted on Vercel. When you visit our site, your device automatically communicates with Vercel servers. Vercel may collect standard server log information, such as your IP address, browser type, and time of access, strictly for security and performance purposes.",
+    privacySec2Title: "2. Contact Form Data",
+    privacySec2Text: "When you use our contact form, your messages are processed securely via Resend and securely stored in Firebase Firestore. We only collect the information you voluntarily provide (Name, Email, Message) to process and respond to your inquiry.",
+    privacySec3Title: "3. Website Analytics",
+    privacySec3Text: "To understand and improve how visitors interact with our site, we use Google Analytics 4 and Microsoft Clarity. These services collect anonymized usage data, such as page views and interaction patterns. Microsoft Clarity may also capture anonymous behavioral metrics (like scrolling and clicks) to help us optimize the website experience.",
+    privacySec4Title: "4. Admin Services (For Site Administrators Only)",
+    privacySec4Text: "Certain backend features of this website are strictly reserved for administrators. These include Firebase Authentication and Google OAuth for secure login, as well as the Google Drive Picker API for managing media content. These services are not active for public visitors.",
+    privacySec5Title: "5. Your Data Rights",
+    privacySec5Text: "You have the right to request information about the personal data we hold about you, as well as the right to request its correction or deletion. For any privacy-related inquiries, please contact us using the information provided in the Impressum.",
+
+    impressumTitle: "Legal Notice (Impressum)",
+    impressumInfoTitle: "Information according to § 5 DDG",
+    impressumAddressName: "Hyunkyum Kim",
+    impressumAddressStreet: "Ludwigstraße 65",
+    impressumAddressCity: "67657 Kaiserslautern",
+    impressumAddressCountry: "Germany",
+    impressumContactTitle: "Contact",
+    impressumEmailLabel: "Email",
+    impressumResponsibleTitle: "Responsible for content pursuant to § 18 MStV"
   },
   DE: {
     navHome: "STARTSEITE",
@@ -188,7 +212,31 @@ export const translations = {
     fieldCategory: "Kategorie",
     fieldImage: "Bild",
     fieldImageCategory: "Galerie-Kategorie",
-    fieldImageUrl: "Bild-URL"
+    fieldImageUrl: "Bild-URL",
+
+    privacyTitle: "Datenschutzerklärung",
+    privacySubtitle: "Informationen zum Datenschutz",
+    privacyIntro: "Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Diese Datenschutzerklärung informiert Sie über die Art, den Umfang und den Zweck der Erhebung und Verwendung personenbezogener Daten auf dieser Website gemäß den Vorgaben der DSGVO.",
+    privacySec1Title: "1. Hosting & Infrastruktur",
+    privacySec1Text: "Diese Website wird bei Vercel gehostet. Bei jedem Aufruf der Website erfasst Vercel automatisch allgemeine Daten und Informationen (z. B. IP-Adresse, Browsertyp, Datum und Uhrzeit des Zugriffs) in Server-Logfiles. Dies dient ausschließlich der Gewährleistung eines reibungslosen und sicheren Betriebs der Website.",
+    privacySec2Title: "2. Kontaktaufnahme",
+    privacySec2Text: "Wenn Sie uns per Kontaktformular Anfragen zukommen lassen, werden Ihre Angaben (Name, E-Mail, Nachricht) zur Bearbeitung der Anfrage über den Dienst Resend verarbeitet und in Firebase Firestore sicher gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung weiter.",
+    privacySec3Title: "3. Webanalyse",
+    privacySec3Text: "Zur bedarfsgerechten Gestaltung und fortlaufenden Optimierung unserer Seiten nutzen wir Google Analytics 4 und Microsoft Clarity. Diese Dienste verwenden Cookies und sammeln pseudonymisierte Nutzungsdaten. Microsoft Clarity erfasst zudem anonyme Verhaltensmuster (z. B. Scroll- und Klickverhalten), um die Benutzererfahrung zu verbessern.",
+    privacySec4Title: "4. Administrationsdienste (Nur für Website-Betreiber)",
+    privacySec4Text: "Der Verwaltungsbereich dieser Website nutzt Firebase Authentication und Google OAuth für den sicheren Login sowie die Google Drive Picker API zur Medienverwaltung. Diese Dienste werden nur von Administratoren verwendet und erheben keine Daten von regulären Website-Besuchern.",
+    privacySec5Title: "5. Ihre Rechte",
+    privacySec5Text: "Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu können Sie sich jederzeit an die im Impressum angegebene Adresse wenden.",
+
+    impressumTitle: "Impressum",
+    impressumInfoTitle: "Angaben gemäß § 5 DDG",
+    impressumAddressName: "Hyunkyum Kim",
+    impressumAddressStreet: "Ludwigstraße 65",
+    impressumAddressCity: "67657 Kaiserslautern",
+    impressumAddressCountry: "Deutschland",
+    impressumContactTitle: "Kontakt",
+    impressumEmailLabel: "E-Mail",
+    impressumResponsibleTitle: "Verantwortlich für den Inhalt nach § 18 MStV"
   },
   KO: {
     navHome: "홈",
@@ -283,7 +331,31 @@ export const translations = {
     fieldCategory: "구분",
     fieldImage: "이미지",
     fieldImageCategory: "갤러리 카테고리",
-    fieldImageUrl: "이미지 URL"
+    fieldImageUrl: "이미지 URL",
+
+    privacyTitle: "개인정보처리방침",
+    privacySubtitle: "개인정보 보호 안내",
+    privacyIntro: "본 웹사이트는 이용자의 개인정보를 소중하게 생각하며, 관련 법령을 준수하고 있습니다. 이 개인정보처리방침은 웹사이트에서 사용되는 기술과 수집되는 정보, 그리고 그 이용 목적에 대해 안내합니다.",
+    privacySec1Title: "1. 웹사이트 호스팅 및 인프라",
+    privacySec1Text: "이 웹사이트는 Vercel을 통해 호스팅되고 있습니다. 사용자가 웹사이트에 접속할 때, 보안 및 서버의 안정적인 운영을 목적으로 Vercel 서버는 IP 주소, 브라우저 종류, 접속 시간 등의 표준 서버 로그 정보를 자동으로 수집할 수 있습니다.",
+    privacySec2Title: "2. 문의 접수 및 처리",
+    privacySec2Text: "연락처 폼(Contact Form)을 통해 문의를 남기실 경우, 제공해주신 이름, 이메일 주소 및 문의 내용은 Resend 서비스를 통해 안전하게 전송되며 Firebase Firestore에 저장됩니다. 수집된 정보는 문의에 대한 답변 목적으로만 사용됩니다.",
+    privacySec3Title: "3. 웹사이트 분석 및 통계",
+    privacySec3Text: "사용자의 웹사이트 이용 패턴을 분석하고 더 나은 경험을 제공하기 위해 Google Analytics 4와 Microsoft Clarity를 사용합니다. 이 서비스들은 페이지 조회수 및 방문자의 익명화된 상호작용 데이터를 수집하며, Microsoft Clarity는 스크롤 및 클릭과 같은 행동 데이터를 분석하는 데 도움을 줍니다.",
+    privacySec4Title: "4. 관리자 전용 서비스",
+    privacySec4Text: "웹사이트의 콘텐츠 관리를 위해 관리자 계정에 한해 Firebase Authentication과 Google OAuth를 통한 안전한 로그인이 사용되며, 미디어 파일 관리를 위해 Google Drive Picker API가 연동되어 있습니다. 일반 방문자의 데이터는 이 서비스들과 무관합니다.",
+    privacySec5Title: "5. 정보주체의 권리",
+    privacySec5Text: "귀하는 언제든지 등록되어 있는 귀하의 개인정보에 대해 열람, 정정 또는 삭제를 요청하실 수 있습니다. 개인정보와 관련된 문의 사항은 사이트 하단 또는 Impressum에 기재된 연락처로 문의해주시기 바랍니다.",
+
+    impressumTitle: "법적 고지 (Impressum)",
+    impressumInfoTitle: "독일 통신기기법(DDG) 제5조에 따른 정보",
+    impressumAddressName: "김현겸 (Hyunkyum Kim)",
+    impressumAddressStreet: "Ludwigstraße 65",
+    impressumAddressCity: "67657 Kaiserslautern",
+    impressumAddressCountry: "독일 (Germany)",
+    impressumContactTitle: "연락처",
+    impressumEmailLabel: "이메일",
+    impressumResponsibleTitle: "독일 미디어 국가조약(MStV) 제18조에 따른 콘텐츠 책임자"
   }
 };
 export type TranslationKey = keyof typeof translations.EN;

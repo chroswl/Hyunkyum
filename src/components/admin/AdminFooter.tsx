@@ -72,23 +72,6 @@ export default function AdminFooter({
         />
       </PropertyAccordion>
 
-      <PropertyAccordion title="Legal Information" defaultOpen>
-        <PropertyTextarea 
-          label="Custom Impressum Text (Plaintext or HTML)" 
-          value={theme.footerImpressum || ''} 
-          placeholder="Enter custom Impressum text... (Falls back to default if left empty)"
-          rows={6}
-          onChange={(v) => updateField('footerImpressum', v)} 
-        />
-        <PropertyTextarea 
-          label="Custom Privacy Policy Text (Plaintext or HTML)" 
-          value={theme.footerPrivacyPolicy || ''} 
-          placeholder="Enter custom Privacy Policy text... (Falls back to default if left empty)"
-          rows={6}
-          onChange={(v) => updateField('footerPrivacyPolicy', v)} 
-        />
-      </PropertyAccordion>
-
       <PropertyAccordion title="Social Links">
         <PropertyInput 
           label="Instagram Link" 
