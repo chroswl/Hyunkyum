@@ -2,13 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ArrowRight, Edit3, Plus, Trash2, X, Save, GripVertical, Check, Image as ImageIcon } from 'lucide-react';
 import { Language, PerformanceSlide, ThemeSettings } from '../types';
-import { fetchSelectedPerformances, saveSelectedPerformance, deleteSelectedPerformance, db, storage } from '../firebase';
-import { getMediaSource } from '../lib/mediaUtils';
+import { fetchSelectedPerformances, saveSelectedPerformance, deleteSelectedPerformance, db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { uploadToR2, isAIStudioPreview } from '../r2';
-import ImageCropperModal from './ImageCropperModal';
-import { compressFile, optimizeImageFile } from '../lib/imageCompressor';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { MediaEngine } from '../lib/editing/mediaEngine';
+import { MediaCropWrapper, MediaPreview } from './admin/media';
 import { User } from 'firebase/auth';
 
 import {
@@ -38,7 +35,6 @@ interface SelectedPerformancesProps {
   activeEditSection?: string;
   setActiveEditSection?: (section: any) => void;
   onItemsUpdated?: (items: PerformanceSlide[]) => void;
-  onRefreshData?: () => void;
 }
 
 export default function SelectedPerformances({ 
@@ -50,7 +46,6 @@ export default function SelectedPerformances({
   activeEditSection,
   setActiveEditSection,
   onItemsUpdated,
-  onRefreshData
 }: SelectedPerformancesProps) {
   const [slides, setSlides] = useState<PerformanceSlide[]>(propSlides && propSlides.length > 0 ? propSlides : []);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -62,6 +57,20 @@ export default function SelectedPerformances({
       setActiveEditSection(mode ? 'slides' : 'none');
     }
   };
+
+  // Ensure we have unique IDs for slides to prevent React duplicate key warnings and dnd-kit mismatch issues
+  const uniqueSlideIds = React.useMemo(() => {
+    const seen = new Set<string>();
+    return slides.map((item, index) => {
+      const baseId = item.id || `slide-${index}`;
+      let id = baseId;
+      if (seen.has(id)) {
+        id = `${baseId}-dup-${index}`;
+      }
+      seen.add(id);
+      return id;
+    });
+  }, [slides]);
   const [editingItem, setEditingItem] = useState<Partial<PerformanceSlide> | null>(null);
   const [cropTarget, setCropTarget] = useState<{ src: string, aspect?: number, onCrop: (base64: string, copyright?: string, copyrightUrl?: string) => void, copyright?: string, copyrightUrl?: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,8 +141,10 @@ export default function SelectedPerformances({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = slides.findIndex((item) => item.id === active.id);
-    const newIndex = slides.findIndex((item) => item.id === over.id);
+    const oldIndex = uniqueSlideIds.indexOf(active.id as string);
+    const newIndex = uniqueSlideIds.indexOf(over.id as string);
+
+    if (oldIndex === -1 || newIndex === -1) return;
 
     const newOrder = arrayMove(slides, oldIndex, newIndex) as PerformanceSlide[];
     const updatedList = newOrder.map((item, index) => ({ ...item, order: index }));
@@ -142,18 +153,11 @@ export default function SelectedPerformances({
     if (onItemsUpdated) onItemsUpdated(updatedList);
 
     try {
-      const batchUpdates = updatedList.map((item, index) => {
-        if (slides[index]?.id !== item.id || slides[index]?.order !== item.order) {
-          return updateDoc(doc(db, "selected_performances", item.id || ''), { order: item.order });
-        }
-        return Promise.resolve();
-      });
-      await Promise.all(batchUpdates);
+      // order updated in state
       showNotification("Order updated");
     } catch (err) {
       console.error("Error saving new order:", err);
       showNotification("Failed to save new order", "error");
-      if (onRefreshData) onRefreshData();
     }
   };
 
@@ -177,7 +181,7 @@ export default function SelectedPerformances({
   const handleDeleteSlide = async (id: string) => {
     
     try {
-      await deleteSelectedPerformance(id);
+      // local delete
       const filtered = slides.filter(item => item.id !== id);
       setSlides(filtered);
       if (onItemsUpdated) onItemsUpdated(filtered);
@@ -202,12 +206,17 @@ export default function SelectedPerformances({
     try {
       const saveItem = { ...editingItem };
       if (saveItem.order === undefined) saveItem.order = slides.length;
-      await saveSelectedPerformance(saveItem as PerformanceSlide);
+      const saved = { ...saveItem };
+      if (!saved.id) saved.id = 'temp_' + Date.now();
       
-      showNotification("Slide saved successfully!");
+      const newItems = slides.find(i => i.id === saved.id)
+        ? slides.map(i => i.id === saved.id ? saved : i)
+        : [...slides, saved];
+      
+      setSlides(newItems);
+      if (onItemsUpdated) onItemsUpdated(newItems);
       setEditingItem(null);
       originalItemRef.current = null;
-      if (onRefreshData) onRefreshData();
     } catch (err) {
       console.error("Error saving slide:", err);
       showNotification("Failed to save changes", "error");
@@ -234,18 +243,16 @@ export default function SelectedPerformances({
 
     try {
       if (file.type.startsWith('video/')) {
-        let fileToUpload: File | string = file;
-        if (isAIStudioPreview()) {
-          console.warn("Direct storage fallback is only supported for image files in Preview.");
-          return;
-        }
-        const downloadURL = await uploadToR2(fileToUpload, (progress) => setUploadProgress(progress), 'hero_slides');
+        setUploadProgress(10);
+        const downloadURL = await MediaEngine.upload(file, 'hero_slides', (progress) => {
+          setUploadProgress(progress);
+        });
         setEditingItem(prev => prev ? { ...prev, image: downloadURL, mediaType: 'video' } : null);
         showNotification("Video uploaded successfully");
       } else {
         setIsOptimizing(true);
         setOptimizeProgress(0);
-        const optimizedBase64 = await optimizeImageFile(file, (progress) => {
+        const optimizedBase64 = await MediaEngine.optimize(file, (progress) => {
           setOptimizeProgress(progress);
         });
         setIsOptimizing(false);
@@ -260,16 +267,11 @@ export default function SelectedPerformances({
             setCropTarget(null);
             
             try {
-              if (isAIStudioPreview()) {
-                setEditingItem(prev => prev ? { ...prev, image: base64, mediaType: 'image', copyright, copyrightUrl } : null);
-                showNotification("Image processed successfully!");
-              } else {
-                const downloadURL = await uploadToR2(base64, (progress) => {
-                  setUploadProgress(50 + Math.floor(progress / 2));
-                }, 'hero_slides');
-                setEditingItem(prev => prev ? { ...prev, image: downloadURL, mediaType: 'image', copyright, copyrightUrl } : null);
-                showNotification("Image uploaded successfully");
-              }
+              const downloadURL = await MediaEngine.upload(base64, 'hero_slides', (progress) => {
+                setUploadProgress(50 + Math.floor(progress / 2));
+              });
+              setEditingItem(prev => prev ? { ...prev, image: downloadURL, mediaType: 'image', copyright, copyrightUrl } : null);
+              showNotification("Image processed and uploaded successfully!");
             } catch (err: any) {
               console.error("Upload failed after crop:", err);
               showNotification("Upload failed: " + err.message, "error");
@@ -289,7 +291,7 @@ export default function SelectedPerformances({
   };
 
   const slide = slides[currentIdx] || slides[0];
-  const media = slide ? getMediaSource(slide.image || '', slide.mediaType) : null;
+  const media = slide ? MediaEngine.resolve(slide.image || '', slide.mediaType as any) : null;
 
   return (
     <div id="performances-slider-root" className={`w-full relative ${isEditMode ? 'min-h-[500px] py-12' : 'h-[450px] md:h-[550px] overflow-hidden'} bg-[var(--color-bg)] border-y border-neutral-900 flex flex-col justify-end`}>
@@ -447,16 +449,11 @@ export default function SelectedPerformances({
                               setUploadProgress(50);
                               setCropTarget(null);
                               try {
-                                if (isAIStudioPreview()) {
-                                  setEditingItem({ ...editingItem, image: base64, mediaType: 'image', copyright, copyrightUrl });
-                                  showNotification("Image updated successfully!");
-                                } else {
-                                  const downloadURL = await uploadToR2(base64, (progress) => {
-                                    setUploadProgress(50 + Math.floor(progress / 2));
-                                  }, 'hero_slides');
-                                  setEditingItem({ ...editingItem, image: downloadURL, mediaType: 'image', copyright, copyrightUrl });
-                                  showNotification("Image updated and uploaded successfully");
-                                }
+                                const downloadURL = await MediaEngine.upload(base64, 'hero_slides', (progress) => {
+                                  setUploadProgress(50 + Math.floor(progress / 2));
+                                });
+                                setEditingItem({ ...editingItem, image: downloadURL, mediaType: 'image', copyright, copyrightUrl });
+                                showNotification("Image updated successfully!");
                               } catch (err: any) {
                                 console.error("Update failed:", err);
                                 showNotification("Update failed: " + err.message, "error");
@@ -562,24 +559,29 @@ export default function SelectedPerformances({
                   {slides.length === 0 ? (
                     <div className="p-12 text-center text-neutral-500 text-xs">No slides yet. Click Add Slide above.</div>
                   ) : (
-                    <SortableContext items={slides.map(i => i.id || '')} strategy={verticalListSortingStrategy}>
-                      {slides.map((item) => (
-                        <SortableItem 
-                          key={item.id} 
-                          id={item.id || ''} 
-                          className="bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 border-b border-white/5" 
-                          handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
-                        >
+                    <SortableContext items={uniqueSlideIds} strategy={verticalListSortingStrategy}>
+                      {slides.map((item, index) => {
+                        const uniqueId = uniqueSlideIds[index];
+                        return (
+                          <SortableItem 
+                            key={uniqueId} 
+                            id={uniqueId} 
+                            className="bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 border-b border-white/5" 
+                            handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
+                          >
                           <div className="flex-1 min-w-0 pr-4 flex items-center space-x-4">
                             {item.image && (
                               <div className="w-16 h-10 bg-neutral-900 rounded overflow-hidden flex-shrink-0 border border-white/10">
-                                {(() => {
-                                  const media = getMediaSource(item.image, item.mediaType as any);
-                                  if (media.type === 'video' || media.type === 'youtube' || media.type === 'drive') {
-                                    return <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-500 uppercase">{media.type}</div>;
-                                  }
-                                  return <img src={media.src} alt="Opera performance by South Korean Baritone Hyunkyum Kim" className="w-full h-full object-cover" />;
-                                })()}
+                                <MediaPreview
+                                  url={item.image}
+                                  explicitType={item.mediaType as any}
+                                  className="w-full h-full"
+                                  imageClassName="w-full h-full object-cover"
+                                  altText="Opera performance by South Korean Baritone Hyunkyum Kim"
+                                  autoPlay={false}
+                                  controls={false}
+                                  showPlayIcon={false}
+                                />
                               </div>
                             )}
                             <div>
@@ -600,7 +602,8 @@ export default function SelectedPerformances({
                             </button>
                           </div>
                         </SortableItem>
-                      ))}
+                      );
+                    })}
                     </SortableContext>
                   )}
                 </div>
@@ -623,19 +626,19 @@ export default function SelectedPerformances({
                   transition={{ duration: 1.4, ease: 'easeInOut' }}
                   className="absolute inset-0"
                 >
-                  {media.type === 'video' ? (
-                    <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover pointer-events-none" src={media.src} />
-                  ) : media.type === 'drive' ? (
-                    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-                      <iframe className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none" src={`${media.src}?autoplay=1&mute=1&controls=0&loop=1`} allow="autoplay" allowFullScreen />
-                    </div>
-                  ) : media.type === 'youtube' ? (
-                    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-                      <iframe className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none" src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1${media.start ? `&start=${media.start}` : ''}&playlist=${media.ytId}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                    </div>
-                  ) : (
-                    <div className="w-full h-full bg-cover" style={{ backgroundImage: `url('${media.src}')`, backgroundPosition: slide.bgPosition || 'center' }} onContextMenu={(e) => e.preventDefault()} />
-                  )}
+                  <MediaPreview
+                    url={slide.image}
+                    explicitType={slide.mediaType as any}
+                    className="absolute inset-0 w-full h-full pointer-events-none select-none opacity-80"
+                    imageClassName="w-full h-full object-cover"
+                    iframeClassName="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
+                    altText="Opera performance by South Korean Baritone Hyunkyum Kim"
+                    muted={true}
+                    loop={true}
+                    autoPlay={true}
+                    controls={false}
+                    showPlayIcon={false}
+                  />
                 </motion.div>
               </AnimatePresence>
 
@@ -703,19 +706,17 @@ export default function SelectedPerformances({
         </>
       )}
 
-      {cropTarget && (
-        <ImageCropperModal
-          imageSrc={cropTarget.src}
-          aspect={cropTarget.aspect}
-          copyright={(cropTarget.copyright || '').trim().startsWith('©') ? (cropTarget.copyright || '') : `© ${(cropTarget.copyright || '').trim()}`}
-          copyrightUrl={cropTarget.copyrightUrl}
-          onCropDone={(base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl)}
-          onCropCancel={() => {
-            setCropTarget(null);
-            setUploadProgress(null);
-          }}
-        />
-      )}
+      <MediaCropWrapper target={cropTarget ? {
+        src: cropTarget.src,
+        aspect: cropTarget.aspect,
+        copyright: cropTarget.copyright,
+        copyrightUrl: cropTarget.copyrightUrl,
+        onCrop: (base64, copyright, copyrightUrl) => cropTarget.onCrop(base64, copyright, copyrightUrl),
+        onCancel: () => {
+          setCropTarget(null);
+          setUploadProgress(null);
+        }
+      } : null} />
     </div>
   );
 }

@@ -3,46 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Play, Tv, Disc, Award, Video, Edit3, Plus, Trash2, Save, GripVertical, Check, X, Sparkles 
 } from 'lucide-react';
-import { 
-  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent 
-} from '@dnd-kit/core';
-import { 
-  arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable 
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { VideoItem, Language, ThemeSettings } from '../types';
 import { translations } from '../translations';
 import { getMediaSource } from '../lib/mediaUtils';
 import { User } from 'firebase/auth';
 import { db, saveVideoItem, deleteVideoItem } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-
-interface SortableItemProps {
-  id: string;
-  children: React.ReactNode;
-  className?: string;
-  handleClassName?: string;
-  key?: string | number;
-  theme?: ThemeSettings;
-}
-
-function SortableItem({ id, children, className = '', handleClassName = '', theme }: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className={`${className} ${isDragging ? 'opacity-70' : ''}`}>
-      <div className={`${handleClassName} cursor-grab touch-none`} style={{ color: theme?.text || '#888' }} {...attributes} {...listeners}>
-        <GripVertical className="w-4 h-4" />
-      </div>
-      {children}
-    </div>
-  );
-}
+import { CollectionManager } from './admin/collection';
+import { MediaPreview } from './admin/media';
 
 interface VideoPlayerProps {
   items: VideoItem[];
@@ -52,7 +20,6 @@ interface VideoPlayerProps {
   activeEditSection: 'none' | 'biography' | 'press' | 'gallery' | 'videos' | 'schedule';
   setActiveEditSection: (section: 'none' | 'biography' | 'press' | 'gallery' | 'videos' | 'schedule') => void;
   onItemsUpdated: (items: VideoItem[]) => void;
-  onRefreshData: () => void;
   theme?: ThemeSettings;
 }
 
@@ -64,7 +31,7 @@ export default function VideoPlayer({
   activeEditSection, 
   setActiveEditSection,
   onItemsUpdated,
-  onRefreshData,
+  
   theme
 }: VideoPlayerProps) {
   const [activeVideo, setActiveVideo] = useState<VideoItem | undefined>(items[0]);
@@ -99,6 +66,50 @@ export default function VideoPlayer({
     setTimeout(() => setNotification(null), 3000);
   };
 
+  const onReorderVideos = (newItems: VideoItem[]) => {
+    const finalized = newItems.map((item, idx) => ({ ...item, order: idx }));
+    onItemsUpdated(finalized);
+    showNotification("Videos reordered in draft");
+  };
+
+  const onAddVideo = (newItem: VideoItem) => {
+    const savedItem = {
+      ...newItem,
+      id: newItem.id || `video_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      order: items.length
+    };
+    const newItems = [...items, savedItem];
+    onItemsUpdated(newItems);
+    setActiveVideo(savedItem);
+    showNotification("Video added to draft");
+  };
+
+  const onUpdateVideo = (updatedItem: VideoItem) => {
+    const newItems = items.map(i => i.id === updatedItem.id ? updatedItem : i);
+    onItemsUpdated(newItems);
+    if (activeVideo?.id === updatedItem.id) {
+      setActiveVideo(updatedItem);
+    }
+    showNotification("Video updated in draft");
+  };
+
+  const onDeleteVideo = (id: string) => {
+    const newItems = items.filter(i => i.id !== id);
+    onItemsUpdated(newItems);
+    if (activeVideo?.id === id) {
+      setActiveVideo(newItems.length > 0 ? newItems[0] : undefined);
+    }
+    showNotification("Video deleted from draft");
+  };
+
+  const videoItemSchema = (): VideoItem => ({
+    id: `video-item-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    youtubeId: '',
+    title: { EN: '', DE: '', KO: '' },
+    role: { EN: '', DE: '', KO: '' },
+    order: items.length
+  });
+
   // Helper to get nice opera icons based on roles or title
   const getIcon = (role?: string) => {
     const text = role?.toLowerCase() || '';
@@ -106,46 +117,6 @@ export default function VideoPlayer({
     if (text.includes('giovanni') || text.includes('don')) return <Disc className="w-4 h-4" style={iconStyle} />;
     if (text.includes('figaro')) return <Award className="w-4 h-4" style={iconStyle} />;
     return <Tv className="w-4 h-4" style={iconStyle} />;
-  };
-
-  // Drag sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = items.findIndex((item) => item.id === active.id);
-    const newIndex = items.findIndex((item) => item.id === over.id);
-
-    const newOrder = arrayMove(items, oldIndex, newIndex) as VideoItem[];
-    const updatedList = newOrder.map((item, idx) => ({
-      ...item,
-      order: idx
-    }));
-
-    onItemsUpdated(updatedList);
-
-    try {
-      const batchUpdates = updatedList.map((item) => {
-        return updateDoc(doc(db, "videos", item.id), { order: item.order });
-      });
-      await Promise.all(batchUpdates);
-      showNotification("Videos order updated successfully");
-      onRefreshData();
-    } catch (err) {
-      console.error("Error saving video order:", err);
-      showNotification("Failed to update video order", "error");
-    }
   };
 
   const startNewVideo = () => {
@@ -171,7 +142,7 @@ export default function VideoPlayer({
   const handleDeleteVideo = async (id: string) => {
     
     try {
-      await deleteVideoItem(id);
+      // delete local only
       const newItems = items.filter(item => item.id !== id);
       onItemsUpdated(newItems);
       showNotification("Video deleted successfully");
@@ -213,12 +184,18 @@ export default function VideoPlayer({
         saveItem.order = items.length;
       }
 
-      const saved = await saveVideoItem(saveItem as VideoItem);
-      showNotification("Video saved successfully");
-      setActiveVideo(saved); // Update active video in player immediately after saving
+      const saved = { ...saveItem };
+      if (!saved.id) saved.id = 'temp_' + Date.now();
+      
+      const newItems = items.find(i => i.id === saved.id)
+        ? items.map(i => i.id === saved.id ? saved : i)
+        : [...items, saved];
+      
+      onItemsUpdated(newItems);
+      setActiveVideo(saved);
       setEditingItem(null);
       originalItemRef.current = null;
-      onRefreshData();
+      
     } catch (err) {
       console.error("Error saving video:", err);
       showNotification("Failed to save video", "error");
@@ -227,17 +204,8 @@ export default function VideoPlayer({
     }
   };
 
-  if (items.length === 0 && !isEditMode) {
-    return (
-      <div id="video-player-loading" className="w-full py-24 text-center border border-neutral-900 rounded bg-[var(--color-bg)] animate-pulse">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-[1px] bg-[var(--color-bg)]" />
-          <span className="text-[10px] tracking-[0.3em] uppercase font-sans" style={{ color: theme?.text || 'inherit' }}>
-            Loading Repertoire Videos...
-          </span>
-        </div>
-      </div>
-    );
+  if (items.length === 0 && !user) {
+    return null;
   }
 
   const media = (activeVideo ? getMediaSource(activeVideo.youtubeId) : { type: 'none', src: '', ytId: '' }) as any;
@@ -265,351 +233,160 @@ export default function VideoPlayer({
         )}
       </AnimatePresence>
 
-      {/* Admin Panel Header & Trigger */}
-      {user && (activeEditSection === 'none' || activeEditSection === 'videos') && (
-        <div className="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-white/5 gap-4">
-          <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
-              ADMIN ACCESS
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {!isEditMode ? (
-              <button
-                type="button"
-                onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 border rounded-sm transition-all cursor-pointer font-sans font-medium"
-                style={{
-                  backgroundColor: theme?.bg ? `${theme.bg}05` : 'rgba(255, 255, 255, 0.05)',
-                  borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
-                  color: theme?.text || 'inherit'
-                }}
-              >
-                <Edit3 className="w-3.5 h-3.5" style={{ color: theme?.text }} />
-                <span>Edit Videos</span>
-              </button>
-            ) : (
-              <div className="flex items-center space-x-3 flex-wrap gap-2">
-                {/* Embedded Language switcher inside Videos Edit Mode */}
-                <div className="flex items-center space-x-1 px-1.5 py-1 rounded-sm border" style={{ backgroundColor: theme?.bg ? `${theme.bg}05` : 'rgba(255, 255, 255, 0.05)', borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)' }}>
-                  {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all`}
-                      style={{
-                        backgroundColor: currentLang === lang ? ('#C9A227') : 'transparent',
-                        color: currentLang === lang ? (theme?.bg || 'black') : (theme?.text ? `${theme.text}60` : 'inherit')
-                      }}
-                    >
-                      {lang}
-                    </button>
-                  ))}
+      {user ? (
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <CollectionManager<VideoItem>
+            items={items}
+            isAdmin={true}
+            title="Video Reel"
+            strategy="vertical"
+            gridClassName="space-y-4 w-full"
+            onReorder={onReorderVideos}
+            onAdd={onAddVideo}
+            onUpdate={onUpdateVideo}
+            onDelete={onDeleteVideo}
+            itemSchema={videoItemSchema}
+            editorForm={({ item, onChange, onSave, onCancel, isSaving }) => (
+              <div className="space-y-6">
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] text-neutral-400 font-sans uppercase block font-bold">YouTube ID or Video URL</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. dQw4w9WgXcQ or https://www.youtube.com/watch?v=..."
+                    value={item.youtubeId || ''}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      const parsed = getMediaSource(val);
+                      if (parsed.ytId) {
+                        val = parsed.ytId;
+                      }
+                      onChange({ ...item, youtubeId: val });
+                    }}
+                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                  />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={startNewVideo}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border rounded-sm transition-all cursor-pointer font-sans"
-                  style={{
-                    backgroundColor: 'rgba(201, 162, 39, 0.1)',
-                    borderColor: 'rgba(201, 162, 39, 0.3)',
-                    color: '#C9A227'
-                  }}
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Video</span>
-                </button>
+                <div className="space-y-3 pt-3 border-t border-white/5">
+                  <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1 text-left">
+                    TITLE TRANSLATIONS
+                  </span>
+                  <div className="space-y-3 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Title (EN)</label>
+                      <input
+                        type="text"
+                        placeholder="English title"
+                        value={item.title?.EN || ''}
+                        onChange={(e) => onChange({ ...item, title: { ...item.title, EN: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Title (DE)</label>
+                      <input
+                        type="text"
+                        placeholder="German title"
+                        value={item.title?.DE || ''}
+                        onChange={(e) => onChange({ ...item, title: { ...item.title, DE: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Title (KO)</label>
+                      <input
+                        type="text"
+                        placeholder="Korean title"
+                        value={item.title?.KO || ''}
+                        onChange={(e) => onChange({ ...item, title: { ...item.title, KO: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const hasChanges = editingItem !== null;
-                    if (hasChanges) {
-                      if (true) {
-                        setEditingItem(null);
-                        setIsEditMode(false);
-                      }
-                    } else {
-                      setIsEditMode(false);
-                    }
-                  }}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border rounded-sm transition-all cursor-pointer font-sans"
-                  style={{
-                    borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
-                    color: theme?.text || 'inherit'
-                  }}
-                >
-                  <X className="w-3 h-3" />
-                  <span>Exit Edit Mode</span>
-                </button>
+                <div className="space-y-3 pt-3 border-t border-white/5">
+                  <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1 text-left">
+                    ROLE / SUBTITLE TRANSLATIONS
+                  </span>
+                  <div className="space-y-3 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Role/Subtitle (EN)</label>
+                      <input
+                        type="text"
+                        placeholder="English role"
+                        value={item.role?.EN || ''}
+                        onChange={(e) => onChange({ ...item, role: { ...item.role, EN: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Role/Subtitle (DE)</label>
+                      <input
+                        type="text"
+                        placeholder="German role"
+                        value={item.role?.DE || ''}
+                        onChange={(e) => onChange({ ...item, role: { ...item.role, DE: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Role/Subtitle (KO)</label>
+                      <input
+                        type="text"
+                        placeholder="Korean role"
+                        value={item.role?.KO || ''}
+                        onChange={(e) => onChange({ ...item, role: { ...item.role, KO: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-3 border-t border-white/5">
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSave}
+                    disabled={isSaving}
+                    className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isSaving ? "Saving..." : "Save"}</span>
+                  </button>
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================
-          EDIT MODE INTERFACE
-          ======================================================== */}
-      {isEditMode ? (
-        <div className="space-y-6">
-          
-          {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 max-w-3xl mx-auto transition-all">
-              <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
-                  {editingItem.id ? 'Edit Video Details' : 'New Repertoire Video'}
-                </h4>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="p-1 hover:bg-white/5 rounded transition-colors cursor-pointer"
-                  style={{ color: theme?.text || 'inherit' }}
-                  title="Close Form"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Left Side: Video Source */}
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] tracking-wider font-sans uppercase block font-semibold" style={{ color: theme?.text || 'inherit' }}>YouTube ID or Video URL</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. qR_b_V8_K8M or https://www.youtube.com/watch?v=..."
-                      value={editingItem.youtubeId || ''}
-                      onChange={(e) => setEditingItem({ ...editingItem, youtubeId: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <span className="text-[9px] font-mono uppercase tracking-widest block font-bold" style={{ color: theme?.text || 'inherit' }}>TRANSLATIONS (ALL LANGUAGES)</span>
-                    
-                    {/* Role EN, DE, KO */}
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-mono uppercase tracking-widest block font-semibold" style={{ color: theme?.text || 'inherit' }}>Role / Opera / Occasion</span>
-                      <div className="grid grid-cols-3 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Role (EN)"
-                          value={editingItem.role?.EN || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            role: { ...editingItem.role, EN: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Role (DE)"
-                          value={editingItem.role?.DE || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            role: { ...editingItem.role, DE: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Role (KO)"
-                          value={editingItem.role?.KO || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            role: { ...editingItem.role, KO: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Venue / Theatre / Description EN, DE, KO */}
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-mono uppercase tracking-widest block font-semibold" style={{ color: theme?.text || 'inherit' }}>Theatre / Venue / Description</span>
-                      <div className="grid grid-cols-3 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Venue (EN)"
-                          value={editingItem.description?.EN || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            description: { ...editingItem.description, EN: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Venue (DE)"
-                          value={editingItem.description?.DE || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            description: { ...editingItem.description, DE: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Venue (KO)"
-                          value={editingItem.description?.KO || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            description: { ...editingItem.description, KO: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
+            renderItem={(item) => (
+              <div className="w-full p-4 border border-white/5 bg-white/[0.01] rounded-sm flex items-start space-x-4 text-left">
+                <div className="w-32 aspect-video bg-cover bg-center rounded-sm relative shrink-0 overflow-hidden border border-white/10" style={{ backgroundImage: `url('https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg')` }}>
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <Play className="w-6 h-6 text-white/90" />
                   </div>
                 </div>
-
-                {/* Right Side: Title & Info */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1">REPERTOIRE PIECE TITLE</span>
-                    <div className="space-y-2.5">
-                      <div>
-                        <label className="text-[9px] tracking-wider font-sans uppercase block mb-1" style={{ color: theme?.text || 'inherit' }}>Title (EN)</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Madamina, il catalogo è questo"
-                          value={editingItem.title?.EN || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            title: { ...editingItem.title, EN: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[9px] tracking-wider font-sans uppercase block mb-1" style={{ color: theme?.text || 'inherit' }}>Title (DE)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Madamina, il catalogo è questo (German)"
-                          value={editingItem.title?.DE || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            title: { ...editingItem.title, DE: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[9px] tracking-wider font-sans uppercase block mb-1" style={{ color: theme?.text || 'inherit' }}>Title (KO)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 카탈로그의 노래 (Korean)"
-                          value={editingItem.title?.KO || ''}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            title: { ...editingItem.title, KO: e.target.value } as any
-                          })}
-                          className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-3 border-t border-white/5">
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
-                  style={{ color: theme?.text || 'inherit' }}
-                >
-                  {t.adminCancel}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{isSaving ? t.adminSaving : t.adminSave}</span>
-                </button>
-              </div>
-            </form>
-          ) : (
-            /* Drag-and-drop Reorder List */
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-xs tracking-wider font-sans uppercase" style={{ color: theme?.text || 'inherit' }}>
-                  Reorder Repertoire reels • Drag handle on left • Click edit to translate
-                </p>
-              </div>
-
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <div className="divide-y divide-white/5 border border-white/10 bg-black/20 rounded-sm overflow-hidden">
-                  {items.length === 0 ? (
-                    <div className="p-12 text-center text-xs font-sans" style={{ color: theme?.text || 'inherit' }}>No videos available. Click Add Video above to publish repertoire!</div>
-                  ) : (
-                    <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                      {items.map((item) => {
-                        return (
-                          <SortableItem 
-                            key={item.id} 
-                            id={item.id} 
-                            className="bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 border-b border-white/5" 
-                            handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
-                          >
-                            <div className="flex-1 min-w-0 pr-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-sans font-bold" style={{ color: theme?.text || 'inherit' }}>
-                                  {item.title[currentLang] || item.title['EN']}
-                                </span>
-                                <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">
-                                  YT: {item.youtubeId}
-                                </span>
-                              </div>
-                              {item.role && (
-                                <p className="text-[11px] mt-0.5 font-sans" style={{ color: theme?.text || 'inherit' }}>
-                                  {item.role[currentLang] || item.role['EN']}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => startEditVideo(item)}
-                                className="p-2 border border-white/5 hover:border-white/20 rounded transition-colors cursor-pointer"
-                                style={{ color: theme?.text || 'inherit' }}
-                                title="Edit Video"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteVideo(item.id)}
-                                className="p-2 border border-rose-500/10 hover:border-rose-500/35 text-rose-400 hover:bg-rose-950/20 rounded transition-colors cursor-pointer"
-                                title="Delete Video"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </SortableItem>
-                        );
-                      })}
-                    </SortableContext>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <h4 className="text-sm font-sans tracking-wide text-white font-semibold truncate">
+                    {item.title ? (item.title[currentLang] || item.title['EN']) : ''}
+                  </h4>
+                  {item.role && typeof item.role === 'object' && (
+                    <p className="text-xs text-neutral-400 truncate">
+                      {item.role[currentLang] || item.role['EN']}
+                    </p>
                   )}
+                  <p className="text-[10px] font-mono text-[#C9A227] uppercase tracking-wider pt-1">
+                    YouTube ID: {item.youtubeId}
+                  </p>
                 </div>
-              </DndContext>
-            </div>
-          )}
+              </div>
+            )}
+          />
         </div>
       ) : (
-        /* ========================================================
-            PUBLIC READ-ONLY INTERFACE
-            ======================================================== */
         <div id="video-player-root" className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Main Theater Screen (8 cols) */}
           <div id="video-screen-container" className="lg:col-span-8 space-y-4">
@@ -647,9 +424,9 @@ export default function VideoPlayer({
                               {t.watchNow}
                             </span>
                             <h3 className="text-sm sm:text-xl md:text-2xl font-serif font-light tracking-wide line-clamp-2 px-2" style={{ color: 'var(--color-text)' }}>
-                              {activeVideo.title[currentLang] || activeVideo.title['EN']}
+                              {activeVideo.title ? (activeVideo.title[currentLang] || activeVideo.title['EN']) : ''}
                             </h3>
-                            {activeVideo.role && (
+                            {activeVideo.role && typeof activeVideo.role === 'object' && (
                               <p className="text-xs sm:text-sm font-sans tracking-widest mt-1 sm:mt-2 truncate w-full px-2" style={{ color: 'var(--color-text)' }}>
                                 {activeVideo.role[currentLang] || activeVideo.role['EN']}
                               </p>
@@ -657,34 +434,16 @@ export default function VideoPlayer({
                           </div>
                         </div>
                       ) : (
-                        isYouTube ? (
-                          <iframe
-                            id="youtube-iframe"
-                            src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&rel=0&modestbranding=1${media.start ? `&start=${media.start}` : ''}`}
-                            title={activeVideo.title[currentLang] || activeVideo.title['EN']}
-                            className="absolute inset-0 w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        ) : media.type === 'drive' ? (
-                          <iframe
-                            id="drive-iframe"
-                            src={media.src}
-                            title={activeVideo.title[currentLang] || activeVideo.title['EN']}
-                            className="absolute inset-0 w-full h-full border-0"
-                            allow="autoplay"
-                            allowFullScreen
-                          />
-                        ) : (
-                          <video
-                            src={media.src}
-                            autoPlay
-                            controls
-                            playsInline
-                            className="absolute inset-0 w-full h-full object-contain bg-black"
-                            onEnded={() => setIsPlaying(false)}
-                          />
-                        )
+                        <MediaPreview
+                          url={activeVideo.youtubeId}
+                          altText={activeVideo.title ? (activeVideo.title[currentLang] || activeVideo.title['EN']) : ''}
+                          className="absolute inset-0 w-full h-full"
+                          autoPlay={true}
+                          controls={true}
+                          muted={false}
+                          loop={false}
+                          onEnded={() => setIsPlaying(false)}
+                        />
                       )}
                     </motion.div>
                   )}
@@ -699,11 +458,11 @@ export default function VideoPlayer({
               Repertoire Reels
             </h3>
             <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-              {items.map((video) => {
+              {items.map((video, idx) => {
                 const isSelected = activeVideo && activeVideo.id === video.id;
                 return (
                   <button
-                    key={video.id}
+                    key={video.id || `video-list-item-${idx}`}
                     id={`video-list-item-${video.id}`}
                     onClick={() => {
                       setActiveVideo(video);
@@ -727,26 +486,14 @@ export default function VideoPlayer({
                       <h4 className={`text-xs md:text-sm font-sans tracking-wide transition-colors ${
                         isSelected ? 'font-bold' : 'group-hover:opacity-100'
                       }`} style={{ color: 'var(--color-text)' }}>
-                        {video.title[currentLang] || video.title['EN']}
+                        {video.title ? (video.title[currentLang] || video.title['EN']) : ''}
                       </h4>
-                      {video.role && (
+                      {video.role && typeof video.role === 'object' && (
                         <p className="text-[11px] tracking-wider" style={{ color: 'var(--color-text)' }}>
                           {video.role[currentLang] || video.role['EN']}
                         </p>
                       )}
                     </div>
-                    {user && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteVideo(video.id);
-                        }}
-                        className="ml-auto p-1.5 border border-rose-500/10 hover:border-rose-500/35 text-rose-400 hover:bg-rose-950/20 rounded transition-colors cursor-pointer"
-                        title="Delete from main page"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </div>
-                    )}
                   </button>
                 );
               })}

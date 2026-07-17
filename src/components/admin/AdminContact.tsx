@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { Language, ContactSettings } from '../../types';
-import { fetchContactSettings, saveContactSettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertyTextarea } from './PropertyFields';
 import ContactSection from '../ContactSection';
 import { translations } from '../../translations';
 import { useAppearance } from '../../contexts/AppearanceContext';
+import { useEditing } from '../../contexts/EditingContext';
 
 export default function AdminContact({ 
   currentLang, 
@@ -22,31 +22,20 @@ export default function AdminContact({
   setContact: (c: ContactSettings) => void;
 }) {
   const { theme } = useAppearance();
-  const [initialSettings, setInitialSettings] = useState<ContactSettings | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    fetchContactSettings().then(data => {
-      // Provide defaults if null
-      const safeData = data || { email: '', phone: '', management: '' };
-      setInitialSettings(safeData);
-    });
-  }, []);
+  const { status, saveChanges, cancelChanges, isDirty } = useEditing();
 
   if (!contact) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
-  const hasChanges = JSON.stringify(contact) !== JSON.stringify(initialSettings);
+  const hasChanges = isDirty('contact');
+  const isSaving = status === 'saving';
 
   const handleSave = async () => {
-    setIsSaving(true);
-    await saveContactSettings(contact);
-    setInitialSettings(contact);
-    if (onRefreshData) onRefreshData();
-    setIsSaving(false);
+    await saveChanges();
+    
   };
 
   const handleReset = () => {
-    if (initialSettings) setContact(initialSettings);
+    cancelChanges();
   };
 
   const updateField = (key: keyof ContactSettings, val: any) => {

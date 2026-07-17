@@ -1,8 +1,10 @@
+import { InlineEditor } from "../lib/editing/InlineEditor";
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Settings } from 'lucide-react';
 import { ThemeSettings, Language } from '../types';
-import { getMediaSource } from '../lib/mediaUtils';
+import { MediaEngine } from '../lib/editing/mediaEngine';
+import { MediaPreview } from './admin/media';
 import { User } from 'firebase/auth';
 import EditableBlock from './admin/EditableBlock';
 
@@ -21,7 +23,9 @@ interface HeroSectionProps {
   adminMode?: boolean;
   selectedBlock?: string | null;
   onBlockSelect?: (tab: any, blockId: string) => void;
+  onOpenSettings?: () => void;
 }
+import { useSectionDirty } from '../hooks/useSectionDirty';
 
 export default function HeroSection({
   theme,
@@ -32,10 +36,12 @@ export default function HeroSection({
   scrollToSection = () => {},
   adminMode,
   selectedBlock,
-  onBlockSelect
+  onBlockSelect,
+  onOpenSettings
 }: HeroSectionProps) {
   const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const isDirty = useSectionDirty('hero');
 
   React.useEffect(() => {
     const video = heroVideoRef.current;
@@ -97,18 +103,37 @@ export default function HeroSection({
       id="home" 
       className={`relative h-screen flex items-center ${theme.heroAlign === 'left' ? 'justify-start' : theme.heroAlign === 'right' ? 'justify-end' : 'justify-center'} overflow-hidden`}
     >
+      {/* Admin Settings Overlay */}
+      {user && (
+        <div className="absolute top-24 left-6 z-50 pointer-events-auto">
+          <button 
+            onClick={onOpenSettings}
+            className="flex items-center space-x-2 bg-black/60 hover:bg-black border border-white/10 hover:border-[#C9A227] backdrop-blur-md px-4 py-2 rounded-sm text-xs font-sans tracking-widest uppercase transition-all shadow-xl group"
+          >
+            <Settings className="w-3.5 h-3.5 text-[#C9A227] group-hover:rotate-90 transition-transform duration-500" />
+            <span className="text-white/90 group-hover:text-white">Hero Settings</span>
+          </button>
+        </div>
+      )}
+
       {/* Background opera stage image or video */}
       {(() => {
-        const media = getMediaSource(theme.homeBg || '', theme.homeBgType as any);
+        const media = MediaEngine.resolve(theme.homeBg || '', theme.homeBgType as any);
         if (media.type === 'video') {
           return (
             <div className="absolute inset-0 w-full h-full pointer-events-none">
-              <video
-                ref={heroVideoRef}
-                autoPlay loop muted playsInline preload="auto"
-                className="absolute inset-0 w-full h-full object-cover animate-kenburns pointer-events-none"
-                src={media.src}
+              <MediaPreview
+                url={theme.homeBg}
+                explicitType={theme.homeBgType as any}
+                className="absolute inset-0 w-full h-full pointer-events-none select-none"
+                videoClassName="animate-kenburns pointer-events-none"
+                videoRef={heroVideoRef}
                 onLoadedData={() => setIsHeroVideoPlaying(true)}
+                muted={true}
+                loop={true}
+                autoPlay={true}
+                controls={false}
+                showPlayIcon={false}
               />
               <AnimatePresence>
                 {!isHeroVideoPlaying && (
@@ -125,22 +150,31 @@ export default function HeroSection({
         } else if (media.type === 'youtube') {
           return (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-              <iframe
-                className="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
-                src={`https://www.youtube.com/embed/${media.ytId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&enablejsapi=1&playsinline=1${media.start ? `&start=${media.start}` : ''}&playlist=${media.ytId}`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+              <MediaPreview
+                url={theme.homeBg}
+                explicitType={theme.homeBgType as any}
+                className="absolute inset-0 w-full h-full pointer-events-none select-none"
+                iframeClassName="absolute top-1/2 left-1/2 w-[300vw] h-[300vh] min-w-[100vw] min-h-[100vh] -translate-x-1/2 -translate-y-1/2 opacity-70 pointer-events-none"
+                muted={true}
+                loop={true}
+                autoPlay={true}
+                controls={false}
+                showPlayIcon={false}
               />
               <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
             </div>
           );
         } else {
           return (
-            <div 
-              id="hero-bg"
-              className="absolute inset-0 bg-cover bg-center animate-kenburns pointer-events-none"
-              style={{ backgroundImage: `url('${media.src || '/src/assets/images/opera_stage_1783548365279.jpg'}')` }}
-            />
+            <div className="absolute inset-0 pointer-events-none">
+              <MediaPreview
+                url={theme.homeBg || '/src/assets/images/opera_stage_1783548365279.jpg'}
+                explicitType={theme.homeBgType as any}
+                className="absolute inset-0 pointer-events-none select-none"
+                imageClassName="animate-kenburns pointer-events-none"
+                showPlayIcon={false}
+              />
+            </div>
           );
         }
       })()}
@@ -158,6 +192,8 @@ export default function HeroSection({
         }`}
         style={{ transform: `translate(${theme.heroContentOffsetX ?? 0}px, ${theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0}px)`, '--hero-title-size': theme.heroTitleSize ? `${theme.heroTitleSize}px` : '64px', '--hero-btn-size': theme.heroButtonSize ? `${theme.heroButtonSize}px` : '11px', '--hero-subtitle-size': theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined, '--hero-desc-size': theme.heroDescSize ? `${theme.heroDescSize}px` : undefined } as React.CSSProperties}
       >
+
+
         <EditableBlock
           id="hero-subtitle" adminMode={adminMode} selectedBlock={selectedBlock}
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
@@ -166,9 +202,26 @@ export default function HeroSection({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            className={`font-sans text-[length:min(var(--hero-subtitle-size,12px),20px)] lg:text-[length:var(--hero-subtitle-size,14px)] tracking-[0.4em] uppercase font-semibold`}
+            className={`font-sans text-[length:min(var(--hero-subtitle-size,12px),20px)] lg:text-[length:var(--hero-subtitle-size,14px)] tracking-[0.4em] uppercase font-semibold relative inline-flex items-center`}
           >
-            {getHeroSubtitle()}
+            <InlineEditor 
+              id="theme.heroSubtitle" 
+              initialValue={getHeroSubtitle()} 
+              readonly={!adminMode} 
+              placeholder="Hero Subtitle"
+              toolbarTools={["typography"]}
+            />
+            <AnimatePresence>
+              {isDirty && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0 }}
+                  className="absolute -right-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#C9A227]"
+                  title="Unsaved changes"
+                />
+              )}
+            </AnimatePresence>
           </motion.div>
         </EditableBlock>
 
@@ -183,7 +236,13 @@ export default function HeroSection({
             className={`text-[length:min(var(--hero-title-size,64px),36px)] md:text-[length:min(var(--hero-title-size,64px),52px)] lg:text-[length:var(--hero-title-size,64px)] font-serif font-light tracking-[0.1em] uppercase leading-none`}
             
           >
-            {getHeroTitle()}
+            <InlineEditor 
+              id="theme.heroTitle" 
+              initialValue={getHeroTitle()} 
+              readonly={!adminMode} 
+              placeholder="Hero Title"
+              toolbarTools={["typography"]}
+            />
           </motion.h1>
         </EditableBlock>
 
@@ -197,12 +256,17 @@ export default function HeroSection({
             transition={{ duration: 1, delay: 0.4 }}
             className={`font-sans text-[length:min(var(--hero-desc-size,16px),20px)] lg:text-[length:var(--hero-desc-size,16px)] tracking-[0.2em] font-light max-w-xl uppercase pt-6`}
             style={{ 
-
               marginLeft: theme.heroAlign === 'right' ? 'auto' : theme.heroAlign === 'left' ? '0' : 'auto',
               marginRight: theme.heroAlign === 'left' ? 'auto' : theme.heroAlign === 'right' ? '0' : 'auto'
             }}
           >
-            {getHeroDescription()}
+            <InlineEditor 
+              id="theme.heroDescription" 
+              initialValue={getHeroDescription()} 
+              readonly={!adminMode} 
+              placeholder="Hero Description"
+              toolbarTools={["typography"]}
+            />
           </motion.div>
         </EditableBlock>
 
@@ -218,11 +282,20 @@ export default function HeroSection({
           >
             <button
               id="discover-button"
-              onClick={() => scrollToSection('biography')}
+              onClick={(e) => {
+                if (!adminMode) scrollToSection('biography');
+                else e.preventDefault();
+              }}
               className="group px-8 py-3.5 border border-white/20 font-sans text-[length:min(var(--hero-btn-size,11px),15px)] lg:text-[length:max(var(--hero-btn-size,11px),15px)] tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
               style={{ color: theme.text || "#ffffff" }}
             >
-              <span>{getHeroDiscover()}</span>
+              <InlineEditor 
+                id="theme.heroDiscover" 
+                initialValue={getHeroDiscover()} 
+                readonly={!adminMode} 
+                placeholder="Button Text"
+                toolbarTools={["typography"]}
+              />
               <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:translate-y-1 text-current" />
             </button>
           </motion.div>

@@ -71,6 +71,7 @@ export interface PressItem {
 }
 
 export interface ThemeSettings {
+  legal?: Record<string, any>;
   bg: string;
   text: string;
   homeBg?: string;
@@ -144,12 +145,15 @@ export interface ThemeSettings {
 }
 
 export interface TimelineItem {
-  id?: string;
+  id: string;
   order?: number;
   year: string;
   textEN: string;
   textDE: string;
   textKO: string;
+  yearEN?: string;
+  yearDE?: string;
+  yearKO?: string;
 }
 
 export interface TimelineData {

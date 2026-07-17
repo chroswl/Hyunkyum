@@ -1,3 +1,4 @@
+import { InlineEditor } from "../lib/editing/InlineEditor";
 import React from 'react';
 import { motion } from 'motion/react';
 import { X, Shield, FileText, ExternalLink, Mail, Phone, MapPin, Award } from 'lucide-react';
@@ -11,10 +12,26 @@ interface LegalModalProps {
   type: 'impressum' | 'privacy';
   currentLang: Language;
   theme?: ThemeSettings;
+  adminMode?: boolean;
 }
 
-export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, currentLang, theme }) => {
+export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, currentLang, theme, adminMode }) => {
   if (!isOpen) return null;
+
+  const renderEditableText = (key: string, defaultText: string, asComp: React.ElementType = 'span', className?: string) => {
+    return (
+      <InlineEditor
+        id={`theme.legal.${key}.${currentLang}`}
+        initialValue={theme?.legal?.[key]?.[currentLang] || defaultText}
+        readonly={!adminMode}
+        placeholder={defaultText}
+        as={asComp as any}
+        className={className}
+        wrapperClassName={asComp === 'div' ? 'block' : 'inline-block'}
+        toolbarTools={["heading", "list", "link"]}
+      />
+    );
+  };
 
   // Render Impressum Content
   const renderImpressum = () => {
@@ -24,11 +41,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
       <div className="space-y-8 font-sans text-neutral-300 leading-relaxed text-sm md:text-base">
         <div>
           <h3 className="font-serif text-lg md:text-xl text-white uppercase tracking-wider mb-2">
-            {t.impressumTitle || "Legal Notice (Impressum)"}
+            {renderEditableText('impressumTitle', t.impressumTitle || "Legal Notice (Impressum)")}
           </h3>
-          <p className="text-xs text-neutral-500 font-mono tracking-widest uppercase mb-6">
-            {t.impressumInfoTitle}
-          </p>
+          <div className="text-xs text-neutral-500 font-mono tracking-widest uppercase mb-6">
+            {renderEditableText('impressumInfoTitle', t.impressumInfoTitle || "Information according to § 5 DDG")}
+          </div>
         </div>
 
         {/* Address and Contact details Card */}
@@ -36,16 +53,24 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
           <div className="flex items-start space-x-3">
             <MapPin className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-serif text-white font-medium text-base tracking-wide">{t.impressumAddressName}</p>
-              <p className="text-neutral-400 mt-1">{t.impressumAddressStreet}</p>
-              <p className="text-neutral-400">{t.impressumAddressCity}, {t.impressumAddressCountry}</p>
+              <div className="font-serif text-white font-medium text-base tracking-wide">
+                {renderEditableText('impressumAddressName', t.impressumAddressName || "Hyunkyum Kim")}
+              </div>
+              <div className="text-neutral-400 mt-1">
+                {renderEditableText('impressumAddressStreet', t.impressumAddressStreet || "Ludwigstraße 65")}
+              </div>
+              <div className="text-neutral-400">
+                {renderEditableText('impressumAddressCity', t.impressumAddressCity || "67657 Kaiserslautern")}, {renderEditableText('impressumAddressCountry', t.impressumAddressCountry || "Germany")}
+              </div>
             </div>
           </div>
 
           <div className="border-t border-neutral-900/60 pt-4 mt-4 space-y-3">
             <div className="flex items-center space-x-3 text-sm">
               <Mail className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-              <span className="text-neutral-400">{t.impressumEmailLabel}: </span>
+              <span className="text-neutral-400">
+                {renderEditableText('impressumEmailLabel', t.impressumEmailLabel || "Email")}: 
+              </span>
               <a href="mailto:contact@hyunkyumkim.com" className="text-white hover:underline transition-colors">
                 contact@hyunkyumkim.com
               </a>
@@ -55,12 +80,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
 
         {/* Responsible Section */}
         <div className="space-y-4 pt-4 border-t border-neutral-900">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.impressumResponsibleTitle}</h4>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('impressumResponsibleTitle', t.impressumResponsibleTitle || "Responsible for content pursuant to § 18 MStV")}
+          </h4>
           <div className="text-neutral-400 text-sm space-y-1">
-            <p>{t.impressumAddressName}</p>
-            <p>{t.impressumAddressStreet}</p>
-            <p>{t.impressumAddressCity}</p>
-            <p>{t.impressumAddressCountry}</p>
+            <div>{renderEditableText('impressumAddressName', t.impressumAddressName || "Hyunkyum Kim")}</div>
+            <div>{renderEditableText('impressumAddressStreet', t.impressumAddressStreet || "Ludwigstraße 65")}</div>
+            <div>{renderEditableText('impressumAddressCity', t.impressumAddressCity || "67657 Kaiserslautern")}</div>
+            <div>{renderEditableText('impressumAddressCountry', t.impressumAddressCountry || "Germany")}</div>
           </div>
         </div>
       </div>
@@ -75,52 +102,62 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
       <div className="space-y-6 font-sans text-neutral-300 leading-relaxed text-sm md:text-base">
         <div>
           <h3 className="font-serif text-lg md:text-xl text-white uppercase tracking-wider mb-2">
-            {t.privacyTitle || "Privacy Policy"}
+            {renderEditableText('privacyTitle', t.privacyTitle || "Privacy Policy")}
           </h3>
-          <p className="text-xs text-neutral-500 font-mono tracking-widest uppercase mb-6">
-            {t.privacySubtitle || "Data Protection Information"}
-          </p>
+          <div className="text-xs text-neutral-500 font-mono tracking-widest uppercase mb-6">
+            {renderEditableText('privacySubtitle', t.privacySubtitle || "Data Protection Information")}
+          </div>
         </div>
 
         <div className="space-y-4">
-          <p className="text-white text-base">
-            {t.privacyIntro}
-          </p>
+          <div className="text-white text-base">
+            {renderEditableText('privacyIntro', t.privacyIntro || "Welcome to my website...", 'div')}
+          </div>
         </div>
 
         <div className="border-t border-neutral-900 pt-6 space-y-4">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.privacySec1Title}</h4>
-          <p className="text-neutral-400 text-sm">
-            {t.privacySec1Text}
-          </p>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('privacySec1Title', t.privacySec1Title || "1. Data Collection on our Website")}
+          </h4>
+          <div className="text-neutral-400 text-sm">
+            {renderEditableText('privacySec1Text', t.privacySec1Text || "We take the protection of your personal data very seriously...", 'div')}
+          </div>
         </div>
 
         <div className="border-t border-neutral-900 pt-6 space-y-4">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.privacySec2Title}</h4>
-          <p className="text-neutral-400 text-sm">
-            {t.privacySec2Text}
-          </p>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('privacySec2Title', t.privacySec2Title || "2. Hosting")}
+          </h4>
+          <div className="text-neutral-400 text-sm">
+            {renderEditableText('privacySec2Text', t.privacySec2Text || "Our website is hosted...", 'div')}
+          </div>
         </div>
 
         <div className="border-t border-neutral-900 pt-6 space-y-4">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.privacySec3Title}</h4>
-          <p className="text-neutral-400 text-sm">
-            {t.privacySec3Text}
-          </p>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('privacySec3Title', t.privacySec3Title || "3. General Information and Mandatory Information")}
+          </h4>
+          <div className="text-neutral-400 text-sm">
+            {renderEditableText('privacySec3Text', t.privacySec3Text || "Information about your rights...", 'div')}
+          </div>
         </div>
 
         <div className="border-t border-neutral-900 pt-6 space-y-4">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.privacySec4Title}</h4>
-          <p className="text-neutral-400 text-sm">
-            {t.privacySec4Text}
-          </p>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('privacySec4Title', t.privacySec4Title || "4. Data Collection on this Website")}
+          </h4>
+          <div className="text-neutral-400 text-sm">
+            {renderEditableText('privacySec4Text', t.privacySec4Text || "How data is collected...", 'div')}
+          </div>
         </div>
 
         <div className="border-t border-neutral-900 pt-6 space-y-4">
-          <h4 className="font-serif text-sm tracking-wider text-white uppercase">{t.privacySec5Title}</h4>
-          <p className="text-neutral-400 text-sm">
-            {t.privacySec5Text}
-          </p>
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('privacySec5Title', t.privacySec5Title || "5. Plugins and Tools")}
+          </h4>
+          <div className="text-neutral-400 text-sm">
+            {renderEditableText('privacySec5Text', t.privacySec5Text || "We use third party tools...", 'div')}
+          </div>
         </div>
       </div>
     );

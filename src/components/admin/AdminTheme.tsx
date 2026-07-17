@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { Language, ThemeSettings } from '../../types';
-import { saveThemeSettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyColorPicker, PropertySelect, PropertySlider } from './PropertyFields';
-import { translations } from '../../translations';
+import { useEditing } from '../../contexts/EditingContext';
 
 export default function AdminTheme({ 
   currentLang, 
   onRefreshData,
   onClose,
   theme,
-  setTheme,
-  initialTheme
+  setTheme
 }: { 
   currentLang: Language; 
   onRefreshData?: () => void;
@@ -21,7 +19,7 @@ export default function AdminTheme({
   setTheme: (t: ThemeSettings) => void;
   initialTheme: ThemeSettings | null;
 }) {
-  const [isSaving, setIsSaving] = useState(false);
+  const { status, saveChanges, cancelChanges, isDirty } = useEditing();
 
   if (!theme) {
     return (
@@ -32,17 +30,16 @@ export default function AdminTheme({
     );
   }
 
-  const hasChanges = JSON.stringify(theme) !== JSON.stringify(initialTheme);
+  const hasChanges = isDirty('theme');
+  const isSaving = status === 'saving';
 
   const handleSave = async () => {
-    setIsSaving(true);
-    await saveThemeSettings(theme);
-    if (onRefreshData) onRefreshData();
-    setIsSaving(false);
+    await saveChanges();
+    
   };
 
   const handleReset = () => {
-    if (initialTheme) setTheme(initialTheme);
+    cancelChanges();
   };
 
   const updateField = (key: keyof ThemeSettings, val: any) => {

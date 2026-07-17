@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Language, PerformanceSlide, ThemeSettings } from '../../types';
-import { fetchSelectedPerformances, saveSelectedPerformance, saveThemeSettings } from '../../firebase';
 import { Plus, Trash2, Edit, GripVertical, Image as ImageIcon, Upload } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -10,11 +9,9 @@ import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySelect, PropertySlider } from './PropertyFields';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import SelectedPerformances from '../SelectedPerformances';
-import ImageCropperModal from '../ImageCropperModal';
-import { writeBatch, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { optimizeImageFile } from '../../lib/imageCompressor';
-import { getMediaSource } from '../../lib/mediaUtils';
+import { MediaEngine, useMediaUpload } from '../../lib/editing/mediaEngine';
+import { MediaCropWrapper, MediaPreview } from './media';
+import { useEditing } from '../../contexts/EditingContext';
 
 export default function AdminSlides({ 
   currentLang, 
@@ -33,80 +30,43 @@ export default function AdminSlides({
   slides: PerformanceSlide[];
   setSlides: (s: PerformanceSlide[]) => void;
 }) {
-  const [initialItems, setInitialItems] = useState<PerformanceSlide[]>([]);
-  const [initialTheme, setInitialTheme] = useState<ThemeSettings | null>(theme);
-  const [localTheme, setLocalTheme] = useState<ThemeSettings | null>(theme);
-  const [isSaving, setIsSaving] = useState(false);
+  const { status, saveChanges, cancelChanges, isDirty } = useEditing();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [cropTarget, setCropTarget] = useState<{ id: string, src: string } | null>(null);
+  const [cropTarget, setCropTarget] = useState<{
+    src: string;
+    aspect?: number;
+    copyright?: string;
+    copyrightUrl?: string;
+    onCrop: (base64: string, copyright?: string, copyrightUrl?: string) => void;
+    onCancel: () => void;
+  } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [isOptimizing, setIsOptimizing] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Only set initial theme once on mount
-    if (!initialTheme && theme) {
-        setInitialTheme(theme);
-        setLocalTheme(theme);
-    }
-  }, []);
+  const { progress, isUploading, uploadMedia } = useMediaUpload({
+    folder: 'hero_slides',
+    maxSizeMB: 30
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  useEffect(() => {
-    fetchSelectedPerformances().then(data => {
-      setInitialItems(data);
-    });
-  }, []);
-
-  const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems) || JSON.stringify(localTheme) !== JSON.stringify(initialTheme);
+  const hasChanges = isDirty('slides') || isDirty('theme');
+  const isSaving = status === 'saving';
 
   const handleSave = async () => {
-    setIsSaving(true);
-    const batch = writeBatch(db);
+    await saveChanges();
     
-    try {
-        // Save theme settings
-        if (localTheme) {
-           await saveThemeSettings(localTheme);
-        }
-        
-        // Items to delete
-        initialItems.forEach(item => {
-          if (!items.find(i => i.id === item.id)) {
-            batch.delete(doc(db, 'selectedPerformances', item.id));
-          }
-        });
-    
-        // Items to add/update
-        items.forEach((item, index) => {
-           const ref = doc(db, 'selectedPerformances', item.id);
-           batch.set(ref, { ...item, order: index });
-        });
-        await batch.commit();
-        setInitialItems(items);
-        setInitialTheme(localTheme);
-        if (onRefreshData) onRefreshData();
-    } catch (error) {
-        console.error("Save failed:", error);
-        alert("Save failed: " + error);
-    } finally {
-        setIsSaving(false);
-    }
   };
 
   const handleReset = () => {
-    setItems(initialItems);
-    setLocalTheme(initialTheme);
+    cancelChanges();
     setEditingId(null);
   };
 
   const updateTheme = (next: ThemeSettings) => {
-    setLocalTheme(next);
     setTheme(next);
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: next }));
   };
@@ -125,47 +85,36 @@ export default function AdminSlides({
   };
 
   const handleFile = async (id: string, file: File) => {
-    if (file.size > 30 * 1024 * 1024) {
-      alert("File is too large. Maximum size is 30MB.");
-      return;
-    }
-    
     if (file.type.startsWith('image/')) {
-      setIsOptimizing(true);
-      setUploadProgress(0);
       try {
-        const optimizedBase64 = await optimizeImageFile(file, (p) => {
-          setUploadProgress(p);
+        const optimizedBase64 = await MediaEngine.optimize(file);
+        setCropTarget({
+          src: optimizedBase64,
+          aspect: 16/9,
+          onCrop: async (base64) => {
+            setCropTarget(null);
+            try {
+              const url = await MediaEngine.upload(base64, 'hero_slides');
+              updateItem(id, { image: url, mediaType: 'image' });
+            } catch (err) {
+              console.error("Upload failed after crop:", err);
+              updateItem(id, { image: base64, mediaType: 'image' });
+            }
+          },
+          onCancel: () => setCropTarget(null)
         });
-        setCropTarget({ id, src: optimizedBase64 });
         updateItem(id, { mediaType: 'image' });
       } catch (err) {
-        console.error("Failed to optimize image:", err);
-      } finally {
-        setIsOptimizing(false);
-        setUploadProgress(null);
+        console.error("Failed to process image:", err);
+        alert("Failed to process image.");
       }
     } else if (file.type.startsWith('video/')) {
-      setIsOptimizing(true);
-      setUploadProgress(10);
       try {
-        const reader = new FileReader();
-        reader.onprogress = (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          }
-        };
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string;
-          updateItem(id, { image: base64, mediaType: 'video' });
-          setIsOptimizing(false);
-          setUploadProgress(null);
-        };
-        reader.readAsDataURL(file);
+        const url = await uploadMedia(file);
+        updateItem(id, { image: url, mediaType: 'video' });
       } catch (err) {
-        console.error("Failed to read video:", err);
-        setIsOptimizing(false);
-        setUploadProgress(null);
+        console.error("Failed to upload video:", err);
+        alert("Failed to upload video: " + (err as Error).message);
       }
     } else {
       alert("Please select a valid image or video file.");
@@ -205,25 +154,25 @@ export default function AdminSlides({
       </div>
       
       <PropertyAccordion title="Section Settings" defaultOpen={true}>
-         <PropertySlider label="Title Size" value={localTheme?.perfTitleSize ?? 24} min={12} max={64} onChange={(v) => {
-            updateTheme({ ...localTheme!, perfTitleSize: v });
+         <PropertySlider label="Title Size" value={theme?.perfTitleSize ?? 24} min={12} max={64} onChange={(v) => {
+            updateTheme({ ...theme!, perfTitleSize: v });
          }} />
-         <PropertySlider label="Text Size" value={localTheme?.perfTextSize ?? 16} min={8} max={32} onChange={(v) => {
-            updateTheme({ ...localTheme!, perfTextSize: v });
+         <PropertySlider label="Text Size" value={theme?.perfTextSize ?? 16} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...theme!, perfTextSize: v });
          }} />
-         <PropertySlider label="House Text Size" value={localTheme?.perfHouseSize ?? 12} min={8} max={32} onChange={(v) => {
-            updateTheme({ ...localTheme!, perfHouseSize: v });
+         <PropertySlider label="House Text Size" value={theme?.perfHouseSize ?? 12} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...theme!, perfHouseSize: v });
          }} />
-         <PropertySlider label="Section Title Size" value={localTheme?.perfSectionTitleSize ?? 10} min={8} max={32} onChange={(v) => {
-            updateTheme({ ...localTheme!, perfSectionTitleSize: v });
+         <PropertySlider label="Section Title Size" value={theme?.perfSectionTitleSize ?? 10} min={8} max={32} onChange={(v) => {
+            updateTheme({ ...theme!, perfSectionTitleSize: v });
          }} />
-         <PropertyInput label="Section Title" value={localTheme?.perfSectionTitle || 'Selected Performances'} onChange={(v) => {
-            updateTheme({ ...localTheme!, perfSectionTitle: v });
+         <PropertyInput label="Section Title" value={theme?.perfSectionTitle || 'Selected Performances'} onChange={(v) => {
+            updateTheme({ ...theme!, perfSectionTitle: v });
          }} />
          <button className="text-[10px] uppercase text-[#C9A227] tracking-widest font-semibold hover:underline mt-2" onClick={() => {
-             const base = (localTheme?.websiteTextSize || 100) / 100;
+             const base = (theme?.websiteTextSize || 100) / 100;
              updateTheme({ 
-               ...localTheme!, 
+               ...theme!, 
                perfTitleSize: Math.round(24 * base),
                perfTextSize: Math.round(16 * base),
                perfHouseSize: Math.round(12 * base),
@@ -277,21 +226,12 @@ export default function AdminSlides({
                    <GoogleDrivePicker onPick={url => updateItem(editingItem.id, { image: url })} />
 
                    {editingItem.image ? (
-                     <div className="relative border border-neutral-800 rounded bg-black aspect-[16/9] overflow-hidden">
-                        {(() => {
-                          const media = getMediaSource(editingItem.image, editingItem.mediaType as any);
-                          if (media.type === 'video') {
-                            return <video src={media.src} className="w-full h-full object-cover" muted loop autoPlay playsInline />;
-                          } else if (media.type === 'youtube') {
-                            return <iframe src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start}`} className="w-full h-full" frameBorder="0" allowFullScreen />;
-                          } else if (media.type === 'drive') {
-                            return <iframe src={media.src} className="w-full h-full" frameBorder="0" allowFullScreen />;
-                          } else {
-                            return <img src={media.src} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />;
-                          }
-                        })()}
-                     </div>
-                   ) : (
+                      <MediaPreview 
+                        url={editingItem.image}
+                        explicitType={editingItem.mediaType as any}
+                        className="relative border border-neutral-800 rounded bg-black aspect-[16/9] overflow-hidden"
+                      />
+                    ) : (
                      <div className="aspect-[16/9] bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center">
                         <span className="text-xs text-neutral-500">No Media Loaded</span>
                      </div>
@@ -318,12 +258,14 @@ export default function AdminSlides({
                          }
                        }}
                      >
-                       {uploadProgress !== null ? (
-                         <div className="flex flex-col items-center justify-center space-y-2 py-4">
-                           <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
-                           <span className="text-xs text-neutral-400 font-mono">Processing: {uploadProgress}%</span>
-                         </div>
-                       ) : (
+                       {isUploading ? (
+                          <div className="flex flex-col items-center justify-center space-y-2 py-4">
+                            <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs text-neutral-400 font-mono">
+                              {progress.status === 'optimizing' ? 'Optimizing' : 'Uploading'}: {progress.percentage}%
+                            </span>
+                          </div>
+                        ) : (
                          <label className="cursor-pointer flex flex-col items-center justify-center space-y-1 py-1 w-full h-full">
                            <Upload className="w-5 h-5 text-neutral-500 mb-1" />
                            <span className="text-[11px] text-neutral-300 font-sans font-medium">
@@ -382,17 +324,7 @@ export default function AdminSlides({
       onClose={onClose}
         properties={properties}
       />
-      {cropTarget && (
-        <ImageCropperModal
-          imageSrc={cropTarget.src}
-          aspect={16/9}
-          onCropDone={(base64) => {
-            updateItem(cropTarget.id, { image: base64 });
-            setCropTarget(null);
-          }}
-          onCropCancel={() => setCropTarget(null)}
-        />
-      )}
+      <MediaCropWrapper target={cropTarget} />
       {deleteTargetId && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div className="bg-neutral-950 border border-neutral-900 p-6 rounded max-w-sm w-full space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">

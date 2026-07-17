@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, Edit3, X, Instagram, Youtube, Facebook, Twitter, Lock } from 'lucide-react';
+import { ChevronDown, Edit3, X, Instagram, Youtube, Facebook, Twitter, Lock, ShieldCheck } from 'lucide-react';
 
 import Navbar from './Navbar';
 import HeroSection from './HeroSection';
@@ -16,11 +16,32 @@ import Reveal from './Reveal';
 import GenericSection from './GenericSection';
 import HeroEditorPanel from './HeroEditorPanel';
 import { getMediaSource } from '../lib/mediaUtils';
-import { saveThemeSettings } from '../firebase';
+import { saveThemeSettings, loginWithGoogle } from '../firebase';
+import { InlineEditor } from '../lib/editing/InlineEditor';
+import EditingEngineSandbox from './admin/sandbox/EditingEngineSandbox';
+
+import { useSectionDirty } from '../hooks/useSectionDirty';
+
+function FooterDirtyIndicator() {
+  const isDirty = useSectionDirty('footer');
+  return (
+    <AnimatePresence>
+      {isDirty && (
+        <motion.span
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#C9A227]"
+          title="Unsaved changes"
+        />
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function WebsiteContent(props: any) {
   const {
-    currentLang, setLang, user, setIsAdminOpen,
+    currentLang, setLang, user,
     scheduleItems, setScheduleItems, portfolioItems, setPortfolioItems,
     videoItems, setVideoItems, pressItems, setPressItems,
     theme, setTheme, bio, setBio, contact, setContact, slides, setSlides,
@@ -78,6 +99,7 @@ export default function WebsiteContent(props: any) {
   };
 
   const scale = (theme?.websiteTextSize ?? 100) / 100;
+  const [isHeroSettingsOpen, setIsHeroSettingsOpen] = useState(false);
 
   return (
     <div ref={containerRef} id="app-container" className="min-h-screen relative font-sans selection:bg-white selection:text-black" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
@@ -175,8 +197,11 @@ export default function WebsiteContent(props: any) {
         ` : ''}
       `}</style>
 
+      {/* VISUAL CMS SANDBOX (Admin Mode Only) */}
+      {adminMode && <EditingEngineSandbox />}
+
       {/* 1. STICKY NAVBAR */}
-      <Navbar currentLang={currentLang} setLang={setLang} user={user} onAdminToggle={() => setIsAdminOpen(true)} theme={theme} scrollToSection={scrollToSection} />
+      <Navbar currentLang={currentLang} setLang={setLang} user={user} onAdminToggle={() => { if (!user) loginWithGoogle(); }} theme={theme} scrollToSection={scrollToSection} />
 
       {/* 2. HERO / HOME SECTION */}
       <HeroSection 
@@ -194,7 +219,25 @@ export default function WebsiteContent(props: any) {
         adminMode={adminMode}
         selectedBlock={selectedBlock}
         onBlockSelect={onBlockSelect}
+        onOpenSettings={() => setIsHeroSettingsOpen(true)}
       />
+
+      {/* Hero Editor Panel (Floating) */}
+      {user && (
+        <HeroEditorPanel
+          theme={theme}
+          setTheme={setTheme}
+          onSave={async () => {
+            await saveThemeSettings(theme);
+          }}
+          onReset={() => {
+            if (initialThemeRef.current) setTheme(initialThemeRef.current);
+          }}
+          initialTheme={initialThemeRef.current}
+          isOpen={isHeroSettingsOpen}
+          onClose={() => setIsHeroSettingsOpen(false)}
+        />
+      )}
 
       {/* 2.5 SELECTED PERFORMANCES SLIDER */}
       <section id="performances">
@@ -203,7 +246,7 @@ export default function WebsiteContent(props: any) {
           currentLang={currentLang} setLang={setLang} slides={slides} user={user}
           theme={theme}
           activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-          onItemsUpdated={(items: any) => setSlides(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+          onItemsUpdated={(items: any) => setSlides(items)} 
         />
       </section>
 
@@ -234,6 +277,7 @@ export default function WebsiteContent(props: any) {
             items={pressItems} currentLang={currentLang} setLang={setLang} user={user}
             activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
             theme={theme} onThemeUpdated={setTheme}
+            onItemsUpdated={(items: any) => setPressItems(items)}
           />
         </Reveal>
       </GenericSection>
@@ -244,7 +288,7 @@ export default function WebsiteContent(props: any) {
           <PortfolioGallery 
             items={portfolioItems} currentLang={currentLang} setLang={setLang} user={user}
             activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-            onItemsUpdated={(items: any) => setPortfolioItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+            onItemsUpdated={(items: any) => setPortfolioItems(items)} 
           />
         </Reveal>
       </GenericSection>
@@ -255,7 +299,7 @@ export default function WebsiteContent(props: any) {
           <VideoPlayer 
             items={videoItems} currentLang={currentLang} setLang={setLang} user={user}
             activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-            onItemsUpdated={(items: any) => setVideoItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+            onItemsUpdated={(items: any) => setVideoItems(items)} 
           />
         </Reveal>
       </GenericSection>
@@ -266,29 +310,62 @@ export default function WebsiteContent(props: any) {
           <ScheduleSection 
             items={scheduleItems} currentLang={currentLang} setLang={setLang} user={user}
             activeEditSection={activeEditSection} setActiveEditSection={setActiveEditSection}
-            onItemsUpdated={(items: any) => setScheduleItems(items)} onRefreshData={() => { if (loadAllData) loadAllData(false); }}
+            onItemsUpdated={(items: any) => setScheduleItems(items)} 
           />
         </Reveal>
       </GenericSection>
 
       {/* 7. CONTACT SECTION */}
       <GenericSection id="contact" heading="INQUIRIES">
-        <ContactSection contact={contact} currentLang={currentLang} t={t} theme={theme} />
+        <ContactSection contact={contact} currentLang={currentLang} t={t} theme={theme} adminMode={adminMode} />
       </GenericSection>
 
       {/* 8. FOOTER */}
       <footer id="main-footer" className="bg-transparent border-t border-black/10 py-12 px-6 text-center text-xs">
         <div className="global-container grid grid-cols-1 md:grid-cols-3 items-center gap-6">
           <div className="space-y-1 text-center md:text-left">
-            <h4 className="font-serif text-sm tracking-widest uppercase">{theme?.footerBrandName || t.heroTitle}</h4>
-            <p className="text-[10px] tracking-wider opacity-75">{theme?.footerContactEmail || t.footerDesc}</p>
+            <div className="relative inline-block">
+              <InlineEditor 
+                id="theme.footerBrandName" 
+                initialValue={theme?.footerBrandName || t.heroTitle} 
+                as="h4" 
+                className="font-serif text-sm tracking-widest uppercase" 
+                wrapperClassName="block"
+                placeholder="Footer Brand Name" 
+                readonly={!adminMode} 
+              />
+              <FooterDirtyIndicator />
+            </div>
+            <InlineEditor 
+              id="theme.footerContactEmail" 
+              initialValue={theme?.footerContactEmail || t.footerDesc} 
+              as="p" 
+              className="text-[10px] tracking-wider opacity-75" 
+              wrapperClassName="block"
+              placeholder="Footer Contact Email" 
+              readonly={!adminMode} 
+            />
           </div>
           <div className="flex flex-col items-center text-center gap-2 text-[10px] tracking-wider">
             <div>
-              {theme?.footerCopyrightText ? theme.footerCopyrightText.replace('{year}', new Date().getFullYear().toString()) : `© ${new Date().getFullYear()} ${theme?.footerBrandName || t.heroTitle}. ${t.footerRights}.`}
+              <InlineEditor 
+                id="theme.footerCopyrightText" 
+                initialValue={theme?.footerCopyrightText || `© {year} ${theme?.footerBrandName || t.heroTitle}. ${t.footerRights}.`} 
+                as="span" 
+                wrapperClassName="block"
+                placeholder="Copyright Text (use {year} for current year)" 
+                readonly={!adminMode} 
+                displayValue={(val) => val.replace('{year}', new Date().getFullYear().toString())}
+              />
             </div>
             <div className="flex items-center space-x-3">
               <button onClick={() => setLegalModal({ isOpen: true, type: 'impressum' })} className="hover:text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">Impressum</button>
+              <span className="opacity-30">|</span>
+              {!user ? (
+                <button onClick={() => loginWithGoogle()} className="hover:text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer flex items-center"><Lock className="w-3 h-3 mr-1" /> Admin</button>
+              ) : (
+                <span className="text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] flex items-center"><ShieldCheck className="w-3 h-3 mr-1" /> Admin Mode</span>
+              )}
               <span className="opacity-30">|</span>
               <button onClick={() => setLegalModal({ isOpen: true, type: 'privacy' })} className="hover:text-[var(--color-text)] transition-colors duration-300 uppercase tracking-widest text-[10px] cursor-pointer">Privacy Policy</button>
             </div>

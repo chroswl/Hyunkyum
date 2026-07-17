@@ -406,23 +406,23 @@ const DEFAULT_BIOGRAPHY: BiographySettings = {
   bioImage: "/src/assets/images/hyunkyum_portrait_1783548337837.jpg",
   timeline: {
     education: [
-      { year: "2021 - 2024", textEN: "Master of Music in Opera, Hochschule für Musik, Germany", textDE: "Master of Music in Oper, Hochschule für Musik, Deutschland", textKO: "독일 국립음대 오페라과 석사 졸업" },
-      { year: "2016 - 2020", textEN: "Bachelor of Music in Voice, Seoul National University, Korea", textDE: "Bachelor of Music in Gesang, Seoul National University, Korea", textKO: "서울대학교 음악대학 성악과 학사 졸업" }
+      { id: "edu-1", year: "2021 - 2024", textEN: "Master of Music in Opera, Hochschule für Musik, Germany", textDE: "Master of Music in Oper, Hochschule für Musik, Deutschland", textKO: "독일 국립음대 오페라과 석사 졸업" },
+      { id: "edu-2", year: "2016 - 2020", textEN: "Bachelor of Music in Voice, Seoul National University, Korea", textDE: "Bachelor of Music in Gesang, Seoul National University, Korea", textKO: "서울대학교 음악대학 성악과 학사 졸업" }
     ],
     awards: [
-      { year: "2025", textEN: "1st Prize, International Opera Singer Competition, Germany", textDE: "1. Preis, Internationaler Opernsänger-Wettbewerb, Deutschland", textKO: "독일 국제 성악 콩쿠르 1위" },
-      { year: "2024", textEN: "Special Audience Award, Spoleto Opera Competition, Italy", textDE: "Sonderpreis des Publikums, Spoleto Opernwettbewerb, Italien", textKO: "이탈리아 스폴레토 오페라 콩쿠르 청중 특별상" }
+      { id: "award-1", year: "2025", textEN: "1st Prize, International Opera Singer Competition, Germany", textDE: "1. Preis, Internationaler Opernsänger-Wettbewerb, Deutschland", textKO: "독일 국제 성악 콩쿠르 1위" },
+      { id: "award-2", year: "2024", textEN: "Special Audience Award, Spoleto Opera Competition, Italy", textDE: "Sonderpreis des Publikums, Spoleto Opernwettbewerb, Italien", textKO: "이탈리아 스폴레토 오페라 콩쿠르 청중 특별상" }
     ],
     roles: [
-      { year: "Papageno", textEN: "Die Zauberflöte (Mozart)", textDE: "Die Zauberflöte (Mozart)", textKO: "마술피리 - 파파게노 역" },
-      { year: "Don Giovanni", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 돈 조반니 역" },
-      { year: "Masetto", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 마제토 역" },
-      { year: "Rigoletto", textEN: "Rigoletto (Verdi)", textDE: "Rigoletto (Verdi)", textKO: "리골레토 - 리골레토 역" },
-      { year: "Figaro", textEN: "Le Nozze di Figaro (Mozart)", textDE: "Le Nozze di Figaro (Mozart)", textKO: "피가로의 결혼 - 피가로 역" }
+      { id: "role-1", year: "Papageno", textEN: "Die Zauberflöte (Mozart)", textDE: "Die Zauberflöte (Mozart)", textKO: "마술피리 - 파파게노 역" },
+      { id: "role-2", year: "Don Giovanni", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 돈 조반니 역" },
+      { id: "role-3", year: "Masetto", textEN: "Don Giovanni (Mozart)", textDE: "Don Giovanni (Mozart)", textKO: "돈 조반니 - 마제토 역" },
+      { id: "role-4", year: "Rigoletto", textEN: "Rigoletto (Verdi)", textDE: "Rigoletto (Verdi)", textKO: "리골레토 - 리골레토 역" },
+      { id: "role-5", year: "Figaro", textEN: "Le Nozze di Figaro (Mozart)", textDE: "Le Nozze di Figaro (Mozart)", textKO: "피가로의 결혼 - 피가로 역" }
     ],
     concert: [
-      { year: "Verdi Requiem", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
-      { year: "Handel Messiah", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
+      { id: "concert-1", year: "Verdi Requiem", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
+      { id: "concert-2", year: "Handel Messiah", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
     ]
   }
 };

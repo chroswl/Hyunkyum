@@ -3,6 +3,60 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Hero Section Standardization (Phase 5.1)**:
+  - Migrated background media rendering in `HeroSection.tsx` to the standardized `<MediaPreview />` component for all background types (Video, YouTube embed, and Static Fallback Images).
+  - Enhanced the shared `<MediaPreview />` component by adding support for `videoClassName`, `videoRef`, and `onLoadedData` properties, ensuring seamless backward-compatibility and zero visual changes to the background zoom/kenburns animations and fade-in loaded state triggers.
+  - Replaced manual media URL parsing and routing with `MediaEngine.resolve()` in `HeroSection.tsx`.
+  - Re-verified full project-wide type checking and production builds.
+- **Final Framework Cleanup & Modernization (Phase 5)**:
+  - Eliminated manual rendering overrides of `ImageCropperModal` in `AdminBiography.tsx` and `AdminPortfolio.tsx` by fully migrating them to the standardized `<MediaCropWrapper />` abstraction.
+  - Removed redundant import statements and cleaned up dead references across `BiographySection.tsx`, `AdminBiography.tsx`, and `AdminPortfolio.tsx`.
+  - Re-verified complete compilation and type safety across all components with strict production and workspace configurations.
+- **Universal Media Engine Migration (Selected Performances)**:
+  - Migrated the main page hero slides component (`SelectedPerformances.tsx`) to utilize the shared `<MediaPreview />` component for both list thumbnails and full-screen background loops.
+  - Added support for custom `iframeClassName` to `<MediaPreview />` to allow precise responsive stretching and scaling parameters (such as top-left center alignments and ultra-wide coverage percentages) of YouTube or Google Drive background iframe loops.
+  - Cleaned up unused legacy firebase/storage imports (`ref`, `uploadBytesResumable`, `getDownloadURL`, and `storage`) from `SelectedPerformances.tsx`.
+  - Routed all remaining media URL resolutions through the centralized `MediaEngine.resolve()`.
+- **Universal Media Engine Migration (Videos Media)**:
+  - Migrated the main repertoire player in `VideoPlayer.tsx` to utilize the shared `<MediaPreview />` component.
+  - Extended the `<MediaPreview />` component itself with optional custom playing controls and audio states (`muted`, `loop`, `autoPlay`, `controls`, and `onEnded`) while preserving backward-compatible silent rendering defaults across existing pages.
+  - Successfully maintained native, unmuted, interactive audio/video playback and autoplay controls for YouTube and local videos inside the cinematic theatre player.
+- **Universal Media Engine Migration (Portfolio Preview Layer)**:
+  - Migrated the Portfolio Gallery component (`PortfolioGallery.tsx`) to utilize the shared `<MediaPreview />` component for both grid items (`CollectionItem`) and the expanded lightbox modal.
+  - Replaced manual `<img>` rendering with `<MediaPreview />` to naturally resolve image, video, YouTube, and Google Drive URLs under the hood.
+  - Fully preserved existing aspect ratios, lazy loading features, hover-scale animations, and click-through/close-lightbox mechanics.
+- **Universal Media Engine Migration (Portfolio Crop Layer)**:
+  - Migrated the Portfolio Gallery component (`PortfolioGallery.tsx`) image cropping workflow to the modern, shared `MediaCropWrapper`.
+  - Removed outdated local `ImageCropperModal` imports and plumbing, perfectly transitioning states and aspect ratio parameters to the structured `target` prop.
+  - Fully preserved crop done/cancel callbacks, layout details, and custom copyright parameters.
+- **Universal Media Engine Migration (Portfolio Upload Layer)**:
+  - Migrated the Portfolio Gallery component (`PortfolioGallery.tsx`) to utilize the Universal Media Engine.
+  - Replaced legacy, redundant imports (including manual `uploadToR2`, `isAIStudioPreview` branching, `compressFile`, `compressBase64`, `optimizeImageFile`, and `firebase/storage` components) with clean, unified imports of `MediaEngine` and the `useMediaUpload` hook.
+  - Successfully mapped the modern hook states to the local `uploadProgress`, `isOptimizing`, and `optimizeProgress` indicators to perfectly preserve existing UI progress state flows.
+  - Successfully preserved all existing callbacks, crop/preview routines, and database structure boundaries exactly as-is.
+- **Fixed "Encountered two children with the same key" React Warnings/Errors**:
+  - Engineered a robust key-deduplication system in `SortableCollection.tsx` to automatically generate unique keys and IDs by dynamically appending suffix indices and duplicate markers to any duplicate or missing item IDs.
+  - Implemented the same robust key-deduplication algorithm for `SelectedPerformances.tsx` inside edit mode to secure performance slides rendering.
+  - Updated drag-and-drop end handlers (`handleDragEnd`) in both `SortableCollection.tsx` and `SelectedPerformances.tsx` to cleanly resolve original array indices from custom unique IDs, ensuring 100% stable drag-and-drop sorting while eliminating any chance of duplicate keys in React and dnd-kit context.
+- **Universal Media Engine Migration (Biography Previews)**:
+  - Migrated both the active visitor-facing biography view and the admin live preview block inside `BiographySection.tsx` to use the unified `<MediaPreview />` component.
+  - Replaced legacy manual `<img>` and `video` elements, manual media URL resolving, and duplicated custom preview rendering logic.
+  - Retained the exact same dimensions, zoom interactions, lazy loading, and hover-scale animations, preserving full visual and behavioral consistency.
+- **Universal Media Engine Migration (Biography Cropping)**:
+  - Migrated the Biography section (`BiographySection.tsx`) crop workflow to use the unified `MediaCropWrapper` component.
+  - Replaced the local, manual `ImageCropperModal` orchestration, and state/callback plumbing with the shared `MediaCropWrapper` abstraction.
+  - Perfectly preserved aspect ratios, layout styling, and database schema mappings exactly as designed, with zero changes to visual behavior.
+- **Universal Media Engine Migration (Biography Uploads)**:
+  - Migrated the Biography section (`BiographySection.tsx`) upload workflow to use the unified `MediaEngine` and the `useMediaUpload` hook.
+  - Replaced legacy, redundant local `uploadToR2`, manual progress handling, and environment-branching base64 fallbacks with the standardized `MediaEngine.upload` API.
+  - Adapted local file selection logic to utilize `MediaEngine.optimize()` for raw image files and `uploadMedia()` for video files directly.
+  - Fully preserved existing progress state values, cropping overlays, visual layouts, and database structures exactly as requested.
+- **Universal Media Engine Migration (Hero & Selected Performances)**:
+  - Migrated the Hero section (`AdminSlides.tsx`) from legacy, redundant media uploading, cropping, and optimization logic to the new unified `MediaEngine` API and `useMediaUpload` hooks.
+  - Replaced legacy manual image cropping elements with `MediaCropWrapper` and custom media preview HTML blocks with the unified `<MediaPreview />` component.
+  - Migrated the `SelectedPerformances.tsx` media uploading, cropping, and optimization logic to utilize the robust `MediaEngine` APIs.
+  - Removed deprecated, duplicate imports such as `optimizeImageFile` and direct R2 handlers from migrated sections.
+  - Achieved complete type-safety and 100% successful compile status, while preserving all existing visitor behaviors, layouts, typography, and Firebase schemas exactly as designed.
 - **SEO Optimization**:
   - Configured comprehensive search engine optimization meta tags in `index.html`.
   - Added JSON-LD structured data defining `Hyunkyum Kim` as a `Person` schema.
@@ -149,3 +203,50 @@ All notable changes to this project will be documented in this file.
   - Implemented constraints for Hero Subtitle and Description to not exceed 20px on Mobile/Tablet (`min(..., 20px)`).
   - Implemented constraints for Hero Button Text to not exceed 15px on Mobile/Tablet (`min(..., 15px)`).
   - Implemented constraints for Hero Button Text to not fall below 15px on Desktop (`max(..., 15px)`).
+
+## Sprint 3: Universal Editing API
+- Implemented `useEditableBlock` and `useEditableCollection` as a single, universal communication layer.
+- Components are now fully abstracted from `EditingContext` internals.
+- Established the universal editing lifecycle: `idle` -> `editing` -> `dirty`.
+
+## [Unreleased] - Phase 3.1 — Complete Collection Engine Rollout
+- **Biography Section Migration**:
+  - Successfully migrated `BiographySection.tsx` to the unified `SortableCollection` engine.
+  - Replaced manual DndContext and SortableItem with standard generic `<SortableCollection />`, `<CollectionItem />`, and `<HoverOverlay />`.
+  - Configured customized pointer events utility classes (`pointer-events-none [&_button]:pointer-events-auto [&_div]:pointer-events-auto`) to ensure hover overlay actions are displayed elegantly without blocking active inline editing of the year, role, and translation inputs.
+  - Cleaned up unused local `@dnd-kit` references, PointerSensors, KeyboardSensors, and handleDragEnd hooks.
+  - Fully verified type coverage against `TimelineItem` and added support for localized optional fields (`yearEN`, `yearDE`, `yearKO`) in `src/types.ts`.
+- **Press Section Migration**:
+  - Refactored `PressSection.tsx` and fully migrated it to the `SortableCollection` architecture.
+  - Replaced the manual DndContext carousel list wrapper with standard `<SortableCollection />` and `<HoverOverlay />` controls.
+  - Integrated `CollectionItem` and configured it to trigger startEditPress and handleDeletePress via standard CMS-unified overlay triggers.
+  - Eliminated local `@dnd-kit` sensors and old drag handlers.
+- **Verification & Compilation**:
+  - Ensured all modified files are 100% compliant with type checks and verified zero linting errors via `npm run lint`.
+
+## [Unreleased] - Phase 3.2 — Key Conflict and Missing ID Resolvers
+- **SortableCollection Defensive Keys**:
+  - Upgraded generic `SortableCollection` wrapper with a dynamic fallback key pattern: `item.id || `fallback-${index}``.
+  - Prevents fatal React duplicate key crashes (`Encountered two children with the same key, %s`) if items are fetched with missing or blank database IDs.
+- **Biography Active State Synchronization**:
+  - Migrated state stabilization to a reactive `React.useEffect` hook triggered immediately whenever Biography Edit Mode is toggled or updated.
+  - Ensures biography timeline items are fully hydrated with stable, unique IDs even when toggled via side panel admin shortcuts (bypassing normal button handlers).
+
+## [Unreleased] - Phase 4.1 — Universal Media Engine Foundation
+- **Shared Media Engine API & Interface**:
+  - Created `/src/lib/editing/mediaEngine.ts` declaring types for `MediaType`, `MediaSource`, `MediaCopyright`, and `MediaItem`.
+  - Added a global, reusable namespace `MediaEngine` with functional methods `isPreviewEnv()`, `resolve(url)`, `optimize(file)`, and `upload(fileOrBase64)`.
+  - Configured graceful R2 uploading with integrated Web-optimized local Base64 compression fallback specifically tailored for safe, error-free execution in the AI Studio Preview environment.
+- **Shared Upload Abstraction**:
+  - Developed the `useMediaUpload` custom React hook to coordinate optimization progress, R2/Base64 uploading progress, and comprehensive state transitions (`idle` -> `optimizing` -> `uploading` -> `completed` / `error`).
+- **Shared Media Selection Abstraction**:
+  - Designed `/src/components/admin/media/MediaSelector.tsx` providing a unified dropzone for Drag-and-Drop and manual file uploads.
+  - Seamlessly integrated Google Drive Picker as an alternate cloud selection pipeline within the shared selector.
+- **Shared Crop Abstraction**:
+  - Created `/src/components/admin/media/MediaCropWrapper.tsx` providing a clean drop-in component that interfaces between active views and the `ImageCropperModal` using a standard `CropTarget` contract.
+- **Shared Preview Abstraction**:
+  - Developed `/src/components/admin/media/MediaPreview.tsx` as a universal previewer rendering responsive elements based on type resolution (images with copyright lightbox zooms, autoplay looping muted local videos, and seamless embeds for YouTube & Google Drive files).
+- **Verification**:
+  - Completed verification testing with 100% type safety and successful application compilations.
+
+

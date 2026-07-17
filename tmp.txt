@@ -1,7 +1,0 @@
- };
- const [user, setUser] = useState<User | null>(null);
- const [isAdminOpen, setIsAdminOpen] = useState(false);
- const [activeTimelineTab, setActiveTimelineTab] = useState<'education' | 'awards' | 'roles' | 'concert'>('education');
- const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'impressum' | 'privacy' }>({ isOpen: false, type: 'impressum' });
-
- // Database States

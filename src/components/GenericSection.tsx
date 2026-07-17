@@ -1,5 +1,7 @@
 import React from 'react';
 import Reveal from './Reveal';
+import { useSectionDirty } from '../hooks/useSectionDirty';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface GenericSectionProps {
   id: string;
@@ -8,6 +10,8 @@ interface GenericSectionProps {
 }
 
 export default function GenericSection({ id, heading, children }: GenericSectionProps) {
+  const isDirty = useSectionDirty(id);
+
   return (
     <section id={id} className="relative w-full">
       {/* 1. Top Spacing */}
@@ -27,10 +31,21 @@ export default function GenericSection({ id, heading, children }: GenericSection
       <div className="text-center mb-12 md:mb-16 lg:mb-20 w-full px-6 sm:px-12 md:px-16 lg:px-20 xl:px-24">
         <Reveal>
           <h2 
-            className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none" 
+            className="text-xl md:text-3xl font-serif font-light uppercase tracking-[0.25em] leading-none inline-flex items-center justify-center relative" 
             style={{ color: 'var(--color-text)' }}
           >
             {heading}
+            <AnimatePresence>
+              {isDirty && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0 }}
+                  className="absolute -right-5 top-0 w-2 h-2 rounded-full bg-[#C9A227]"
+                  title="Unsaved changes"
+                />
+              )}
+            </AnimatePresence>
           </h2>
         </Reveal>
       </div>

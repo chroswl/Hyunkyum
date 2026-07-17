@@ -1,0 +1,54 @@
+                        <motion.div
+                          layoutId="activeBioTab"
+                          className="absolute bottom-[-1px] left-0 right-0 h-[1.5px] bg-current z-10"
+                          transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+                        />
+                      )}
+                    </button>
+                    );
+                  })}
+                </div>
+
+                {isEditMode ? (
+                  <div className="bg-[var(--color-bg)]/30 p-6 min-h-[160px] border border-[var(--color-text)] rounded-b mt-[-1px]">
+                    {/* Category Title Edit */}
+                    <div className="mb-6">
+                      <label className="text-[10px] text-neutral-500 font-mono">CATEGORY TITLE ({currentLang})</label>
+                      <input 
+                        type="text" 
+                        value={editedBio.timelineTitles?.[activeTimelineTab]?.[currentLang] || timelineTabs.find(t=>t.id===activeTimelineTab)?.label || ''}
+                        onChange={(e) => {
+                          const newTitles = { ...(editedBio.timelineTitles || {}) };
+                          if (!newTitles[activeTimelineTab]) newTitles[activeTimelineTab] = { EN: '', DE: '', KO: '' };
+                          newTitles[activeTimelineTab][currentLang] = e.target.value;
+                          setEditedBio({ ...editedBio, timelineTitles: newTitles as any });
+                        }}
+                        className="w-full bg-[var(--color-bg)] border border-[var(--color-text)] p-2 text-sm text-white rounded mt-1"
+                      />
+                    </div>
+
+                    <SortableCollection
+                      items={(editedBio.timeline?.[activeTimelineTab] || []) as (TimelineItem & { id: string })[]}
+                      onReorder={async (newItems) => {
+                        const newTimeline = { ...editedBio.timeline } as TimelineData;
+                        newTimeline[activeTimelineTab] = newItems;
+                        const newBio = { ...editedBio, timeline: newTimeline };
+                        setEditedBio(newBio);
+                        try {
+                          await saveBiographySettings(newBio);
+                          onBioUpdated(newBio);
+                          showNotification('Order updated');
+                        } catch (err) {
+                          console.error('Failed to auto-save drag order', err);
+                        }
+                      }}
+                      isAdmin={true}
+                      strategy="vertical"
+                      gridClassName="space-y-4"
+                      renderItem={(item: TimelineItem & { id: string }, idx: number) => {
+                        const isRoles = activeTimelineTab === 'roles';
+                        const isConcert = activeTimelineTab === 'concert';
+                        const yearLabel = (isRoles || isConcert) ? 'ROLE' : 'YEAR';
+                        const textLabel = isRoles ? `OPERA (${currentLang})` : isConcert ? `ORATORIO (${currentLang})` : `TEXT (${currentLang})`;
+
+                        return (

@@ -33,7 +33,7 @@ export default function AdminFooter({
   const handleSave = async () => {
     setIsSaving(true);
     await saveThemeSettings(theme);
-    if (onRefreshData) onRefreshData();
+    
     setIsSaving(false);
     // Dispatch event so live site updates immediately
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
@@ -113,7 +113,7 @@ export default function AdminFooter({
         properties={properties}
       />
       {openModal && (
-        <LegalModal
+        <LegalModal adminMode={true}
           isOpen={!!openModal}
           onClose={() => setOpenModal(null)}
           type={openModal}

@@ -37,7 +37,7 @@ export default function AdminHero({
   const handleSave = async () => {
     setIsSaving(true);
     await saveThemeSettings(theme);
-    if (onRefreshData) onRefreshData();
+    
     setIsSaving(false);
   };
 

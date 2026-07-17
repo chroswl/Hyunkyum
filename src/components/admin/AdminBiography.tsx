@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Language, BiographySettings } from '../../types';
 import { translations } from '../../translations';
-import { fetchBiographySettings, saveBiographySettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyTextarea, PropertyInput } from './PropertyFields';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import BiographySection from '../BiographySection';
-import ImageCropperModal from '../ImageCropperModal';
 import { optimizeImageFile } from '../../lib/imageCompressor';
 import { getMediaSource } from '../../lib/mediaUtils';
+import { MediaCropWrapper } from './media';
 import { Upload } from 'lucide-react';
 import { useAppearance } from '../../contexts/AppearanceContext';
+import { useEditing } from '../../contexts/EditingContext';
 
 export default function AdminBiography({ 
   currentLang, 
@@ -27,33 +27,24 @@ export default function AdminBiography({
   setBio: (b: BiographySettings) => void;
 }) {
   const { theme } = useAppearance();
-  const [initialBio, setInitialBio] = useState<BiographySettings | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const { status, saveChanges, cancelChanges, isDirty } = useEditing();
   const [cropTarget, setCropTarget] = useState<{ src: string } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
 
-  useEffect(() => {
-    fetchBiographySettings().then(data => {
-      setInitialBio(data);
-    });
-  }, []);
-
   if (!bio) return <div className="p-8 text-neutral-500">Loading editor...</div>;
 
-  const hasChanges = JSON.stringify(bio) !== JSON.stringify(initialBio);
+  const hasChanges = isDirty('bio');
+  const isSaving = status === 'saving';
 
   const handleSave = async () => {
-    setIsSaving(true);
-    await saveBiographySettings(bio);
-    setInitialBio(bio);
-    if (onRefreshData) onRefreshData();
-    setIsSaving(false);
+    await saveChanges();
+    
   };
 
   const handleReset = () => {
-    if (initialBio) setBio(initialBio);
+    cancelChanges();
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,17 +215,17 @@ export default function AdminBiography({
       onClose={onClose}
         properties={properties}
       />
-      {cropTarget && (
-        <ImageCropperModal
-          imageSrc={cropTarget.src}
-          aspect={3/4}
-          onCropDone={(base64, copyright, copyrightUrl) => {
+      <MediaCropWrapper
+        target={cropTarget ? {
+          src: cropTarget.src,
+          aspect: 3/4,
+          onCrop: (base64, copyright, copyrightUrl) => {
             setBio({ ...bio, bioImage: base64, bioImageCopyright: copyright, bioImageCopyrightUrl: copyrightUrl });
             setCropTarget(null);
-          }}
-          onCropCancel={() => setCropTarget(null)}
-        />
-      )}
+          },
+          onCancel: () => setCropTarget(null)
+        } : null}
+      />
     </>
   );
 }

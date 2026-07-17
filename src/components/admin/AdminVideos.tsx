@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Language, VideoItem } from '../../types';
-import { fetchVideos, saveVideoItem } from '../../firebase';
 import { Plus, Trash2, Edit, GripVertical, Video as VideoIcon } from 'lucide-react';
 import { getMediaSource } from '../../lib/mediaUtils';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -12,11 +11,8 @@ import { PropertyInput, PropertyTextarea } from './PropertyFields';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import VideoPlayer from '../VideoPlayer';
 import { translations } from '../../translations';
-
-// Helper to save entire list for ordering (if we want to support it eventually)
-import { collection, writeBatch, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useAppearance } from '../../contexts/AppearanceContext';
+import { useEditing } from '../../contexts/EditingContext';
 
 export default function AdminVideos({ 
   currentLang, 
@@ -32,8 +28,7 @@ export default function AdminVideos({
   setVideoItems: (items: VideoItem[]) => void;
 }) {
   const { theme } = useAppearance();
-  const [initialItems, setInitialItems] = useState<VideoItem[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
+  const { status, saveChanges, cancelChanges, isDirty } = useEditing();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
@@ -42,38 +37,16 @@ export default function AdminVideos({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  useEffect(() => {
-    fetchVideos().then(data => {
-      setInitialItems(data);
-    });
-  }, []);
-
-  const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems);
+  const hasChanges = isDirty('videoItems');
+  const isSaving = status === 'saving';
 
   const handleSave = async () => {
-    setIsSaving(true);
-    const batch = writeBatch(db);
+    await saveChanges();
     
-    // Items to delete
-    initialItems.forEach(item => {
-      if (!items.find(i => i.id === item.id)) {
-        batch.delete(doc(db, 'videos', item.id));
-      }
-    });
-
-    // Items to add/update
-    items.forEach((item, index) => {
-       const ref = doc(db, 'videos', item.id);
-       batch.set(ref, { ...item, order: index });
-    });
-    await batch.commit();
-    setInitialItems(items);
-    if (onRefreshData) onRefreshData();
-    setIsSaving(false);
   };
 
   const handleReset = () => {
-    setItems(initialItems);
+    cancelChanges();
     setEditingId(null);
   };
 

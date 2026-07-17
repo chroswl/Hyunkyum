@@ -1,3 +1,4 @@
+import { InlineEditor } from "../lib/editing/InlineEditor";
 import React from 'react';
 import { Instagram, Youtube } from 'lucide-react';
 import Reveal from './Reveal';
@@ -9,13 +10,15 @@ interface ContactSectionProps {
   currentLang: Language;
   t: any;
   theme?: ThemeSettings;
+  adminMode?: boolean;
 }
 
 export default function ContactSection({
   contact,
   currentLang,
   t,
-  theme
+  theme,
+  adminMode
 }: ContactSectionProps) {
   return (
     <div className="w-full space-y-8 md:space-y-10">
@@ -28,23 +31,45 @@ export default function ContactSection({
               <div className="flex flex-col space-y-12">
                 <div className="space-y-4">
                   <h3 className="text-[11px] md:text-xs tracking-[0.2em] uppercase font-sans font-medium opacity-80" style={{ color: theme?.text }}>
-                    {contact.connectTitle?.[currentLang] || 'CONNECT'}
+                    <InlineEditor 
+                      id={`contact.connectTitle.${currentLang}`} 
+                      initialValue={contact.connectTitle?.[currentLang] || 'CONNECT'} 
+                      readonly={!adminMode} 
+                      placeholder="Title"
+                    />
                   </h3>
-                  <p className="text-sm md:text-base font-sans leading-relaxed font-light opacity-90">
-                    {contact.connectDescription?.[currentLang] || 'Always open to new stages and conversations. Reach out directly via email or use the form below.'}
-                  </p>
+                  <div className="text-sm md:text-base font-sans leading-relaxed font-light opacity-90">
+                    <InlineEditor 
+                      id={`contact.connectDescription.${currentLang}`} 
+                      initialValue={contact.connectDescription?.[currentLang] || 'Always open to new stages and conversations. Reach out directly via email or use the form below.'} 
+                      readonly={!adminMode} 
+                      placeholder="Description"
+                      wrapperClassName="block"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">
                   <span className="text-[10px] tracking-[0.25em] uppercase block font-sans opacity-80" style={{ color: theme?.text }}>
                     {t.email}
                   </span>
-                  <a 
-                    href={`mailto:${contact.email || 'contact@hyunkyumkim.com'}`} 
-                    className="text-base font-serif font-light hover:opacity-70 transition-opacity duration-300 break-all block"
-                  >
-                    {contact.email || 'contact@hyunkyumkim.com'}
-                  </a>
+                  {!adminMode ? (
+                    <a 
+                      href={`mailto:${contact.email || 'contact@hyunkyumkim.com'}`} 
+                      className="text-base font-serif font-light hover:opacity-70 transition-opacity duration-300 break-all block"
+                    >
+                      {contact.email || 'contact@hyunkyumkim.com'}
+                    </a>
+                  ) : (
+                    <div className="text-base font-serif font-light transition-opacity duration-300 break-all block">
+                      <InlineEditor 
+                        id="contact.email" 
+                        initialValue={contact.email || 'contact@hyunkyumkim.com'} 
+                        readonly={!adminMode} 
+                        placeholder="Email Address"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Social Channels */}

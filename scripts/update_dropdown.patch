@@ -1,0 +1,21 @@
+--- src/components/admin/FloatingToolbar.tsx
++++ src/components/admin/FloatingToolbar.tsx
+@@ -155,6 +155,10 @@
+               className="relative flex items-center group cursor-pointer"
+               onMouseEnter={() => setIsDropdownOpen(true)}
+               onMouseLeave={() => setIsDropdownOpen(false)}
++              onClick={(e) => {
++                e.preventDefault();
++                setIsDropdownOpen(!isDropdownOpen);
++              }}
+             >
+               <Type className="w-3.5 h-3.5 text-neutral-400 ml-2 group-hover:text-white transition-colors" />
+               <div className="flex items-center text-[11px] font-sans pl-1.5 pr-2 py-1.5 uppercase tracking-wider text-neutral-300 group-hover:text-white transition-colors">
+@@ -176,6 +180,7 @@
+                          className="px-3 py-2 text-[10px] uppercase tracking-wider text-neutral-300 hover:bg-neutral-700 hover:text-white cursor-pointer transition-colors"
+                          onClick={(e) => {
+                             e.preventDefault();
++                            e.stopPropagation();
+                             
+                             const selection = window.getSelection();
+                             if (!selection || selection.rangeCount === 0) return;

@@ -10,28 +10,12 @@ import { fetchPress, savePressItem, deletePressItem, db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { SortableItem } from './SortableItem';
+import { CollectionManager } from './admin/collection';
 
 interface PressSectionProps {
   items?: PressItem[];
   t?: any;
   onItemsUpdated?: (items: PressItem[]) => void;
-  onRefreshData?: () => void;
   currentLang: Language;
   setLang: (lang: Language) => void;
   user: User | null;
@@ -41,12 +25,24 @@ interface PressSectionProps {
   onThemeUpdated?: (newTheme: any) => void;
 }
 
-export default function PressSection({ currentLang, setLang, user, activeEditSection, setActiveEditSection, theme, onThemeUpdated = () => {}, items: propItems }: PressSectionProps) {
+export default function PressSection({ currentLang, setLang, user, activeEditSection, setActiveEditSection, theme, onThemeUpdated = () => {}, items: propItems, onItemsUpdated }: PressSectionProps) {
   const [pressItems, setPressItems] = useState<PressItem[]>(propItems || []);
   useEffect(() => {
-    if (propItems) setPressItems(propItems);
+    if (propItems) {
+      setPressItems(propItems);
+      if (propItems.length > 0) {
+        setSelectedItemId(prev => {
+          if (!prev || !propItems.some(item => item.id === prev)) {
+            return propItems[0].id;
+          }
+          return prev;
+        });
+      } else {
+        setSelectedItemId(null);
+      }
+    }
   }, [propItems]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   // Edit mode states
@@ -68,6 +64,79 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
     setTimeout(() => setNotification(null), 3500);
   };
 
+  const onReorderPress = async (newItems: PressItem[]) => {
+    setPressItems(newItems);
+    if (onItemsUpdated) onItemsUpdated(newItems);
+    try {
+      for (let i = 0; i < newItems.length; i++) {
+        const item = newItems[i];
+        if (item.order !== i) {
+          item.order = i;
+          await savePressItem(item);
+        }
+      }
+      showNotification("Press items reordered");
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to save reorder", "error");
+    }
+  };
+
+  const onAddPress = async (newItem: PressItem) => {
+    try {
+      const newItems = [...pressItems, newItem];
+      setPressItems(newItems);
+      if (onItemsUpdated) onItemsUpdated(newItems);
+      await savePressItem(newItem);
+      setSelectedItemId(newItem.id);
+      showNotification("Press review added");
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to add item", "error");
+    }
+  };
+
+  const onUpdatePress = async (updatedItem: PressItem) => {
+    try {
+      const newItems = pressItems.map(i => i.id === updatedItem.id ? updatedItem : i);
+      setPressItems(newItems);
+      if (onItemsUpdated) onItemsUpdated(newItems);
+      await savePressItem(updatedItem);
+      showNotification("Press review updated");
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to update item", "error");
+    }
+  };
+
+  const onDeletePress = async (id: string) => {
+    try {
+      const newItems = pressItems.filter(i => i.id !== id);
+      setPressItems(newItems);
+      if (onItemsUpdated) onItemsUpdated(newItems);
+      if (selectedItemId === id) {
+        setSelectedItemId(newItems.length > 0 ? newItems[0].id : null);
+      }
+      await deletePressItem(id);
+      showNotification("Press review deleted");
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to delete item", "error");
+    }
+  };
+
+  const pressItemSchema = (): PressItem => ({
+    id: `press-item-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    source: '',
+    rating: 5,
+    quote: { EN: '', DE: '', KO: '' },
+    author: '',
+    date: new Date().toISOString().split('T')[0],
+    link: '',
+    type: 'Review',
+    order: pressItems.length
+  });
+
   const loadPress = async () => {
     try {
       const data = await fetchPress();
@@ -87,16 +156,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
     }
   };
 
-  useEffect(() => {
-    loadPress();
-
-    // Listen for press changes from admin panel or other panels
-    const handlePressChange = () => {
-      loadPress();
-    };
-    window.addEventListener('pressChanged', handlePressChange);
-    return () => window.removeEventListener('pressChanged', handlePressChange);
-  }, []);
+  // loadPress is no longer needed on mount, propItems provides data
 
   // Compute active/current index based on selectedItemId
   const activeIndex = selectedItemId 
@@ -115,57 +175,6 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
     if (pressItems.length <= 1) return;
     const nextIndex = (currentIndex + 1) % pressItems.length;
     setSelectedItemId(pressItems[nextIndex].id);
-  };
-
-  // Drag-and-drop Sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = pressItems.findIndex((item) => item.id === active.id);
-    const newIndex = pressItems.findIndex((item) => item.id === over.id);
-
-    const newOrder = arrayMove(pressItems, oldIndex, newIndex) as PressItem[];
-    
-    // Update order field
-    const updatedList = newOrder.map((item, index) => ({
-      ...item,
-      order: index
-    }));
-
-    // Optimistic state update
-    setPressItems(updatedList);
-
-    // Save to Firestore
-    try {
-      const batchUpdates = updatedList.map((item, index) => {
-        if (pressItems[index]?.id !== item.id || pressItems[index]?.order !== item.order) {
-          return updateDoc(doc(db, "press", item.id), { order: item.order });
-        }
-        return Promise.resolve();
-      });
-      await Promise.all(batchUpdates);
-      
-      showNotification("Order updated");
-      
-      // Keep the same selected item tracked
-      window.dispatchEvent(new CustomEvent('pressChanged'));
-    } catch (err) {
-      console.error("Error saving new order:", err);
-      showNotification("Failed to save new order", "error");
-      loadPress();
-    }
   };
 
   const startNewPress = () => {
@@ -188,19 +197,14 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
   };
 
   const handleDeletePress = async (id: string) => {
-    
     try {
-      await deletePressItem(id);
-      showNotification("Review deleted successfully");
-      
-      // Update local state and adjust selection if needed
       const filtered = pressItems.filter(item => item.id !== id);
       setPressItems(filtered);
+      if (onItemsUpdated) onItemsUpdated(filtered);
       if (selectedItemId === id) {
         setSelectedItemId(filtered.length > 0 ? filtered[0].id : null);
       }
-      
-      window.dispatchEvent(new CustomEvent('pressChanged'));
+      showNotification("Review deleted successfully");
     } catch (err: any) {
       console.error("Error deleting review:", err);
       showNotification(`Failed to delete review: ${err.message || 'Unknown error'}`, "error");
@@ -225,20 +229,26 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
     if (!editingItem) return;
     setIsSaving(true);
     try {
-      const saved = await savePressItem(editingItem as PressItem);
+      const saved = { ...editingItem };
+      if (!saved.id) {
+        saved.id = 'temp_' + Date.now();
+      }
+      if (saved.order === undefined) {
+        saved.order = pressItems.length;
+      }
+      const newItems = pressItems.find(i => i.id === saved.id)
+        ? pressItems.map(i => i.id === saved.id ? saved : i)
+        : [...pressItems, saved];
       
-      // Reload everything
-      const data = await fetchPress();
-      setPressItems(data);
-      
-      // Keep the same selected Press item visible after saving
+      setPressItems(newItems);
+      if (onItemsUpdated) onItemsUpdated(newItems);
       setSelectedItemId(saved.id);
       
       setEditingItem(null);
       originalItemRef.current = null;
       
       showNotification("Review saved successfully!");
-      window.dispatchEvent(new CustomEvent('pressChanged'));
+      // custom event removed
     } catch (err) {
       console.error("Error saving review:", err);
       showNotification("Failed to save changes", "error");
@@ -280,362 +290,167 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
         )}
       </AnimatePresence>
 
-      {/* Mode Selector and controls for Authenticated Admins */}
-      {user && (activeEditSection === 'none' || activeEditSection === 'press') && (
-        <div className="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-white/5 gap-4">
-          <div className="flex items-center space-x-3">
-            <span className="text-[9px] font-mono tracking-widest text-[#C9A227] uppercase bg-white/5 px-2 py-1 rounded">
-              ADMIN ACCESS
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {!isEditMode ? (
-              <button
-                type="button"
-                onClick={() => setIsEditMode(true)}
-                className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest px-4 py-2 bg-white/5 border border-white/10 hover:border-[#C9A227] hover:bg-white/10 rounded-sm text-[color:inherit] transition-all cursor-pointer font-sans font-medium"
-              >
-                <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
-                <span>Edit Press</span>
-              </button>
-            ) : (
-              <div className="flex items-center space-x-3 flex-wrap gap-2">
-                {/* Embedded Language switcher inside Press Edit Mode */}
-                <div className="flex items-center space-x-1 bg-white/5 px-1.5 py-1 rounded-sm border border-white/10">
-                  {(['EN', 'DE', 'KO'] as Language[]).map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      onClick={() => setLang(lang)}
-                      className={`px-2.5 py-0.5 text-[10px] font-sans font-bold tracking-wider rounded-sm transition-all ${
-                        currentLang === lang
-                          ? 'bg-[#C9A227] text-black font-extrabold shadow-sm'
-                          : 'text-[color:inherit] hover:text-white'
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
+      {user ? (
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <CollectionManager<PressItem>
+            items={pressItems}
+            isAdmin={true}
+            title="Press Review"
+            strategy="vertical"
+            gridClassName="space-y-4 w-full"
+            onReorder={onReorderPress}
+            onAdd={onAddPress}
+            onUpdate={onUpdatePress}
+            onDelete={onDeletePress}
+            itemSchema={pressItemSchema}
+            editorForm={({ item, onChange, onSave, onCancel, isSaving }) => (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-neutral-400 font-sans uppercase block text-left font-bold">Source / Publication</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Das Opernglas"
+                      value={item.source || ''}
+                      onChange={(e) => onChange({ ...item, source: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-neutral-400 font-sans uppercase block text-left font-bold">Author</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dr. Müller"
+                      value={item.author || ''}
+                      onChange={(e) => onChange({ ...item, author: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
                 </div>
 
-                {/* Quote Font Size Control */}
-                <div className="flex items-center space-x-2 bg-white/5 px-2.5 py-1 rounded-sm border border-white/10">
-                  <span className="text-[9px] tracking-wider text-[color:inherit] uppercase font-sans">Font Size:</span>
-                  <input
-                    type="range"
-                    min="14"
-                    max="64"
-                    value={theme?.pressFontSize ?? 28}
-                    onChange={(e) => onThemeUpdated({ ...theme, pressFontSize: parseInt(e.target.value, 10) })}
-                    className="w-16 md:w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--color-text)]"
-                  />
-                  <input
-                    type="number"
-                    min="14"
-                    max="64"
-                    value={theme?.pressFontSize ?? 28}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      if (!isNaN(val)) {
-                        onThemeUpdated({ ...theme, pressFontSize: Math.max(14, Math.min(64, val)) });
-                      }
-                    }}
-                    className="w-10 bg-black/40 border border-white/10 text-center text-[10px] text-white p-0.5 rounded-sm focus:outline-none"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-neutral-400 font-sans uppercase block text-left font-bold">Date</label>
+                    <input
+                      type="date"
+                      value={item.date || ''}
+                      onChange={(e) => onChange({ ...item, date: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-neutral-400 font-sans uppercase block text-left font-bold">Type</label>
+                    <select
+                      value={item.type || 'Review'}
+                      onChange={(e) => onChange({ ...item, type: e.target.value as any })}
+                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                    >
+                      <option value="Review">Review</option>
+                      <option value="Interview">Interview</option>
+                      <option value="Article">Article</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-neutral-400 font-sans uppercase block text-left font-bold">Link</label>
+                    <input
+                      type="url"
+                      placeholder="e.g. https://example.com"
+                      value={item.link || ''}
+                      onChange={(e) => onChange({ ...item, link: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-3 border-t border-white/5">
+                  <span className="text-[9px] font-mono text-[#C9A227] uppercase tracking-widest block font-bold mb-1 text-left">
+                    QUOTE TRANSLATIONS
+                  </span>
+                  <div className="space-y-3 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Quote (EN)</label>
+                      <textarea
+                        rows={3}
+                        placeholder="English quote"
+                        value={item.quote?.EN || ''}
+                        onChange={(e) => onChange({ ...item, quote: { ...item.quote, EN: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Quote (DE)</label>
+                      <textarea
+                        rows={3}
+                        placeholder="German quote"
+                        value={item.quote?.DE || ''}
+                        onChange={(e) => onChange({ ...item, quote: { ...item.quote, DE: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-neutral-400 font-sans uppercase block font-semibold">Quote (KO)</label>
+                      <textarea
+                        rows={3}
+                        placeholder="Korean quote"
+                        value={item.quote?.KO || ''}
+                        onChange={(e) => onChange({ ...item, quote: { ...item.quote, KO: e.target.value } })}
+                        className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-3 border-t border-white/5">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (theme) {
-                        const { pressFontSize, ...rest } = theme;
-                        onThemeUpdated(rest);
-                        showNotification("Font size reset to default");
-                      }
-                    }}
-                    className="text-[9px] uppercase tracking-widest text-[color:inherit] hover:text-white px-1.5 py-0.5 border border-white/10 rounded-sm hover:bg-white/5 cursor-pointer"
+                    onClick={onCancel}
+                    className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-neutral-400 hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
                   >
-                    Reset
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSave}
+                    disabled={isSaving}
+                    className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isSaving ? "Saving..." : "Save"}</span>
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={startNewPress}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 bg-[#C9A227]/10 hover:bg-[#C9A227]/20 border border-[#C9A227]/30 text-[#C9A227] rounded-sm transition-all cursor-pointer font-sans"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Quote</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const hasChanges = editingItem !== null;
-                    if (hasChanges) {
-                      if (true) {
-                        setEditingItem(null);
-                        setIsEditMode(false);
-                      }
-                    } else {
-                      setIsEditMode(false);
-                    }
-                  }}
-                  className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3.5 py-2 border border-white/10 hover:border-white/25 hover:bg-white/5 rounded-sm text-[color:inherit] hover:text-white transition-all cursor-pointer font-sans"
-                >
-                  <X className="w-3 h-3" />
-                  <span>Exit Edit Mode</span>
-                </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================
-          EDIT MODE INTERFACE
-          ======================================================== */}
-      {isEditMode ? (
-        <div className="space-y-6">
-          
-          {/* Live Preview Box */}
-          <div className="bg-white/[0.01] border border-white/5 rounded-sm p-6 text-center w-full mx-auto space-y-3">
-            <div className="flex justify-center items-center space-x-1.5">
-              <Sparkles className="w-3 h-3 text-[#C9A227] animate-pulse" />
-              <span className="text-[9px] font-mono tracking-widest text-[color:inherit] uppercase">FONT SIZE LIVE PREVIEW</span>
-            </div>
-            <blockquote 
-              className="font-serif italic max-w-2xl mx-auto leading-relaxed"
-              style={{ 
-                  color: 'var(--color-text)', 
-                  fontSize: theme?.pressFontSize ? `clamp(16px, 4vw, ${theme.pressFontSize}px)` : undefined 
-              }}
-            >
-              “{editingItem?.quote?.[currentLang] || pressItems[0]?.quote[currentLang] || pressItems[0]?.quote['EN'] || 'Enter your press quote translations to see them displayed here in real-time.'}”
-            </blockquote>
-            <p className="text-[10px] text-[color:inherit] font-sans font-semibold uppercase">
-              {editingItem?.source || pressItems[0]?.source || 'Publication Source'}
-            </p>
-          </div>
-
-          {/* Active Item Form Editor */}
-          {editingItem ? (
-            <form onSubmit={handleSaveChanges} className="bg-white/[0.02] border border-[#C9A227]/20 p-6 md:p-8 rounded-lg space-y-6 w-full mx-auto transition-all">
-              <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                <h4 className="text-xs tracking-widest uppercase font-sans font-semibold text-[#C9A227]">
-                  {editingItem.id ? 'Edit Review Quote' : 'New Review Quote'}
-                </h4>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="p-1 hover:bg-white/5 rounded text-[color:inherit] hover:text-white transition-colors cursor-pointer"
-                  title="Close Form"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block">Type</label>
-                  <select
-                    value={editingItem.type || 'Review'}
-                    onChange={(e) => setEditingItem({ ...editingItem, type: e.target.value as any })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227] select-none"
-                  >
-                    <option value="Review" className="bg-neutral-900 text-white">Review</option>
-                    <option value="Interview" className="bg-neutral-900 text-white">Interview</option>
-                    <option value="Article" className="bg-neutral-900 text-white">Article</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block">Source</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Opera Magazine"
-                    value={editingItem.source || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, source: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={editingItem.date || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
-                  />
-                </div>
-              </div>
-
-              {/* Multi-language Quote (displayed for the selected language only) */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block font-semibold">
-                    Quote Excerpt ({currentLang})
-                  </label>
-                  <span className="text-[9px] font-mono text-[color:inherit] uppercase">
-                    Select tabs EN | DE | KO above to translate
+            renderItem={(item) => (
+              <div className="w-full p-5 border border-white/5 bg-white/[0.01] rounded-sm flex flex-col space-y-4 text-left">
+                <div className="flex items-center justify-between text-[10px] font-mono tracking-wider text-neutral-400 uppercase">
+                  <span>{item.type || 'Review'}</span>
+                  <span>
+                    {new Date(item.date).toLocaleDateString(
+                      currentLang === 'KO' ? 'ko-KR' : currentLang === 'DE' ? 'de-DE' : 'en-US', 
+                      { year: 'numeric', month: 'long' }
+                    )}
                   </span>
                 </div>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder={`Enter translation quote in ${currentLang === 'KO' ? 'Korean' : currentLang === 'DE' ? 'German' : 'English'}...`}
-                  value={editingItem.quote?.[currentLang] || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setEditingItem(prev => {
-                      if (!prev) return null;
-                      return {
-                        ...prev,
-                        quote: {
-                          ...prev.quote,
-                          [currentLang]: val
-                        }
-                      } as Partial<PressItem>;
-                    });
-                  }}
-                  className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-4 py-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227] resize-none leading-relaxed font-serif italic"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block">Author</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Richard Morrison (Optional)"
-                    value={editingItem.author || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, author: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block">Article URL / Link</label>
-                  <input
-                    type="url"
-                    placeholder="https://... (Optional)"
-                    value={editingItem.link || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, link: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-3 border-t border-white/5">
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-white/10 hover:border-white/30 hover:bg-white/5 rounded-sm text-[color:inherit] hover:text-white text-xs tracking-wider uppercase font-sans transition-all cursor-pointer"
-                >
-                  {t.adminCancel}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#ebd04e] text-black font-semibold rounded-sm text-xs tracking-wider uppercase transition-all flex items-center space-x-1.5 cursor-pointer font-sans active:scale-95 shadow-md"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{isSaving ? t.adminSaving : t.adminSave}</span>
-                </button>
-              </div>
-            </form>
-          ) : (
-            /* Drag-and-drop management list */
-            <div className="w-full mx-auto space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-xs tracking-wider text-[color:inherit] font-sans uppercase">
-                  Drag and drop to sort • Click edit icon to change
+                <p className="text-sm italic font-serif leading-relaxed opacity-95">
+                  “{item.quote[currentLang] || item.quote['EN']}”
                 </p>
-              </div>
-
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <div className="divide-y divide-white/5 border border-white/10 bg-black/20 rounded-sm overflow-hidden">
-                  {pressItems.length === 0 ? (
-                    <div className="p-12 text-center text-[color:inherit] text-xs font-sans">No reviews created yet. Click Add Quote above to get started.</div>
-                  ) : (
-                    <SortableContext items={pressItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                      {pressItems.map((item, index) => {
-                        const translatedQuote = item.quote[currentLang] || item.quote['EN'] || '';
-                        const isCurrentlySelected = selectedItemId === item.id;
-                        
-                        return (
-                          <SortableItem 
-                            key={item.id} 
-                            id={item.id} 
-                            className={`bg-transparent hover:bg-white/[0.02] flex items-center pl-12 pr-4 py-4 relative transition-all duration-300 ${isCurrentlySelected ? 'border-l-2 border-[#C9A227] bg-white/[0.01]' : ''}`} 
-                            handleClassName="absolute left-2.5 top-1/2 -translate-y-1/2 p-2"
-                          >
-                            <div className="flex-1 min-w-0 pr-4">
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                                <span className="text-[11px] font-sans font-semibold text-white tracking-wide">
-                                  {item.source}
-                                </span>
-                                <span className="text-[10px] font-mono text-[color:inherit]">
-                                  {item.date}
-                                </span>
-                                 <span className="text-[9px] font-mono uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded" style={{ color: theme?.text }}>
-                                  {item.type || 'Review'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-[color:inherit] italic line-clamp-1 font-serif">
-                                "{translatedQuote}"
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2 shrink-0">
-                              {/* Highlight select indicator */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedItemId(item.id);
-                                  showNotification(`Carousel set to: ${item.source}`);
-                                }}
-                                className={`px-2.5 py-1 text-[9px] font-sans tracking-wider rounded border transition-colors uppercase ${
-                                  isCurrentlySelected
-                                    ? 'bg-[#C9A227]/10 border-[#C9A227] text-[#C9A227] font-bold'
-                                    : 'border-white/10 text-[color:inherit] hover:text-white'
-                                }`}
-                              >
-                                {isCurrentlySelected ? 'Selected' : 'Select'}
-                              </button>
-                              
-                              <button
-                                type="button"
-                                onClick={() => startEditPress(item)}
-                                className="p-2 border border-white/5 hover:border-white/20 text-[color:inherit] hover:text-white rounded transition-colors cursor-pointer"
-                                title="Edit"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeletePress(item.id)}
-                                className="p-2 border border-rose-500/10 hover:border-rose-500/35 text-rose-400 hover:bg-rose-950/20 rounded transition-colors cursor-pointer"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </SortableItem>
-                        );
-                      })}
-                    </SortableContext>
+                <div className="flex items-center justify-between text-xs pt-3 border-t border-white/5">
+                  <div>
+                    <span className="font-semibold block">{item.source}</span>
+                    {item.author && <span className="text-[10px] text-neutral-400 block">{item.author}</span>}
+                  </div>
+                  {item.link && (
+                    <a href={item.link} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-wider text-[#C9A227] hover:text-[#ebd04e] transition-colors flex items-center space-x-1 font-sans">
+                      <span>Read Link</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                   )}
                 </div>
-              </DndContext>
-            </div>
-          )}
+              </div>
+            )}
+          />
         </div>
       ) : (
-        /* ========================================================
-            READ-ONLY COMPACT EDITORIAL PRESS CAROUSEL
-            ======================================================== */
         <div className="w-full mx-auto">
           {pressItems.length === 0 ? (
             <div className="text-center py-16 text-[color:inherit] text-xs font-sans">
@@ -709,15 +524,6 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                               <ChevronRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
                             </a>
                           ) : null}
-                          {user && (
-                            <button
-                              onClick={() => handleDeletePress(currentItem.id)}
-                              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 border border-rose-500/10 hover:border-rose-500/35 text-rose-400 hover:bg-rose-950/20 rounded transition-colors cursor-pointer"
-                              title="Delete from main page"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -760,13 +566,11 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                     </button>
                   </div>
                 )}
-
               </div>
             )
           )}
         </div>
       )}
-
     </div>
   );
 }

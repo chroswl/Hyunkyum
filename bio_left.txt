@@ -1,0 +1,178 @@
+              <div className="relative border border-[var(--color-text)] rounded-sm overflow-hidden bg-neutral-900/10">
+                {isEditMode ? (
+                  <div className="p-4 bg-[var(--color-bg)] min-h-[400px] flex flex-col space-y-4 relative">
+                    <AnimatePresence>
+                      {isOptimizing && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="absolute inset-0 bg-[var(--color-bg)]/80 backdrop-blur-xs z-50 flex flex-col items-center justify-center space-y-3 font-sans rounded-sm"
+                        >
+                          <div className="relative flex items-center justify-center">
+                            <div className="w-10 h-10 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                            {optimizeProgress !== null && (
+                              <span className="absolute text-[9px] font-mono text-[#C9A227] font-semibold">
+                                {optimizeProgress}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-center space-y-1">
+                            <div className="text-[11px] text-white uppercase tracking-wider font-semibold">
+                              Optimizing Image...
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Image Source URL</label>
+                      <input 
+                        type="url" 
+                        value={editedBio.bioImage || ''}
+                        onChange={(e) => setEditedBio({...editedBio, bioImage: e.target.value})}
+                        className="w-full bg-[var(--color-bg)] border border-[var(--color-text)] focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        placeholder="https://images.unsplash.com/photo-..."
+                      />
+                      <GoogleDrivePicker onPick={url => setEditedBio({...editedBio, bioImage: url})} />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Or Upload Local Photo</label>
+                      <div className="flex items-center justify-center w-full relative">
+                        <label className={`flex flex-col items-center justify-center w-full h-28 border border-[var(--color-text)] border-dashed rounded-sm ${uploadProgress !== null ? 'bg-[var(--color-bg)]/60 cursor-not-allowed' : 'cursor-pointer bg-[var(--color-bg)]/20 hover:bg-[var(--color-bg)]/40'} transition-colors`}>
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            {uploadProgress !== null ? (
+                              <>
+                                <div className="w-8 h-8 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-2" />
+                                <div className="text-[10px] text-[#C9A227] tracking-wider font-sans uppercase">Uploading: {Math.round(uploadProgress)}%</div>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-8 h-8 text-neutral-500 mb-2" />
+                                <div className="text-[10px] text-neutral-400 tracking-wider font-sans uppercase">Drag & Drop or Click to Select Photo/Video</div>
+                              </>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*,video/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 30 * 1024 * 1024) {
+                                  showNotification('File is too large. Max limit is 30 MB.', 'error');
+                                  return;
+                                }
+                                
+                                if (file.type.startsWith('image/')) {
+                                  setIsOptimizing(true);
+                                  setOptimizeProgress(0);
+                                  try {
+                                    const optimizedBase64 = await MediaEngine.optimize(file, (progress) => {
+                                      setOptimizeProgress(progress);
+                                    });
+                                    setCropTarget({
+                                      src: optimizedBase64,
+                                      aspect: 3 / 4,
+                                      copyright: editedBio.photoCredit,
+                                      copyrightUrl: editedBio.photoCreditLink,
+                                      onCrop: (base64, crpt, crptUrl) => {
+                                        setEditedBio(prev => ({ 
+                                          ...prev, 
+                                          bioImage: base64,
+                                          ...(crpt !== undefined && { photoCredit: crpt }),
+                                          ...(crptUrl !== undefined && { photoCreditLink: crptUrl })
+                                        }));
+                                        setCropTarget(null);
+                                      }
+                                    });
+                                  } catch (err: any) {
+                                    console.error(err);
+                                    showNotification('Failed to optimize image', 'error');
+                                  } finally {
+                                    setIsOptimizing(false);
+                                    setOptimizeProgress(null);
+                                  }
+                                } else if (file.type.startsWith('video/')) {
+                                  try {
+                                    const url = await uploadMedia(file, 'admin');
+                                    setEditedBio(prev => ({ ...prev, bioImage: url }));
+                                    showNotification('Video uploaded successfully');
+                                  } catch (err: any) {
+                                    console.error(err);
+                                    showNotification('Failed to upload video file: ' + err.message, 'error');
+                                  }
+                                } else {
+                                  showNotification('Unsupported file type', 'error');
+                                }
+                              }
+                              e.target.value = '';
+                            }}
+                            className="hidden"
+                            disabled={uploadProgress !== null}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block font-semibold">Media Live Preview</label>
+                      <div className="w-full h-40 relative group/preview">
+                        <MediaPreview 
+                          url={editedBio.bioImage}
+                          altText="South Korean Baritone Hyunkyum Kim profile photo"
+                          className="w-full h-full bg-[var(--color-bg)]/40 rounded-sm border border-[var(--color-text)]"
+                          imageClassName="object-contain"
+                        />
+                        {editedBio.bioImage && getMediaSource(editedBio.bioImage).type === 'image' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCropTarget({
+                                src: editedBio.bioImage!,
+                                aspect: 3 / 4,
+                                copyright: editedBio.photoCredit,
+                                copyrightUrl: editedBio.photoCreditLink,
+                                onCrop: (base64, crpt, crptUrl) => {
+                                  setEditedBio(prev => ({ 
+                                    ...prev, 
+                                    bioImage: base64,
+                                    ...(crpt !== undefined && { photoCredit: crpt }),
+                                    ...(crptUrl !== undefined && { photoCreditLink: crptUrl })
+                                  }));
+                                  setCropTarget(null);
+                                }
+                              });
+                            }}
+                            className="absolute inset-0 m-auto w-36 h-9 !bg-[var(--color-bg)] hover:!bg-[var(--color-bg)] border border-[#C9A227] text-[#C9A227] hover:text-white text-[10px] tracking-wider uppercase font-sans font-medium rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <span>Crop & Adjust</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-2">
+                      <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block font-semibold">Photo Credit / Copyright</label>
+                      <input 
+                        type="text" 
+                        value={editedBio.photoCredit || ''}
+                        onChange={(e) => setEditedBio({...editedBio, photoCredit: e.target.value})}
+                        className="w-full bg-[var(--color-bg)]/40 border border-[var(--color-text)] focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        placeholder="Photo © Klaudia Hart"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] tracking-wider text-[color:inherit] font-sans uppercase block font-semibold">Copyright Link (URL)</label>
+                      <input 
+                        type="url" 
+                        value={editedBio.photoCreditLink || ''}
+                        onChange={(e) => setEditedBio({...editedBio, photoCreditLink: e.target.value})}
+                        className="w-full bg-[var(--color-bg)]/40 border border-[var(--color-text)] focus:border-[#C9A227] rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                        placeholder="https://..."
+                      />
+                    </div>
