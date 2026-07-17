@@ -9,6 +9,7 @@ import { User } from 'firebase/auth';
 import { db, saveScheduleItem, deleteScheduleItem } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { CollectionManager } from './admin/collection';
+import { ensureAbsoluteUrl } from '../lib/mediaUtils';
 
 interface ScheduleSectionProps {
   items: ScheduleItem[];
@@ -541,7 +542,7 @@ export default function ScheduleSection({
                   <div className="md:col-span-2 flex justify-end items-center space-x-3 mt-4 md:mt-0">
                     {item.link && (
                       <a
-                        href={item.link}
+                        href={ensureAbsoluteUrl(item.link)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-5 py-2 text-[10px] tracking-widest hover:text-black border border-white/25 hover:bg-white transition-all duration-300 rounded-sm uppercase font-sans font-medium whitespace-nowrap cursor-pointer"

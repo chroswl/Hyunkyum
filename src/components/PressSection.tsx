@@ -11,6 +11,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 
 import { CollectionManager } from './admin/collection';
+import { ensureAbsoluteUrl } from '../lib/mediaUtils';
 
 interface PressSectionProps {
   items?: PressItem[];
@@ -440,7 +441,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                     {item.author && <span className="text-[10px] text-neutral-400 block">{item.author}</span>}
                   </div>
                   {item.link && (
-                    <a href={item.link} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-wider text-[#C9A227] hover:text-[#ebd04e] transition-colors flex items-center space-x-1 font-sans">
+                    <a href={ensureAbsoluteUrl(item.link)} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-wider text-[#C9A227] hover:text-[#ebd04e] transition-colors flex items-center space-x-1 font-sans">
                       <span>Read Link</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -514,7 +515,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                         <div className="pt-4 flex flex-col items-center justify-center relative w-full min-h-[44px]">
                           {currentItem.link ? (
                             <a
-                              href={currentItem.link}
+                              href={ensureAbsoluteUrl(currentItem.link)}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center space-x-1 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-sans font-semibold hover:text-[#C9A227]! transition-colors"

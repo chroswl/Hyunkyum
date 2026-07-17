@@ -5,6 +5,7 @@ import { ChevronDown, Settings } from 'lucide-react';
 import { ThemeSettings, Language } from '../types';
 import { MediaEngine } from '../lib/editing/mediaEngine';
 import { MediaPreview } from './admin/media';
+import { ensureAbsoluteUrl } from '../lib/mediaUtils';
 import { User } from 'firebase/auth';
 import EditableBlock from './admin/EditableBlock';
 
@@ -306,7 +307,7 @@ export default function HeroSection({
         <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
           <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
             {theme.heroCopyrightUrl ? (
-              <a href={theme.heroCopyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={theme.heroCopyright}>
+              <a href={ensureAbsoluteUrl(theme.heroCopyrightUrl)} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={theme.heroCopyright}>
                 {theme.heroCopyright.startsWith('©') ? theme.heroCopyright : `© ${theme.heroCopyright}`}
               </a>
             ) : (

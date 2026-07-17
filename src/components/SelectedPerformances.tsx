@@ -7,6 +7,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { MediaEngine } from '../lib/editing/mediaEngine';
 import { MediaCropWrapper, MediaPreview } from './admin/media';
 import { User } from 'firebase/auth';
+import { ensureAbsoluteUrl } from '../lib/mediaUtils';
 
 import {
   DndContext,
@@ -652,7 +653,7 @@ export default function SelectedPerformances({
                 <div className="absolute bottom-4 right-4 z-20 pointer-events-auto hidden md:block">
                   <div className="text-[9px] md:text-[10px] text-white/50 hover:text-white/80 transition-colors font-sans tracking-widest uppercase font-medium bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
                     {slide.copyrightUrl ? (
-                      <a href={slide.copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}>
+                      <a href={ensureAbsoluteUrl(slide.copyrightUrl)} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" title={slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}>
                         {slide.copyright.trim().startsWith('©') ? slide.copyright : `© ${slide.copyright.trim()}`}
                       </a>
                     ) : (

@@ -16,7 +16,7 @@ import { translations } from '../translations';
 import { User } from 'firebase/auth';
 import { db, deletePortfolioItem, savePortfolioItem } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { getMediaSource } from '../lib/mediaUtils';
+import { getMediaSource, ensureAbsoluteUrl } from '../lib/mediaUtils';
 import { MediaCropWrapper, MediaPreview } from './admin/media';
 import { MediaEngine, useMediaUpload } from '../lib/editing/mediaEngine';
 import { CollectionManager } from './admin/collection';
@@ -114,6 +114,43 @@ export default function PortfolioGallery({
   const showNotification = (text: string, type: 'success' | 'error' = 'success') => {
     setNotification({ text, type });
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handlePhotoFile = (file: File, currentItem: any, onChange: (updated: any) => void) => {
+    if (file && file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      setCropTarget({ 
+        src: url, 
+        aspect: 3/4,
+        copyright: currentItem.copyright,
+        copyrightUrl: currentItem.copyrightUrl,
+        onCrop: async (base64, copyright, copyrightUrl) => {
+          setCropTarget(null);
+          try {
+            const uploadedUrl = await uploadMedia(base64);
+            onChange({ 
+              ...currentItem, 
+              url: uploadedUrl, 
+              copyright: copyright || currentItem.copyright, 
+              copyrightUrl: copyrightUrl || currentItem.copyrightUrl 
+            });
+          } catch (err) {
+            console.error("Upload failed after crop:", err);
+            // fallback to using base64 directly
+            onChange({ 
+              ...currentItem, 
+              url: base64, 
+              copyright: copyright || currentItem.copyright, 
+              copyrightUrl: copyrightUrl || currentItem.copyrightUrl 
+            });
+          }
+        } 
+      });
+    } else {
+      showNotification("Please select a valid image file.", "error");
+    }
   };
 
     const handleDeletePhoto = async (id: string) => {
@@ -359,33 +396,61 @@ export default function PortfolioGallery({
                            <MediaPreview url={item.url} altText="Preview" className="w-full h-full" imageClassName="w-full h-full object-contain" />
                         </div>
                       )}
-                      {/* Google Drive Picker & Local Upload */}
-                      <div className="pt-2 flex items-center space-x-3">
+
+                      {/* Drag & Drop Area */}
+                      <div 
+                        className={`relative border-2 border-dashed rounded p-5 text-center transition-all ${
+                          isDragOver 
+                            ? 'border-[#C9A227] bg-[#C9A227]/5' 
+                            : 'border-white/10 bg-black/20 hover:border-white/20'
+                        }`}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragOver(true);
+                        }}
+                        onDragLeave={() => setIsDragOver(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragOver(false);
+                          if (e.dataTransfer.files?.[0]) {
+                            handlePhotoFile(e.dataTransfer.files[0], item, onChange);
+                          }
+                        }}
+                      >
+                        {mediaUploading ? (
+                          <div className="flex flex-col items-center justify-center space-y-2 py-4">
+                            <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs text-neutral-400 font-mono">
+                              {mediaProgress.status === 'optimizing' ? 'Optimizing' : 'Uploading'}: {mediaProgress.percentage}%
+                            </span>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer flex flex-col items-center justify-center space-y-1.5 py-1 w-full h-full">
+                            <ImageIcon className="w-5 h-5 text-neutral-500 mb-0.5" />
+                            <span className="text-[11px] text-neutral-300 font-sans font-medium">
+                              Drag & Drop photo here or <span className="text-[#C9A227] hover:underline font-semibold">Browse</span>
+                            </span>
+                            <span className="text-[9px] text-neutral-500 font-sans">
+                              Images up to 30MB • Auto-cropped to 3:4 aspect ratio
+                            </span>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  handlePhotoFile(e.target.files[0], item, onChange);
+                                }
+                                e.target.value = '';
+                              }} 
+                              className="hidden" 
+                            />
+                          </label>
+                        )}
+                      </div>
+
+                      {/* Google Drive Picker */}
+                      <div className="pt-1 flex items-center space-x-3">
                         <GoogleDrivePicker onPick={url => onChange({ ...item, url })} />
-                        <div className="relative">
-                          <button type="button" className="inline-flex items-center space-x-1.5 text-[10px] uppercase tracking-widest px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-sm transition-all cursor-pointer font-sans border border-neutral-700">
-                            <span>Upload Photo</span>
-                          </button>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                const url = URL.createObjectURL(e.target.files[0]);
-                                setCropTarget({ 
-                                  src: url, 
-                                  aspect: 3/4,
-                                  onCrop: (base64, copyright, copyrightUrl) => {
-                                    onChange({ ...item, url: base64, copyright: copyright || item.copyright, copyrightUrl: copyrightUrl || item.copyrightUrl });
-                                    setCropTarget(null);
-                                  } 
-                                });
-                              }
-                              e.target.value = '';
-                            }} 
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -566,7 +631,7 @@ export default function PortfolioGallery({
                   {filteredItems[selectedItemIndex].copyright && (
                     <div className="mt-2 text-[11px] font-sans tracking-[0.15em] uppercase" style={{ color: theme?.text ? `${theme.text}B3` : undefined }}>
                       {filteredItems[selectedItemIndex].copyrightUrl ? (
-                        <a href={filteredItems[selectedItemIndex].copyrightUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" onClick={(e) => e.stopPropagation()}>
+                        <a href={ensureAbsoluteUrl(filteredItems[selectedItemIndex].copyrightUrl)} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" onClick={(e) => e.stopPropagation()}>
                           {filteredItems[selectedItemIndex].copyright.startsWith('©') ? filteredItems[selectedItemIndex].copyright : `© ${filteredItems[selectedItemIndex].copyright}`}
                         </a>
                       ) : (

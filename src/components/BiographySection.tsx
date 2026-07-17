@@ -10,7 +10,7 @@ import { BiographySettings, TimelineData, TimelineItem } from '../types';
 import { saveBiographySettings } from '../firebase';
 import { MediaEngine, useMediaUpload } from '../lib/editing/mediaEngine';
 import { MediaCropWrapper, MediaPreview } from './admin/media';
-import { getMediaSource } from '../lib/mediaUtils';
+import { getMediaSource, ensureAbsoluteUrl } from '../lib/mediaUtils';
 import { BiographyEditorPanel } from './admin/BiographyEditorPanel';
 
 interface BiographySectionProps {
@@ -566,7 +566,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                   <div className="mt-2 text-[11px] font-sans tracking-[0.15em] uppercase text-[var(--color-text)]/70">
                     {activeBio.photoCreditLink ? (
                       <a 
-                        href={activeBio.photoCreditLink} 
+                        href={ensureAbsoluteUrl(activeBio.photoCreditLink)} 
                         target="_blank" 
                         rel="noopener noreferrer" 
                         className="hover:text-[#C9A227] transition-colors font-medium" 

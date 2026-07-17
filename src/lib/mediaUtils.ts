@@ -6,6 +6,11 @@ export function getYouTubeParams(url: string): { id: string; start: number } {
 
   const trimmed = url.trim();
 
+  // If it's a data URL, it's definitely not a YouTube video
+  if (trimmed.startsWith('data:')) {
+    return { id: '', start: 0 };
+  }
+
   // 1. Direct 11-character ID (consisting of letters, numbers, hyphens, and underscores)
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
     return { id: trimmed, start: 0 };
@@ -156,3 +161,20 @@ export function getMediaSource(url: string, explicitType?: 'image' | 'video' | '
 
   return { type: 'image' as const, src: url };
 }
+
+/**
+ * Helper to ensure a URL starts with http:// or https:// if it is not empty.
+ */
+export function ensureAbsoluteUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^(f|ht)tps?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  // If it's empty or already has an internal/other protocol, keep as is
+  if (/^(mailto|tel|javascript):/i.test(trimmed) || trimmed.startsWith('/') || trimmed.startsWith('#')) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
