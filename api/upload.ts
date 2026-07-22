@@ -1,117 +1,85 @@
-export const config = { api: { bodyParser: false } };
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, getR2BucketName, getR2PublicUrl, checkR2EnvVars } from "./_r2-client.js";
-import { URL } from 'url';
+import { URL } from "url";
 
-const getRequestBody = (req: any): Promise<Buffer> => {
+const parseJsonBody = async (req: any): Promise<any> => {
   if (req.body) {
-    if (Buffer.isBuffer(req.body)) return Promise.resolve(req.body);
-    if (typeof req.body === 'string') return Promise.resolve(Buffer.from(req.body));
-    if (typeof req.body === 'object') return Promise.resolve(Buffer.from(JSON.stringify(req.body)));
+    if (typeof req.body === "object") return req.body;
+    if (typeof req.body === "string") {
+      try { return JSON.parse(req.body); } catch (e) { return {}; }
+    }
   }
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk: any) => { data += chunk; });
+    req.on("end", () => {
+      try { resolve(data ? JSON.parse(data) : {}); }
+      catch (e) { resolve({}); }
     });
-    req.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-    req.on('error', reject);
+    req.on("error", () => resolve({}));
   });
 };
 
 export default async function handler(req: any, res: any) {
   const envVars = checkR2EnvVars();
-  console.log("[DIAGNOSTIC /api/upload] Incoming request method:", req.method);
-  console.log("[DIAGNOSTIC /api/upload] Environment variables state:", JSON.stringify(envVars));
 
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed. Use POST." });
+  if (req.method !== "POST" && req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed. Use POST or GET." });
   }
 
-  let stage = "init";
-
   try {
-    stage = "parse_query_params";
-    let filename = "file";
-    let contentType = "application/octet-stream";
-    let folder = "";
-    
-    // Check if there's a query string for raw stream uploads
+    const bodyObj = await parseJsonBody(req);
     const urlObj = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-    if (urlObj.searchParams.has("filename")) {
-      filename = urlObj.searchParams.get("filename") || "file";
-      contentType = urlObj.searchParams.get("contentType") || "application/octet-stream";
-      folder = urlObj.searchParams.get("folder") || "";
-    } else {
-      console.warn("[DIAGNOSTIC /api/upload] Missing filename in query parameters.");
-      return res.status(400).json({ error: "Missing filename in query parameters", envVars });
-    }
 
-    console.log(`[DIAGNOSTIC /api/upload] Parameters: filename=${filename}, contentType=${contentType}, folder=${folder}`);
+    let filename = urlObj.searchParams.get("filename") || bodyObj.filename || "file";
+    let contentType = urlObj.searchParams.get("contentType") || bodyObj.contentType || "application/octet-stream";
+    let folder = urlObj.searchParams.get("folder") || bodyObj.folder || "";
 
-    stage = "init_r2_client";
     const client = getR2Client();
     const bucket = getR2BucketName();
     const publicUrl = getR2PublicUrl();
-    console.log(`[DIAGNOSTIC /api/upload] R2 initialized successfully. Bucket=${bucket}, PublicUrl=${publicUrl}`);
 
-    stage = "read_request_body";
-    const buffer = await getRequestBody(req);
-    console.log(`[DIAGNOSTIC /api/upload] Body read complete. Buffer byte size: ${buffer.length}`);
-
-    const finalContentType = contentType || "application/octet-stream";
-
-    // Generate unique Key
     const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const sanitizedFilename = filename ? filename.replace(/[^a-zA-Z0-9.-]/g, "_") : "file";
-      
     const key = folder 
       ? `${folder}/${uniqueId}_${sanitizedFilename}`
       : `${uniqueId}_${sanitizedFilename}`;
 
-    stage = "execute_put_object";
-    console.log(`[DIAGNOSTIC /api/upload] Executing PutObjectCommand for key: ${key}`);
-
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      ContentType: finalContentType,
-      Body: buffer, // Buffer explicitly gives length to AWS SDK
+      ContentType: contentType,
     });
 
-    const sendResult = await client.send(command);
-    console.log("[DIAGNOSTIC /api/upload] PutObjectCommand success:", sendResult);
-
+    // Generate presigned URL for direct browser PUT upload (expires in 1 hour)
+    const presignedUrl = await getSignedUrl(client as any, command, { expiresIn: 3600 });
     const fileUrl = `${publicUrl.replace(/\/$/, "")}/${key}`;
 
     return res.status(200).json({
       success: true,
+      presignedUrl,
+      key,
       url: fileUrl,
-      key: key,
     });
   } catch (error: any) {
-    console.error(`[DIAGNOSTIC /api/upload] Error at stage "${stage}":`, error);
-    
+    console.error("[/api/upload] Error generating presigned URL:", error);
     return res.status(500).json({
-      error: "Internal Server Error during single upload",
-      failedStage: stage,
+      error: "Internal Server Error generating presigned URL",
       envVarsDetected: envVars,
       errorMessage: error.message || String(error),
-      errorName: error.name || "UnknownError",
       errorCode: error.code || error.$metadata?.httpStatusCode || error.name,
-      errorMetadata: error.$metadata || null,
       stack: error.stack || null,
     });
   }
 }
+

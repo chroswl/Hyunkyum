@@ -42,95 +42,234 @@ export const uploadToR2 = async (
     file = new Blob([byteArray], { type: contentType });
   } else {
     filename = fileOrBase64.name;
-    contentType = fileOrBase64.type;
+    contentType = fileOrBase64.type || "application/octet-stream";
     file = fileOrBase64;
   }
 
   if (onProgress) onProgress(0); // Start progress
 
-  const queryParams = new URLSearchParams({
-    filename: filename,
-    contentType: contentType,
-  });
-  if (folder) {
-    queryParams.append("folder", folder);
-  }
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
 
-  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-
+  // For small files <= 5MB: use single presigned PUT upload
   if (file.size <= CHUNK_SIZE) {
-    // Single part upload
-    const response = await fetch(`/api/upload?${queryParams.toString()}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-      },
-      body: file,
+    const queryParams = new URLSearchParams({
+      filename,
+      contentType,
+      folder: folder || "",
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to upload: ${response.status}`);
+    const initRes = await fetch(`/api/upload?${queryParams.toString()}`, {
+      method: "POST",
+    });
+
+    if (!initRes.ok) {
+      const errData = await initRes.json().catch(() => ({}));
+      throw new Error(errData.errorMessage || errData.error || `Failed to prepare upload: ${initRes.status}`);
     }
 
-    const { url: fileUrl } = await response.json();
+    const { presignedUrl, url: fileUrl } = await initRes.json();
+
+    // Direct browser PUT upload to Cloudflare R2
+    await uploadDirectXHR(presignedUrl, file, contentType, (loaded, total) => {
+      if (onProgress && total > 0) {
+        onProgress(Math.min(100, Math.round((loaded / total) * 100)));
+      }
+    });
+
     if (onProgress) onProgress(100);
     return fileUrl;
   }
 
-  // Multipart upload
-  const startRes = await fetch(`/api/upload-multipart?${queryParams.toString()}`, {
+  // For large files > 5MB: use multipart presigned PUT upload
+  const startQueryParams = new URLSearchParams({
+    filename,
+    contentType,
+    folder: folder || "",
+  });
+
+  const startRes = await fetch(`/api/upload-multipart?${startQueryParams.toString()}`, {
     method: "POST",
     headers: { "x-action": "start" },
   });
-  
+
   if (!startRes.ok) {
-    const errorData = await startRes.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to start multipart upload: ${startRes.status}`);
+    const errData = await startRes.json().catch(() => ({}));
+    throw new Error(errData.errorMessage || errData.error || `Failed to start multipart upload: ${startRes.status}`);
   }
-  
-  const { uploadId, key } = await startRes.json();
+
+  const { uploadId, key, url: fileUrl } = await startRes.json();
   const totalParts = Math.ceil(file.size / CHUNK_SIZE);
-  const parts = [];
+  const partNumbers = Array.from({ length: totalParts }, (_, i) => i + 1);
 
-  for (let i = 0; i < totalParts; i++) {
-    const start = i * CHUNK_SIZE;
-    const end = Math.min(start + CHUNK_SIZE, file.size);
-    const chunk = file.slice(start, end);
-    const partNumber = i + 1;
-
-    const uploadRes = await fetch(`/api/upload-multipart?uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNumber}`, {
-      method: "POST",
-      headers: { 
-        "x-action": "upload",
-        "Content-Type": "application/octet-stream" 
-      },
-      body: chunk,
-    });
-    
-    if (!uploadRes.ok) throw new Error(`Failed to upload part ${partNumber}`);
-    
-    const { ETag } = await uploadRes.json();
-    parts.push({ PartNumber: partNumber, ETag });
-
-    if (onProgress) onProgress(Math.round(((i + 1) / totalParts) * 100));
-  }
-
-  const completeRes = await fetch(`/api/upload-multipart`, {
+  // Request presigned URLs for all parts
+  const urlsRes = await fetch(`/api/upload-multipart`, {
     method: "POST",
     headers: { 
-      "x-action": "complete", 
+      "x-action": "get-part-urls",
       "Content-Type": "application/json" 
     },
-    body: JSON.stringify({ uploadId, key, parts }),
+    body: JSON.stringify({ uploadId, key, partNumbers }),
   });
 
-  if (!completeRes.ok) throw new Error("Failed to complete upload");
-  
-  const { url: fileUrl } = await completeRes.json();
-  if (onProgress) onProgress(100);
-  return fileUrl;
+  if (!urlsRes.ok) {
+    await abortMultipart(uploadId, key);
+    throw new Error("Failed to generate presigned URLs for multipart upload.");
+  }
+
+  const { presignedUrls } = await urlsRes.json();
+
+  // Track loaded bytes per part for smooth total progress calculation
+  const loadedPerPart: number[] = new Array(totalParts).fill(0);
+  const updateProgress = () => {
+    if (!onProgress) return;
+    const totalLoaded = loadedPerPart.reduce((acc, curr) => acc + curr, 0);
+    const percent = Math.min(100, Math.round((totalLoaded / file.size) * 100));
+    onProgress(percent);
+  };
+
+  const parts: { PartNumber: number; ETag: string }[] = [];
+
+  try {
+    // Upload chunks with controlled concurrency (3 parallel chunks at a time)
+    const CONCURRENCY = 3;
+    for (let i = 0; i < totalParts; i += CONCURRENCY) {
+      const batchIndices = Array.from(
+        { length: Math.min(CONCURRENCY, totalParts - i) },
+        (_, idx) => i + idx
+      );
+
+      await Promise.all(
+        batchIndices.map(async (partIdx) => {
+          const partNum = partIdx + 1;
+          const start = partIdx * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunk = file.slice(start, end);
+          const presignedUrl = presignedUrls[partNum];
+
+          const { etag } = await uploadDirectXHR(
+            presignedUrl,
+            chunk,
+            null, // Content-Type for parts is handled by presigned URL signature
+            (loaded) => {
+              loadedPerPart[partIdx] = loaded;
+              updateProgress();
+            },
+            3 // Retry up to 3 times automatically
+          );
+
+          parts.push({
+            PartNumber: partNum,
+            ETag: etag || "",
+          });
+        })
+      );
+    }
+
+    // Complete the multipart upload
+    const completeRes = await fetch(`/api/upload-multipart`, {
+      method: "POST",
+      headers: {
+        "x-action": "complete",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uploadId, key, parts }),
+    });
+
+    if (!completeRes.ok) {
+      const errData = await completeRes.json().catch(() => ({}));
+      throw new Error(errData.errorMessage || errData.error || "Failed to complete multipart upload");
+    }
+
+    const completeData = await completeRes.json();
+    if (onProgress) onProgress(100);
+    return completeData.url || fileUrl;
+
+  } catch (err) {
+    console.error("Multipart upload error, aborting upload session:", err);
+    await abortMultipart(uploadId, key);
+    throw err;
+  }
 };
+
+const abortMultipart = async (uploadId: string, key: string) => {
+  try {
+    await fetch("/api/upload-multipart", {
+      method: "POST",
+      headers: {
+        "x-action": "abort",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uploadId, key }),
+    });
+  } catch (err) {
+    console.warn("Failed to abort multipart upload:", err);
+  }
+};
+
+function uploadDirectXHR(
+  url: string,
+  data: Blob,
+  contentType: string | null,
+  onProgress?: (loaded: number, total: number) => void,
+  maxRetries = 3
+): Promise<{ etag: string }> {
+  return new Promise((resolve, reject) => {
+    let attempt = 0;
+
+    const execute = () => {
+      attempt++;
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+
+      if (contentType) {
+        xhr.setRequestHeader("Content-Type", contentType);
+      }
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+          onProgress(e.loaded, e.total);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          let rawEtag = xhr.getResponseHeader("ETag") || xhr.getResponseHeader("etag") || "";
+          const etag = rawEtag.trim();
+          resolve({ etag });
+        } else {
+          if (attempt < maxRetries) {
+            console.warn(`Direct upload failed with status ${xhr.status} (attempt ${attempt}/${maxRetries}), retrying...`);
+            setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
+          } else {
+            reject(new Error(`Direct upload failed with status ${xhr.status}: ${xhr.statusText}`));
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        if (attempt < maxRetries) {
+          console.warn(`Direct upload network error (attempt ${attempt}/${maxRetries}), retrying...`);
+          setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
+        } else {
+          reject(new Error("Direct upload failed due to network error."));
+        }
+      };
+
+      xhr.ontimeout = () => {
+        if (attempt < maxRetries) {
+          console.warn(`Direct upload timeout (attempt ${attempt}/${maxRetries}), retrying...`);
+          setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
+        } else {
+          reject(new Error("Direct upload timed out."));
+        }
+      };
+
+      xhr.send(data);
+    };
+
+    execute();
+  });
+}
 
 export const deleteFromR2 = async (url: string): Promise<void> => {
   if (!url) return;
