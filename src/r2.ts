@@ -216,8 +216,20 @@ function uploadDirectXHR(
   return new Promise((resolve, reject) => {
     let attempt = 0;
 
+    let targetHost = "R2 Endpoint";
+    let targetPath = "";
+    try {
+      const parsedUrl = new URL(url);
+      targetHost = parsedUrl.host;
+      targetPath = parsedUrl.pathname;
+    } catch (e) {
+      // fallback
+    }
+
     const execute = () => {
       attempt++;
+      console.log(`[R2 DIRECT UPLOAD] Initiating PUT request to https://${targetHost}${targetPath} (Attempt ${attempt}/${maxRetries})`);
+
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", url);
 
@@ -232,35 +244,57 @@ function uploadDirectXHR(
       };
 
       xhr.onload = () => {
+        console.log(`[R2 DIRECT UPLOAD] Response received from https://${targetHost}. Status: ${xhr.status} (${xhr.statusText})`);
+
         if (xhr.status >= 200 && xhr.status < 300) {
           let rawEtag = xhr.getResponseHeader("ETag") || xhr.getResponseHeader("etag") || "";
           const etag = rawEtag.trim();
+          console.log(`[R2 DIRECT UPLOAD] Upload successful to ${targetHost}. ETag: "${etag}"`);
+
+          if (!etag && url.includes("uploadId=")) {
+            console.warn(`[R2 DIRECT UPLOAD] Warning: ETag header was empty for multipart chunk. Ensure "ExposeHeaders: [\"ETag\"]" is set in your Cloudflare R2 CORS rules.`);
+          }
+
           resolve({ etag });
         } else {
+          const statusText = xhr.statusText || "Unknown Status";
+          console.error(`[R2 DIRECT UPLOAD] HTTP Error ${xhr.status} (${statusText}) from https://${targetHost}${targetPath}`);
+          
           if (attempt < maxRetries) {
-            console.warn(`Direct upload failed with status ${xhr.status} (attempt ${attempt}/${maxRetries}), retrying...`);
+            console.warn(`Retrying direct upload in ${Math.pow(2, attempt - 1)}s...`);
             setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
           } else {
-            reject(new Error(`Direct upload failed with status ${xhr.status}: ${xhr.statusText}`));
+            reject(new Error(`Direct upload to R2 (${targetHost}) failed with HTTP status ${xhr.status}: ${statusText}`));
           }
         }
       };
 
       xhr.onerror = () => {
+        console.error(`[R2 DIRECT UPLOAD] Network/CORS Error on PUT https://${targetHost}${targetPath} (XHR Status: ${xhr.status})`);
+
         if (attempt < maxRetries) {
-          console.warn(`Direct upload network error (attempt ${attempt}/${maxRetries}), retrying...`);
+          console.warn(`Retrying direct upload after network/CORS error...`);
           setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
         } else {
-          reject(new Error("Direct upload failed due to network error."));
+          if (xhr.status === 0) {
+            reject(new Error(
+              `Direct upload to Cloudflare R2 (${targetHost}) failed with HTTP Status 0 (CORS / Network Block).\n` +
+              `Please verify CORS policy in your Cloudflare R2 bucket dashboard.\n` +
+              `CORS settings must allow Origin: *, Method: PUT, Allowed Headers: *, Expose Headers: ETag.`
+            ));
+          } else {
+            reject(new Error(`Direct upload to Cloudflare R2 (${targetHost}) failed due to network error (HTTP Status: ${xhr.status}).`));
+          }
         }
       };
 
       xhr.ontimeout = () => {
+        console.error(`[R2 DIRECT UPLOAD] Timeout on PUT https://${targetHost}${targetPath}`);
+
         if (attempt < maxRetries) {
-          console.warn(`Direct upload timeout (attempt ${attempt}/${maxRetries}), retrying...`);
           setTimeout(execute, 1000 * Math.pow(2, attempt - 1));
         } else {
-          reject(new Error("Direct upload timed out."));
+          reject(new Error(`Direct upload to R2 (${targetHost}) timed out.`));
         }
       };
 
