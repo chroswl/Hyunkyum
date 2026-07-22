@@ -262,8 +262,8 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
     return (
       <div className="flex justify-center items-center py-24">
         <div className="animate-pulse flex flex-col items-center space-y-4">
-          <div className="w-12 h-[1px]" style={{ backgroundColor: theme?.text ? `${theme.text}20` : 'rgba(255, 255, 255, 0.2)' }} />
-          <span className="text-[10px] tracking-[0.3em] uppercase font-sans" style={{ color: theme?.text ? `${theme.text}60` : undefined }}>Loading Reviews</span>
+          <div className="w-12 h-[1px]" style={{ backgroundColor: theme?.text ? 'color-mix(in srgb, var(--color-text) 12.549020%, transparent)' : 'rgba(255, 255, 255, 0.2)' }} />
+          <span className="text-[10px] tracking-[0.3em] uppercase font-sans" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 37.647059%, transparent)' : undefined }}>Loading Reviews</span>
         </div>
       </div>
     );
@@ -493,18 +493,18 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       </div>
 
                       {/* Source details and publication */}
-                      <div className="mt-8 md:mt-10 pt-8 border-t max-w-4xl mx-auto w-full space-y-1.5" style={{ borderColor: theme?.text ? `${theme.text}20` : 'rgba(255, 255, 255, 0.05)' }}>
-                        <h4 className="font-sans text-[11px] md:text-xs tracking-[0.2em] uppercase font-semibold" style={{ color: theme?.text ? `${theme.text}90` : undefined }}>
+                      <div className="mt-8 md:mt-10 pt-8 border-t max-w-4xl mx-auto w-full space-y-1.5" style={{ borderColor: theme?.text ? 'color-mix(in srgb, var(--color-text) 12.549020%, transparent)' : 'rgba(255, 255, 255, 0.05)' }}>
+                        <h4 className="font-sans text-[11px] md:text-xs tracking-[0.2em] uppercase font-semibold" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 56.470588%, transparent)' : undefined }}>
                           {currentItem.source}
                         </h4>
                         
                         {currentItem.author && (
-                          <p className="text-[10px] sm:text-[11px] font-sans tracking-wide" style={{ color: theme?.text ? `${theme.text}70` : undefined }}>
+                          <p className="text-[10px] sm:text-[11px] font-sans tracking-wide" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 43.921569%, transparent)' : undefined }}>
                             {currentItem.author}
                           </p>
                         )}
                         
-                        <p className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.15em]" style={{ color: theme?.text ? `${theme.text}50` : undefined }}>
+                        <p className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.15em]" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 31.372549%, transparent)' : undefined }}>
                           {new Date(currentItem.date).toLocaleDateString(
                             currentLang === 'KO' ? 'ko-KR' : currentLang === 'DE' ? 'de-DE' : 'en-US', 
                             { year: 'numeric', month: 'long' }
@@ -519,7 +519,7 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center space-x-1 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-sans font-semibold hover:text-[#C9A227]! transition-colors"
-                              style={{ color: theme?.text ? `${theme.text}80` : undefined }}
+                              style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 50.196078%, transparent)' : undefined }}
                             >
                               <span>{t.readArticle}</span>
                               <ChevronRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
@@ -539,16 +539,13 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       aria-label="Previous review"
                       className="w-12 h-12 flex items-center justify-center rounded-full border hover:bg-white/[0.03] transition-all duration-300 cursor-pointer active:scale-95"
                       style={{ 
-                        borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
-                        color: theme?.text ? `${theme.text}80` : undefined
+                        color: theme?.text ? 'color-mix(in srgb, var(--color-text) 50.196078%, transparent)' : undefined
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.text || 'white'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)'}
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     
-                    <span className="text-[10px] md:text-[11px] font-mono tracking-[0.25em] uppercase select-none font-semibold" style={{ color: theme?.text ? `${theme.text}60` : undefined }}>
+                    <span className="text-[10px] md:text-[11px] font-mono tracking-[0.25em] uppercase select-none font-semibold" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 37.647059%, transparent)' : undefined }}>
                       PRESS · {String(currentIndex + 1).padStart(2, '0')} / {String(pressItems.length).padStart(2, '0')}
                     </span>
                     
@@ -557,11 +554,8 @@ export default function PressSection({ currentLang, setLang, user, activeEditSec
                       aria-label="Next review"
                       className="w-12 h-12 flex items-center justify-center rounded-full border hover:bg-white/[0.03] transition-all duration-300 cursor-pointer active:scale-95"
                       style={{ 
-                        borderColor: theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)',
-                        color: theme?.text ? `${theme.text}80` : undefined
+                        color: theme?.text ? 'color-mix(in srgb, var(--color-text) 50.196078%, transparent)' : undefined
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = theme?.text || 'white'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = theme?.text ? `${theme.text}10` : 'rgba(255, 255, 255, 0.1)'}
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>

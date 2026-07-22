@@ -82,9 +82,8 @@ export default function ContactSection({
                       href={contact.instagramLink || 'https://instagram.com'} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className="w-12 h-12 rounded-sm border border-current opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"
+                      className="w-12 h-12 rounded-sm border opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"
                       title={t.instagram}
-                      style={{ borderColor: theme?.text }}
                     >
                       <Instagram className="w-5 h-5" />
                     </a>
@@ -92,9 +91,8 @@ export default function ContactSection({
                       href={contact.youtubeLink || 'https://youtube.com'} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className="w-12 h-12 rounded-sm border border-current opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"
+                      className="w-12 h-12 rounded-sm border opacity-60 flex items-center justify-center hover:opacity-100 hover:bg-white/5 transition-all cursor-pointer"
                       title={t.youtube}
-                      style={{ borderColor: theme?.text }}
                     >
                       <Youtube className="w-5 h-5" />
                     </a>

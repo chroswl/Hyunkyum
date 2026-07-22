@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, LogOut, Save, X, Undo2, Redo2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, LogOut, Save, X, Undo2, Redo2, Loader2, CheckCircle2, AlertCircle, Palette } from 'lucide-react';
 import { auth } from '../firebase';
 import { useEditing } from '../contexts/EditingContext';
+import { AppearancePanel } from './admin/AppearancePanel';
 
 export default function AdminToolbar() {
   const { status, canUndo, canRedo, saveChanges, cancelChanges, undo, redo } = useEditing();
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
 
   return (
+    <>
     <motion.div 
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -89,6 +92,15 @@ export default function AdminToolbar() {
         <>
           <div className="hidden sm:block w-[1px] h-4 bg-neutral-700 mx-1" />
           <button 
+            onClick={() => setIsAppearanceOpen(true)}
+            className="flex items-center justify-center space-x-1.5 text-neutral-400 hover:text-white transition-colors px-4 sm:px-2 min-h-[40px]"
+          >
+            <span className="text-[11px] sm:text-[10px] tracking-wider uppercase">Appearance</span>
+            <Palette className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+          </button>
+          
+          <div className="hidden sm:block w-[1px] h-4 bg-neutral-700 mx-1" />
+          <button 
             onClick={() => auth.signOut()}
             className="flex items-center justify-center space-x-1.5 text-neutral-400 hover:text-white transition-colors px-4 sm:px-2 min-h-[40px]"
           >
@@ -98,5 +110,7 @@ export default function AdminToolbar() {
         </>
       )}
     </motion.div>
+    <AppearancePanel isOpen={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
+    </>
   );
 }

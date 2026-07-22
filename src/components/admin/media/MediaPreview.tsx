@@ -41,10 +41,12 @@ export function MediaPreview({
   loop,
   autoPlay,
   controls,
-  showPlayIcon = true,
+  showPlayIcon,
   onEnded,
 }: MediaPreviewProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  const shouldShowPlayIcon = showPlayIcon ?? !autoPlay;
 
   if (!url) {
     return (
@@ -81,9 +83,31 @@ export function MediaPreview({
       case 'youtube':
         const ytMute = muted !== undefined ? muted : true;
         const ytAutoPlay = autoPlay !== undefined ? autoPlay : isLightbox;
+        
+        // Build robust params for background autoplay, looping and mobile browsers (playsinline)
+        const params = new URLSearchParams();
+        if (media.start) params.set('start', String(media.start));
+        if (ytAutoPlay) {
+          params.set('autoplay', '1');
+          params.set('playsinline', '1');
+        }
+        if (ytMute) {
+          params.set('mute', '1');
+        }
+        // YouTube requires 'playlist' parameter to match the video ID in order for single-video looping to work
+        if (loop || loop === undefined) {
+          params.set('loop', '1');
+          params.set('playlist', media.ytId || '');
+        }
+        params.set('controls', controls ? '1' : '0');
+        params.set('rel', '0');
+        params.set('enablejsapi', '1');
+        params.set('iv_load_policy', '3'); // Hides video annotations
+        params.set('modestbranding', '1'); // Minimizes YouTube logo
+
         return (
           <iframe
-            src={`https://www.youtube.com/embed/${media.ytId}?start=${media.start || 0}&autoplay=${ytAutoPlay ? 1 : 0}${ytMute ? '&mute=1' : ''}`}
+            src={`https://www.youtube.com/embed/${media.ytId}?${params.toString()}`}
             className={iframeClassName || "w-full h-full border-0"}
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
@@ -121,7 +145,7 @@ export function MediaPreview({
         {renderContent(false)}
 
         {/* Video overlay icon */}
-        {media.type !== 'image' && !enableLightbox && showPlayIcon && (
+        {media.type !== 'image' && !enableLightbox && shouldShowPlayIcon && (
           <div className="absolute inset-0 bg-black/25 flex items-center justify-center pointer-events-none group-hover:bg-black/45 transition-colors">
             <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white">
               <Play className="w-4 h-4 fill-white/80 translate-x-[1px]" />

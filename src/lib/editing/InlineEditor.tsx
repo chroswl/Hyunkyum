@@ -4,6 +4,7 @@ import { useEditable } from '../../contexts/EditingContext';
 import { Edit3 } from 'lucide-react';
 
 interface InlineEditorProps {
+  key?: React.Key;
   id: string;
   initialValue: string;
   as?: React.ElementType;

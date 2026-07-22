@@ -113,7 +113,7 @@ export default function VideoPlayer({
   // Helper to get nice opera icons based on roles or title
   const getIcon = (role?: string) => {
     const text = role?.toLowerCase() || '';
-    const iconStyle = { color: theme?.text ? `${theme.text}80` : undefined };
+    const iconStyle = { color: 'color-mix(in srgb, var(--color-text) 50.196078%, transparent)' };
     if (text.includes('giovanni') || text.includes('don')) return <Disc className="w-4 h-4" style={iconStyle} />;
     if (text.includes('figaro')) return <Award className="w-4 h-4" style={iconStyle} />;
     return <Tv className="w-4 h-4" style={iconStyle} />;
@@ -391,8 +391,8 @@ export default function VideoPlayer({
           {/* Left Column: Main Theater Screen (8 cols) */}
           <div id="video-screen-container" className="lg:col-span-8 space-y-4">
             {/* Elegant Cinematic Media Frame */}
-            <div className="relative aspect-video w-full bg-[#050505] p-2 md:p-3 shadow-2xl ring-1 ring-white/10 rounded-sm">
-              <div className="relative w-full h-full bg-black overflow-hidden rounded-sm border border-white/5">
+            <div className="relative aspect-video w-full bg-[#050505] p-2 md:p-3 shadow-2xl rounded-sm">
+              <div className="relative w-full h-full bg-black overflow-hidden rounded-sm">
                 <AnimatePresence mode="wait">
                   {activeVideo && (
                     <motion.div
@@ -442,6 +442,7 @@ export default function VideoPlayer({
                           controls={true}
                           muted={false}
                           loop={false}
+                          showPlayIcon={false}
                           onEnded={() => setIsPlaying(false)}
                         />
                       )}
@@ -474,8 +475,8 @@ export default function VideoPlayer({
                         : ''
                     }`}
                     style={{
-                        backgroundColor: isSelected ? 'rgba(var(--color-text-rgb), 0.1)' : theme?.bg ? `${theme.bg}80` : 'transparent',
-                        borderColor: isSelected ? 'var(--color-text)' : 'rgba(var(--color-text-rgb), 0.2)',
+                        backgroundColor: 'var(--color-bg)',
+                        borderColor: isSelected ? 'var(--color-text)' : 'var(--color-border)',
                         color: 'var(--color-text)'
                     }}
                   >

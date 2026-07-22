@@ -251,7 +251,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
           <div id="bio-image-col" className="lg:col-span-5 relative group">
             <Reveal delay={0.15}>
               <div className="absolute -inset-1.5 bg-gradient-to-r from-white/10 to-transparent rounded-sm blur-md opacity-30 group-hover:opacity-45 transition-all duration-700" />
-              <div className="relative border border-[var(--color-text)] rounded-sm overflow-hidden bg-neutral-900/10">
+              <div className="relative border rounded-sm overflow-hidden bg-neutral-900/10">
                 <div 
                     className="relative cursor-pointer w-full h-full overflow-hidden group"
                     onClick={() => setIsLightboxOpen(true)}

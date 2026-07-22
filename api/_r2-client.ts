@@ -16,6 +16,8 @@ export const getR2Client = () => {
       secretAccessKey,
     },
     region: "auto",
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
 };
 

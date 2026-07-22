@@ -78,6 +78,7 @@ export default function SelectedPerformances({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizeProgress, setOptimizeProgress] = useState<number | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const originalItemRef = useRef<Partial<PerformanceSlide> | null>(null);
 
   // Notification Toast state
@@ -226,17 +227,14 @@ export default function SelectedPerformances({
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
       alert("Please upload a valid image or video file.");
       return;
     }
 
-    if (file.size > 30 * 1024 * 1024) {
-      alert("File is too large. Please upload a file smaller than 30MB.");
+    if (file.size > 100 * 1024 * 1024) {
+      alert("File is too large. Please upload a file smaller than 100MB.");
       return;
     }
 
@@ -288,6 +286,13 @@ export default function SelectedPerformances({
       showNotification("Failed to process file: " + err.message, "error");
     } finally {
       setUploadProgress(null);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await handleFile(file);
     }
   };
 
@@ -416,22 +421,50 @@ export default function SelectedPerformances({
                 <div className="space-y-1.5">
                   <label className="text-[10px] tracking-wider text-neutral-400 font-sans uppercase block font-semibold">Media Upload (Image or Video)</label>
                   <div className="relative">
-                    <label className={`flex flex-col items-center justify-center w-full h-28 border border-white/10 border-dashed rounded-sm ${uploadProgress !== null ? 'bg-black/60 cursor-not-allowed' : 'cursor-pointer bg-black/20 hover:bg-black/40'} transition-colors`}>
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        {uploadProgress !== null ? (
-                          <>
-                            <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin mb-2" />
-                            <p className="text-[9px] text-[#C9A227] tracking-wider font-sans uppercase">Uploading: {Math.round(uploadProgress)}%</p>
-                          </>
-                        ) : (
-                          <>
-                            <ImageIcon className="w-6 h-6 text-neutral-500 mb-2" />
-                            <p className="text-[9px] text-neutral-400 tracking-wider font-sans uppercase text-center px-4">Upload New File</p>
-                          </>
-                        )}
-                      </div>
-                      <input type="file" accept="image/*,video/*" onChange={handleFileChange} className="hidden" disabled={uploadProgress !== null} />
-                    </label>
+                    <div 
+                      className={`relative border border-dashed rounded p-4 text-center transition-all ${
+                        isDragOver 
+                          ? 'border-[#C9A227] bg-[#C9A227]/5' 
+                          : 'border-white/10 bg-black/20 hover:border-white/20'
+                      }`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragOver(true);
+                      }}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragOver(false);
+                        if (e.dataTransfer.files?.[0]) {
+                          handleFile(e.dataTransfer.files[0]);
+                        }
+                      }}
+                    >
+                      {uploadProgress !== null ? (
+                        <div className="flex flex-col items-center justify-center space-y-2 py-4">
+                          <div className="w-6 h-6 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-neutral-400 font-mono">
+                            Uploading: {Math.round(uploadProgress)}%
+                          </span>
+                        </div>
+                      ) : (
+                        <label className="cursor-pointer flex flex-col items-center justify-center space-y-1 py-1 w-full h-full">
+                          <ImageIcon className="w-5 h-5 text-neutral-500 mb-0.5" />
+                          <span className="text-[10px] text-neutral-300 font-sans font-medium">
+                            Drag & Drop file here or <span className="text-[#C9A227] hover:underline font-semibold">Browse</span>
+                          </span>
+                          <span className="text-[8px] text-neutral-500 font-sans">
+                            Images and Videos up to 100MB
+                          </span>
+                          <input 
+                            type="file" 
+                            accept="image/*,video/*" 
+                            onChange={handleFileChange}
+                            className="hidden" 
+                          />
+                        </label>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -572,7 +605,7 @@ export default function SelectedPerformances({
                           >
                           <div className="flex-1 min-w-0 pr-4 flex items-center space-x-4">
                             {item.image && (
-                              <div className="w-16 h-10 bg-neutral-900 rounded overflow-hidden flex-shrink-0 border border-white/10">
+                              <div className="w-16 h-10 bg-neutral-900 rounded overflow-hidden flex-shrink-0 border">
                                 <MediaPreview
                                   url={item.image}
                                   explicitType={item.mediaType as any}
@@ -672,14 +705,14 @@ export default function SelectedPerformances({
                     {theme?.perfSectionTitle || 'Selected Performances'}
                   </span>
                   <div className="space-y-1">
-                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-hero-slide-text)] uppercase tracking-wider" style={theme?.perfTitleSize ? { fontSize: `${theme.perfTitleSize}px` } : {}}>
+                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text)] uppercase tracking-wider" style={theme?.perfTitleSize ? { fontSize: `${theme.perfTitleSize}px` } : {}}>
                       {slide.production[currentLang]}
                     </h2>
-                    <p className="font-serif text-sm md:text-base text-[var(--color-hero-slide-text)]/80 tracking-wide" style={theme?.perfTextSize ? { fontSize: `${theme.perfTextSize}px` } : {}}>
+                    <p className="font-serif text-sm md:text-base text-[var(--color-text)]/80 tracking-wide" style={theme?.perfTextSize ? { fontSize: `${theme.perfTextSize}px` } : {}}>
                       {slide.role[currentLang]}
                     </p>
                   </div>
-                  <p className="text-xs text-[var(--color-hero-slide-text)]/60 font-sans tracking-widest uppercase" style={theme?.perfHouseSize ? { fontSize: `${theme.perfHouseSize}px` } : {}}>
+                  <p className="text-xs text-[var(--color-text)]/60 font-sans tracking-widest uppercase" style={theme?.perfHouseSize ? { fontSize: `${theme.perfHouseSize}px` } : {}}>
                     {slide.house[currentLang]}
                   </p>
                 </div>
@@ -693,10 +726,10 @@ export default function SelectedPerformances({
                   </div>
                   <div className="h-6 w-[1px] bg-[var(--color-bg)]" />
                   <div className="flex space-x-2">
-                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
+                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
                       <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <button onClick={handleNext} className="w-10 h-10 rounded-full border border-neutral-800 hover:border-neutral-500 text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
+                    <button onClick={handleNext} className="w-10 h-10 rounded-full border text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>

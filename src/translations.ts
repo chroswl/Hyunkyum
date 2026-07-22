@@ -299,7 +299,7 @@ export const translations = {
     formNamePlaceholder: "예: 김현겸",
     formEmailPlaceholder: "예: contact@hyunkyumkim.com",
     formMessagePlaceholder: "공연 문의, 협업 제안 또는 기타 메시지...",
-    formSend: "◀ 보내기",
+    formSend: "보내기",
     formSending: "전송 중...",
     formSuccess: "메시지가 성공적으로 전송되었습니다. 감사합니다!",
     formError: "메시지 전송 중 오류가 발생했습니다. 다시 시도해 주세요.",

@@ -1,5 +1,19 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client";
+import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client.ts";
+import { URL } from 'url';
+
+const getRequestBody = (req: any): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    req.on('error', reject);
+  });
+};
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers
@@ -16,35 +30,40 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        return res.status(400).json({ error: "Invalid JSON body" });
-      }
+    let filename = "file";
+    let contentType = "application/octet-stream";
+    let folder = "";
+    
+    // Check if there's a query string for raw stream uploads
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    if (urlObj.searchParams.has("filename")) {
+      filename = urlObj.searchParams.get("filename") || "file";
+      contentType = urlObj.searchParams.get("contentType") || "application/octet-stream";
+      folder = urlObj.searchParams.get("folder") || "";
+    } else {
+      return res.status(400).json({ error: "Missing filename in query parameters" });
     }
 
-    const { file, filename, contentType, folder } = body || {};
-
-    if (!file) {
-      return res.status(400).json({ error: "Missing required parameter: file (Base64 string)" });
+    // Check if Cloudflare R2 is configured
+    let useR2 = true;
+    try {
+      getR2Client();
+      getR2BucketName();
+      getR2PublicUrl();
+    } catch (e) {
+      useR2 = false;
     }
 
-    // Decode base64
-    const base64Content = file.includes("base64,")
-      ? file.split("base64,")[1]
-      : file;
-    const buffer = Buffer.from(base64Content, "base64");
+    if (!useR2) {
+      return res.status(500).json({ error: "Cloudflare R2 is not configured. Direct upload requires R2 credentials." });
+    }
 
     const finalContentType = contentType || "application/octet-stream";
 
     // Generate unique Key
     const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-    const sanitizedFilename = filename
-      ? filename.replace(/[^a-zA-Z0-9.-]/g, "_")
-      : "file";
-    
+    const sanitizedFilename = filename ? filename.replace(/[^a-zA-Z0-9.-]/g, "_") : "file";
+      
     const key = folder 
       ? `${folder}/${uniqueId}_${sanitizedFilename}`
       : `${uniqueId}_${sanitizedFilename}`;
@@ -53,11 +72,14 @@ export default async function handler(req: any, res: any) {
     const bucket = getR2BucketName();
     const publicUrl = getR2PublicUrl();
 
+    // Read the whole body into a Buffer
+    const buffer = await getRequestBody(req);
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: buffer,
       ContentType: finalContentType,
+      Body: buffer, // Buffer explicitly gives length to AWS SDK
     });
 
     await client.send(command);
@@ -70,7 +92,7 @@ export default async function handler(req: any, res: any) {
       key: key,
     });
   } catch (error: any) {
-    console.error("R2 Upload Error:", error);
+    console.error("Upload Error:", error);
     return res.status(500).json({
       error: "Internal Server Error during upload",
       message: error.message || String(error),

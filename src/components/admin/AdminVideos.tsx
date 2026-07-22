@@ -156,7 +156,7 @@ export default function AdminVideos({
           <div className="bg-neutral-950 border border-neutral-900 p-6 rounded max-w-sm w-full space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="space-y-2">
               <h3 className="text-sm font-serif tracking-widest uppercase" style={{ color: theme?.text || 'inherit' }}>Delete Confirmation</h3>
-              <p className="text-xs" style={{ color: theme?.text ? `${theme.text}99` : 'inherit' }}>Are you sure you want to delete this item? This action cannot be undone.</p>
+              <p className="text-xs" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 60%, transparent)' : 'inherit' }}>Are you sure you want to delete this item? This action cannot be undone.</p>
             </div>
             <div className="flex space-x-3">
               <button 

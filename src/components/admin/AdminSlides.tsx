@@ -45,7 +45,7 @@ export default function AdminSlides({
 
   const { progress, isUploading, uploadMedia } = useMediaUpload({
     folder: 'hero_slides',
-    maxSizeMB: 30
+    maxSizeMB: 100
   });
 
   const sensors = useSensors(
@@ -272,7 +272,7 @@ export default function AdminSlides({
                              Drag & Drop file here or <span className="text-[#C9A227] hover:underline">Browse</span>
                            </span>
                            <span className="text-[9px] text-neutral-500 font-sans">
-                             Images and Videos up to 30MB • Drive Links Compatible
+                             Images and Videos up to 100MB • Drive Links Compatible
                            </span>
                            <input 
                              type="file" 

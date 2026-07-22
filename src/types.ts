@@ -74,6 +74,9 @@ export interface ThemeSettings {
   legal?: Record<string, any>;
   bg: string;
   text: string;
+  accent?: string;
+  border?: string;
+  navBg?: string;
   homeBg?: string;
   homeBgType?: 'image' | 'video' | 'youtube';
   contactFormBg?: string;
@@ -90,9 +93,6 @@ export interface ThemeSettings {
   
   // Font presets
   fontPreset?: string;
-  colorHeroSlideText?: string;
-  colorPerformancesText?: string;
-  colorContactText?: string;
   // Home Main Text Customization
   heroTitle?: string;
   heroSubtitle?: string;

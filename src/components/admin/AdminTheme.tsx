@@ -66,7 +66,6 @@ export default function AdminTheme({
         newTheme.websiteFont = 'Playfair Display';
         newTheme.bg = '#FDFCF0';
         newTheme.text = '#1A1A1A';
-        newTheme.colorHeroSlideText = '#1A1A1A';
         newTheme.spacingContentWidth = 1067;
         newTheme.spacingSection = 120;
         newTheme.spacingNavHeight = 90;
@@ -76,7 +75,6 @@ export default function AdminTheme({
         newTheme.websiteFont = 'Inter';
         newTheme.bg = '#000000';
         newTheme.text = '#FFFFFF';
-        newTheme.colorHeroSlideText = '#FFFFFF';
         newTheme.spacingContentWidth = 1365;
         newTheme.spacingSection = 96;
         newTheme.spacingNavHeight = 80;
@@ -86,7 +84,6 @@ export default function AdminTheme({
         newTheme.websiteFont = 'JetBrains Mono';
         newTheme.bg = '#111111';
         newTheme.text = '#00FF00';
-        newTheme.colorHeroSlideText = '#00FF00';
         newTheme.spacingContentWidth = 1536;
         newTheme.spacingSection = 64;
         newTheme.spacingNavHeight = 64;
@@ -128,11 +125,6 @@ export default function AdminTheme({
             label="Text" 
             value={theme.text || '#ffffff'} 
             onChange={(v) => updateField('text', v)} 
-          />
-          <PropertyColorPicker 
-            label="Hero & Slides Text" 
-            value={theme.colorHeroSlideText || theme.text || '#ffffff'} 
-            onChange={(v) => updateField('colorHeroSlideText', v)} 
           />
         </div>
       </PropertyAccordion>

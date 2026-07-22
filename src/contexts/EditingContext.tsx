@@ -499,21 +499,27 @@ export function useEditable<T>(key: string, initialValue: T): [T, (val: T, commi
   const context = useEditing();
   const [value, setLocalValue] = useState<T>(() => context.getValue(key, initialValue));
   const [dirty, setDirty] = useState(false);
+  
+  const initialValueRef = useRef(initialValue);
+  useEffect(() => {
+    initialValueRef.current = initialValue;
+  }, [initialValue]);
 
   useEffect(() => {
     // Make sure initial value is set without pushing to history
     if (context.getValue(key, undefined) === undefined) {
-      context.setValue(key, initialValue, false);
+      context.setValue(key, initialValueRef.current, false);
     }
     
     const checkState = () => {
-      setLocalValue(context.getValue(key, initialValue));
+      setLocalValue(context.getValue(key, initialValueRef.current));
       setDirty(context.isDirty(key));
     };
     
     checkState();
     return context.subscribe(key, checkState);
-  }, [key, context, initialValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, context]);
 
   const setValue = useCallback((newValue: T, commitToHistory = true) => {
     context.setValue(key, newValue, commitToHistory);

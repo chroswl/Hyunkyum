@@ -278,14 +278,12 @@ export default function PortfolioGallery({
               }`}
               style={{
                 backgroundColor: activeCategory === cat 
-                  ? ('rgba(var(--color-text-rgb), 0.15)') 
+                  ? 'color-mix(in srgb, var(--color-text) 15%, transparent)' 
                   : 'transparent',
                 borderColor: activeCategory === cat 
-                  ? (theme?.text || 'var(--color-text)') 
-                  : (theme?.text ? `${theme.text}40` : 'var(--color-text)'),
-                color: activeCategory === cat 
-                  ? (theme?.text || 'var(--color-text)') 
-                  : (theme?.text || 'var(--color-text)')
+                  ? 'var(--color-text)' 
+                  : 'color-mix(in srgb, var(--color-text) 25.098039%, transparent)',
+                color: 'var(--color-text)'
               }}
             >
               {cat === 'Portrait' ? t.portraitCat : cat === 'Stage' ? t.stageCat : t.backstageCat}
@@ -541,7 +539,7 @@ export default function PortfolioGallery({
             )}
             renderItem={(item, index) => (
               <div 
-                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer"
+                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer border rounded-sm"
                 onClick={() => setSelectedItemIndex(index)}
                 onContextMenu={(e) => e.preventDefault()}
               >
@@ -629,7 +627,7 @@ export default function PortfolioGallery({
                     {getTranslatedTitle(filteredItems[selectedItemIndex])}
                   </h3>
                   {filteredItems[selectedItemIndex].copyright && (
-                    <div className="mt-2 text-[11px] font-sans tracking-[0.15em] uppercase" style={{ color: theme?.text ? `${theme.text}B3` : undefined }}>
+                    <div className="mt-2 text-[11px] font-sans tracking-[0.15em] uppercase" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 70.196078%, transparent)' : undefined }}>
                       {filteredItems[selectedItemIndex].copyrightUrl ? (
                         <a href={ensureAbsoluteUrl(filteredItems[selectedItemIndex].copyrightUrl)} target="_blank" rel="noopener noreferrer" className="hover:text-[#C9A227] transition-colors" onClick={(e) => e.stopPropagation()}>
                           {filteredItems[selectedItemIndex].copyright.startsWith('©') ? filteredItems[selectedItemIndex].copyright : `© ${filteredItems[selectedItemIndex].copyright}`}

@@ -1,5 +1,5 @@
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getR2Client, getR2BucketName } from "./_r2-client";
+import { getR2Client, getR2BucketName } from "./_r2-client.ts";
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers

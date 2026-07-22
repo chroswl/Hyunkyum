@@ -74,6 +74,27 @@ export default function HeroSection({
     };
   }, [theme.homeBg, theme.homeBgType]);
 
+  const getHeroSubtitleKey = () => {
+    if (currentLang === 'KO') return 'theme.heroSubtitleKO';
+    if (currentLang === 'DE') return 'theme.heroSubtitleDE';
+    return 'theme.heroSubtitle';
+  };
+  const getHeroTitleKey = () => {
+    if (currentLang === 'KO') return 'theme.heroTitleKO';
+    if (currentLang === 'DE') return 'theme.heroTitleDE';
+    return 'theme.heroTitle';
+  };
+  const getHeroDescriptionKey = () => {
+    if (currentLang === 'KO') return 'theme.heroDescriptionKO';
+    if (currentLang === 'DE') return 'theme.heroDescriptionDE';
+    return 'theme.heroDescription';
+  };
+  const getHeroDiscoverKey = () => {
+    if (currentLang === 'KO') return 'theme.heroDiscoverKO';
+    if (currentLang === 'DE') return 'theme.heroDiscoverDE';
+    return 'theme.heroDiscover';
+  };
+
   const getHeroTitle = () => {
     if (currentLang === 'KO' && theme.heroTitleKO) return theme.heroTitleKO;
     if (currentLang === 'DE' && theme.heroTitleDE) return theme.heroTitleDE;
@@ -206,7 +227,8 @@ export default function HeroSection({
             className={`font-sans text-[length:min(var(--hero-subtitle-size,12px),20px)] lg:text-[length:var(--hero-subtitle-size,14px)] tracking-[0.4em] uppercase font-semibold relative inline-flex items-center`}
           >
             <InlineEditor 
-              id="theme.heroSubtitle" 
+              key={`heroSubtitle-${currentLang}`}
+              id={getHeroSubtitleKey()} 
               initialValue={getHeroSubtitle()} 
               readonly={!adminMode} 
               placeholder="Hero Subtitle"
@@ -238,7 +260,8 @@ export default function HeroSection({
             
           >
             <InlineEditor 
-              id="theme.heroTitle" 
+              key={`heroTitle-${currentLang}`}
+              id={getHeroTitleKey()} 
               initialValue={getHeroTitle()} 
               readonly={!adminMode} 
               placeholder="Hero Title"
@@ -262,7 +285,8 @@ export default function HeroSection({
             }}
           >
             <InlineEditor 
-              id="theme.heroDescription" 
+              key={`heroDescription-${currentLang}`}
+              id={getHeroDescriptionKey()} 
               initialValue={getHeroDescription()} 
               readonly={!adminMode} 
               placeholder="Hero Description"
@@ -287,11 +311,12 @@ export default function HeroSection({
                 if (!adminMode) scrollToSection('biography');
                 else e.preventDefault();
               }}
-              className="group px-8 py-3.5 border border-white/20 font-sans text-[length:min(var(--hero-btn-size,11px),15px)] lg:text-[length:max(var(--hero-btn-size,11px),15px)] tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
+              className="group px-8 py-3.5 border font-sans text-[length:min(var(--hero-btn-size,11px),15px)] lg:text-[length:max(var(--hero-btn-size,11px),15px)] tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
               style={{ color: theme.text || "#ffffff" }}
             >
               <InlineEditor 
-                id="theme.heroDiscover" 
+                key={`heroDiscover-${currentLang}`}
+                id={getHeroDiscoverKey()} 
                 initialValue={getHeroDiscover()} 
                 readonly={!adminMode} 
                 placeholder="Button Text"

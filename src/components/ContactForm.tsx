@@ -156,7 +156,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder={t.formNamePlaceholder || "e.g. Jean-Pierre"}
               className={`w-full border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
+              style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
             />
             <AnimatePresence>
               {errors.name && (
@@ -183,7 +183,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t.formEmailPlaceholder || "e.g. jp@example.com"}
               className={`w-full border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
+              style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
             />
             <AnimatePresence>
               {errors.email && (
@@ -213,7 +213,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             onChange={(e) => handleMessageChange(e.target.value)}
             placeholder={t.formMessagePlaceholder || "..."}
             className={`w-full border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
-            style={{ color: theme?.text, borderColor: 'rgba(var(--color-text-rgb), 0.2)' }}
+            style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
           />
           <AnimatePresence>
             {errors.message && (
@@ -262,7 +262,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
           id="contact-submit-btn"
           disabled={isSubmitting}
           className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-current opacity-60 hover:opacity-100 hover:bg-white/5 font-sans text-xs tracking-widest uppercase font-medium rounded-sm flex items-center justify-center space-x-2.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          style={{ color: theme?.text, borderColor: theme?.text }}
+          style={{ color: theme?.text }}
         >
           {isSubmitting ? (
             <>
@@ -274,7 +274,7 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             </>
           ) : (
             <>
-              {!t.formSend.startsWith('◀') && <Send className="w-3.5 h-3.5" />}
+              <Send className="w-3.5 h-3.5" />
               <span>{t.formSend}</span>
             </>
           )}

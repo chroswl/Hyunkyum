@@ -18,6 +18,7 @@ import HeroEditorPanel from './HeroEditorPanel';
 import { getMediaSource } from '../lib/mediaUtils';
 import { saveThemeSettings, loginWithGoogle } from '../firebase';
 import { InlineEditor } from '../lib/editing/InlineEditor';
+import { useEditable } from '../contexts/EditingContext';
 import EditingEngineSandbox from './admin/sandbox/EditingEngineSandbox';
 
 import { useSectionDirty } from '../hooks/useSectionDirty';
@@ -44,13 +45,15 @@ export default function WebsiteContent(props: any) {
     currentLang, setLang, user,
     scheduleItems, setScheduleItems, portfolioItems, setPortfolioItems,
     videoItems, setVideoItems, pressItems, setPressItems,
-    theme, setTheme, bio, setBio, contact, setContact, slides, setSlides,
+    theme: initialTheme, setTheme, bio, setBio, contact, setContact, slides, setSlides,
     activeEditSection, setActiveEditSection,
     isEditingHeroText, setIsEditingHeroText,
     initialThemeRef, loadAllData, legalModal, setLegalModal, t,
     isHeroVideoPlaying, setIsHeroVideoPlaying, heroVideoRef,
     adminMode, selectedBlock, onBlockSelect
   } = props;
+
+  const [theme] = useEditable<any>('theme', initialTheme);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -106,10 +109,12 @@ export default function WebsiteContent(props: any) {
       <style>{`
         ${getGoogleFontImport()}
         #app-container {
-          --color-bg: ${theme?.bg};
-          --color-text: ${theme?.text};
+          --color-bg: ${theme?.bg || '#000000'};
+          --color-text: ${theme?.text || '#ffffff'};
+          --color-accent: ${theme?.accent || '#C9A227'};
+          --color-border: ${theme?.border || 'color-mix(in srgb, var(--color-text) 10.196078%, transparent)'};
+          --color-nav-bg: ${theme?.navBg || (theme?.bg ? 'color-mix(in srgb, var(--color-bg) 90.196078%, transparent)' : 'rgba(0,0,0,0.85)')};
           --color-contact-bg: ${theme?.contactFormBg || '#0a0a0a'};
-          --color-hero-slide-text: ${theme?.colorHeroSlideText || theme?.text || '#ffffff'};
           
           /* Spacing Customization */
           --content-max-width: ${theme?.spacingContentWidth ?? 1536}px;
@@ -150,6 +155,34 @@ export default function WebsiteContent(props: any) {
           padding-top: var(--section-spacing) !important;
           padding-bottom: var(--section-spacing) !important;
         }
+
+        /* Accent Color Overrides */
+        #app-container .text-\\[\\#C9A227\\], 
+        #app-container .text-[#C9A227] {
+          color: var(--color-accent) !important;
+        }
+        #app-container .bg-\\[\\#C9A227\\], 
+        #app-container .bg-[#C9A227] {
+          background-color: var(--color-accent) !important;
+        }
+        #app-container .border-\\[\\#C9A227\\], 
+        #app-container .border-[#C9A227] {
+          border-color: var(--color-accent) !important;
+        }
+
+        /* Border Theme Overrides (Applied ONLY to complete decorative closed frames, NOT directional dividers) */
+        #app-container .border:not(.border-t):not(.border-b):not(.border-l):not(.border-r),
+        #app-container .border-2:not(.border-t):not(.border-b):not(.border-l):not(.border-r),
+        #app-container .border-4:not(.border-t):not(.border-b):not(.border-l):not(.border-r) {
+          border-color: var(--color-border) !important;
+        }
+
+        /* Navigation Bottom Divider exception */
+        #navbar-root.border-b {
+          border-bottom-color: var(--color-border) !important;
+        }
+
+        /* Navigation Bar Styles */
         #navbar-root {
           --nav-scale: ${(theme?.navFontSize ?? 100) / 100};
           --text-xs: calc(0.75rem * var(--nav-scale));
@@ -159,9 +192,8 @@ export default function WebsiteContent(props: any) {
           --text-xl: calc(1.25rem * var(--nav-scale));
           --text-2xl: calc(1.5rem * var(--nav-scale));
           --text-3xl: calc(1.875rem * var(--nav-scale));
-          background-color: ${theme?.bg ? `${theme.bg}e6` : 'rgba(0,0,0,0.85)'} !important;
+          background-color: var(--color-nav-bg) !important;
           backdrop-filter: blur(12px);
-          border-color: ${theme?.text}1a !important;
           min-height: var(--nav-height) !important;
           height: auto !important;
         }
@@ -185,15 +217,11 @@ export default function WebsiteContent(props: any) {
         #desktop-menu button[id^="nav-link-"].text-white, .nav-link.text-white {
           opacity: 1 !important; font-weight: 700 !important;
         }
+
         ${theme?.websiteFont ? `
           #app-container, #app-container * {
             font-family: "${theme.websiteFont}", sans-serif !important;
           }
-        ` : ''}
-        ${theme?.colorHeroSlideText ? `
-          #home, #home *, #performances-slider-root, #performances-slider-root * { color: var(--color-hero-slide-text) !important; }
-          #discover-button { border-color: var(--color-hero-slide-text) !important; }
-          #discover-button:hover { border-color: var(--color-hero-slide-text) !important; }
         ` : ''}
       `}</style>
 

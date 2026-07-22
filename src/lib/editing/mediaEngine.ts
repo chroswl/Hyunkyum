@@ -88,53 +88,18 @@ export const MediaEngine = {
   },
 
   /**
-   * Uploads media to Cloudflare R2 storage, with a local base64 fallback for the AI Studio Preview workspace.
+   * Uploads media to Cloudflare R2 storage using direct presigned URLs.
    */
   async upload(
     fileOrBase64: File | string,
     folder = 'media',
     onProgress?: (progress: number) => void
   ): Promise<string> {
-    if (this.isPreviewEnv()) {
-      console.log(`[MediaEngine] Preview environment: skipping R2 upload for folder "${folder}".`);
-      
-      // If it is a File, read it to Base64 first
-      let base64 = typeof fileOrBase64 === 'string' ? fileOrBase64 : '';
-      if (typeof fileOrBase64 !== 'string') {
-        base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (e) => reject(e);
-          reader.readAsDataURL(fileOrBase64);
-        });
-      }
-
-      // Compress Base64 to be safe for Firestore limits
-      if (base64.startsWith('data:image')) {
-        return compressBase64(base64, 1000, 0.6);
-      }
-      return base64;
-    }
-
     try {
       return await uploadToR2(fileOrBase64, onProgress, folder);
     } catch (err: any) {
-      console.warn('[MediaEngine] R2 Upload failed, attempting compressed base64 fallback...', err);
-      
-      let base64 = typeof fileOrBase64 === 'string' ? fileOrBase64 : '';
-      if (typeof fileOrBase64 !== 'string') {
-        base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (e) => reject(e);
-          reader.readAsDataURL(fileOrBase64);
-        });
-      }
-
-      if (base64.startsWith('data:image')) {
-        return compressBase64(base64, 1000, 0.6);
-      }
-      return base64;
+      console.error('[MediaEngine] Upload failed:', err);
+      throw err;
     }
   }
 };
@@ -153,10 +118,10 @@ export function useMediaUpload(config?: MediaEngineConfig) {
     customFolder?: string
   ): Promise<string> => {
     const folderName = customFolder || config?.folder || 'media';
-    const maxSize = (config?.maxSizeMB || 30) * 1024 * 1024;
+    const maxSize = (config?.maxSizeMB || 100) * 1024 * 1024;
 
     if (fileOrBase64 instanceof File && fileOrBase64.size > maxSize) {
-      const errMsg = `File size exceeds the max limit of ${config?.maxSizeMB || 30} MB.`;
+      const errMsg = `File size exceeds the max limit of ${config?.maxSizeMB || 100} MB.`;
       setProgress({ percentage: 0, status: 'error', error: errMsg });
       throw new Error(errMsg);
     }

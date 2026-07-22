@@ -21,7 +21,6 @@ const getRequestBody = (req: any): Promise<string> => {
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -29,43 +28,52 @@ export default defineConfig(() => {
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
-      configureServer(server) {
-        server.middlewares.use(async (req, res, next) => {
-          console.log(`[Middleware] Incoming request: ${req.url}`);
-          if (req.url?.startsWith('/api/upload')) {
-            try {
-              const bodyStr = await getRequestBody(req);
-              const mockReq = {
-                method: req.method,
-                headers: req.headers,
-                body: bodyStr ? JSON.parse(bodyStr) : {},
-              };
-              const mockRes = {
-                statusCode: 200,
-                headers: {} as any,
-                setHeader(name: string, value: string) {
-                  this.headers[name] = value;
-                  res.setHeader(name, value);
-                },
-                status(code: number) {
+    },
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'api-middleware',
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            console.log(`[Middleware] Incoming request: ${req.url}`);
+            
+            // Patch res for API routes
+            if (req.url?.startsWith('/api/')) {
+              const originalRes = res as any;
+              if (!originalRes.status) {
+                originalRes.status = function(code: number) {
                   this.statusCode = code;
-                  res.statusCode = code;
                   return this;
-                },
-                json(data: any) {
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify(data));
-                },
-                end(data?: any) {
-                  res.end(data);
-                }
-              };
-              const { default: handler } = await import('./api/upload');
-              await handler(mockReq, mockRes);
+                };
+              }
+              if (!originalRes.json) {
+                originalRes.json = function(data: any) {
+                  this.setHeader('Content-Type', 'application/json');
+                  this.end(JSON.stringify(data));
+                };
+              }
+            }
+
+            if (req.url?.startsWith('/api/upload-multipart')) {
+              try {
+                const { default: handler } = await import('./api/upload-multipart.ts');
+                await handler(req, res);
+              } catch (e: any) {
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Dev server upload-multipart handler error', message: e.message }));
+              }
+              return;
+            }
+
+            if (req.url?.startsWith('/api/upload')) {
+            try {
+              const { default: handler } = await import('./api/upload.ts');
+              await handler(req, res);
             } catch (e: any) {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
@@ -76,34 +84,8 @@ export default defineConfig(() => {
           
           if (req.url?.startsWith('/api/delete')) {
             try {
-              const bodyStr = await getRequestBody(req);
-              const mockReq = {
-                method: req.method,
-                headers: req.headers,
-                body: bodyStr ? JSON.parse(bodyStr) : {},
-              };
-              const mockRes = {
-                statusCode: 200,
-                headers: {} as any,
-                setHeader(name: string, value: string) {
-                  this.headers[name] = value;
-                  res.setHeader(name, value);
-                },
-                status(code: number) {
-                  this.statusCode = code;
-                  res.statusCode = code;
-                  return this;
-                },
-                json(data: any) {
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify(data));
-                },
-                end(data?: any) {
-                  res.end(data);
-                }
-              };
-              const { default: handler } = await import('./api/delete');
-              await handler(mockReq, mockRes);
+              const { default: handler } = await import('./api/delete.ts');
+              await handler(req, res);
             } catch (e: any) {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
@@ -114,34 +96,8 @@ export default defineConfig(() => {
           
           if (req.url?.startsWith('/api/contact')) {
             try {
-              const bodyStr = await getRequestBody(req);
-              const mockReq = {
-                method: req.method,
-                headers: req.headers,
-                body: bodyStr ? JSON.parse(bodyStr) : {},
-              };
-              const mockRes = {
-                statusCode: 200,
-                headers: {} as any,
-                setHeader(name: string, value: string) {
-                  this.headers[name] = value;
-                  res.setHeader(name, value);
-                },
-                status(code: number) {
-                  this.statusCode = code;
-                  res.statusCode = code;
-                  return this;
-                },
-                json(data: any) {
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify(data));
-                },
-                end(data?: any) {
-                  res.end(data);
-                }
-              };
-              const { default: handler } = await import('./api/contact');
-              await handler(mockReq, mockRes);
+              const { default: handler } = await import('./api/contact.ts');
+              await handler(req, res);
             } catch (e: any) {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
@@ -153,6 +109,7 @@ export default defineConfig(() => {
           next();
         });
       },
-    },
+    }
+    ],
   };
 });

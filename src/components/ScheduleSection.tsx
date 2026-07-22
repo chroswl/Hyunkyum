@@ -472,7 +472,7 @@ export default function ScheduleSection({
             PUBLIC READ-ONLY EXPERIENCE
             ======================================================== */
         items.length === 0 ? (
-          <div className="text-center py-16 border border-black/10 bg-transparent/5/40 rounded-sm">
+          <div className="text-center py-16 border bg-transparent/5/40 rounded-sm">
             <Calendar className="w-10 h-10 mx-auto mb-3 text-neutral-400" />
             <p className="text-sm tracking-wider">No scheduled performances found.</p>
           </div>
@@ -484,17 +484,17 @@ export default function ScheduleSection({
                 <div
                   key={item.id || `schedule-row-${idx}`}
                   id={`schedule-row-${item.id}`}
-                  className="group relative rounded-sm p-6 transition-all duration-300 grid grid-cols-1 md:grid-cols-12 gap-6 items-center"
+                  className="group relative border rounded-sm p-6 transition-all duration-300 grid grid-cols-1 md:grid-cols-12 gap-6 items-center"
                   style={{ 
-                    backgroundColor: theme?.bg ? `${theme.bg}80` : undefined, 
-                    borderColor: theme?.text ? `${theme.text}20` : undefined,
+                    backgroundColor: theme?.bg ? 'color-mix(in srgb, var(--color-bg) 50.196078%, transparent)' : undefined, 
+                    borderColor: theme?.border || (theme?.text ? 'color-mix(in srgb, var(--color-text) 12.549020%, transparent)' : undefined),
                     borderWidth: '1px',
                     borderStyle: 'solid',
                     color: theme?.text 
                   }}
                 >
                   {/* Date column (3 cols) */}
-                  <div className="md:col-span-3 flex md:flex-col items-center md:items-start space-x-4 md:space-x-0 md:space-y-1 md:border-r" style={{ borderColor: theme?.text ? `${theme.text}20` : undefined }}>
+                  <div className="md:col-span-3 flex md:flex-col items-center md:items-start space-x-4 md:space-x-0 md:space-y-1 md:border-r" style={{ borderColor: theme?.text ? 'color-mix(in srgb, var(--color-text) 12.549020%, transparent)' : 'rgba(255, 255, 255, 0.1)' }}>
                     <div className="text-4xl md:text-5xl font-serif font-light tracking-tight group-hover:font-medium transition-all">
                       {formattedDate.day}
                     </div>
@@ -522,7 +522,7 @@ export default function ScheduleSection({
 
                     <div className="flex flex-col sm:flex-row sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-4 text-xs font-sans">
                       {item.role && (item.role[currentLang] || item.role['EN']) && (
-                        <div className="flex items-center space-x-1.5" style={{ color: theme?.text ? `${theme.text}90` : undefined }}>
+                        <div className="flex items-center space-x-1.5" style={{ color: theme?.text ? 'color-mix(in srgb, var(--color-text) 56.470588%, transparent)' : undefined }}>
                           <Tag className="w-3.5 h-3.5" />
                           <span>
                             <strong className="font-normal">{t.roleLabel}:</strong> {item.role[currentLang] || item.role['EN']}
