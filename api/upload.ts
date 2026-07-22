@@ -1,6 +1,6 @@
 export const config = { api: { bodyParser: false } };
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getR2Client, getR2BucketName, getR2PublicUrl, checkR2EnvVars } from "./_r2-client";
+import { getR2Client, getR2BucketName, getR2PublicUrl, checkR2EnvVars } from "./_r2-client.js";
 import { URL } from 'url';
 
 const getRequestBody = (req: any): Promise<Buffer> => {
