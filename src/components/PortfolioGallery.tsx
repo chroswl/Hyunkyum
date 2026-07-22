@@ -539,7 +539,7 @@ export default function PortfolioGallery({
             )}
             renderItem={(item, index) => (
               <div 
-                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer border rounded-sm"
+                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer border rounded-sm group"
                 onClick={() => setSelectedItemIndex(index)}
                 onContextMenu={(e) => e.preventDefault()}
               >
@@ -549,7 +549,11 @@ export default function PortfolioGallery({
                   className="w-full h-full"
                   imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                 />
-                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Vignette Overlay ONLY for main overview 'All' photos (when activeCategory is null) */}
+                {activeCategory === null && (
+                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)] z-10" />
+                )}
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
               </div>
             )}
           />
@@ -564,7 +568,7 @@ export default function PortfolioGallery({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-md p-4 md:p-8"
               onClick={() => setSelectedItemIndex(null)}
             >
               <button
