@@ -97,8 +97,12 @@ export default function App() {
  
  useEffect(() => {
    if (window.location.pathname === "/admin") {
-     
+     loginWithGoogle().then(() => {
        window.history.replaceState(null, "", "/");
+     }).catch(err => {
+       console.error(err);
+       window.history.replaceState(null, "", "/");
+     });
    }
  }, []);
 
