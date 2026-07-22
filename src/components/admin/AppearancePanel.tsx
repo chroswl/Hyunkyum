@@ -27,7 +27,7 @@ export function AppearancePanel({ isOpen, onClose }: AppearancePanelProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/20 z-40"
           />
           <motion.div 
             initial={{ x: '100%' }}
