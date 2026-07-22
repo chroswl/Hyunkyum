@@ -24,7 +24,6 @@ export const getR2Client = () => {
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 
   const envs = checkR2EnvVars();
-  console.log("[DIAGNOSTIC] Checking R2 Client environment variables:", JSON.stringify(envs));
 
   if (!accountId || !accessKeyId || !secretAccessKey) {
     const missing = [];

@@ -156,7 +156,11 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder={t.formNamePlaceholder || "e.g. Jean-Pierre"}
               className={`w-full border ${errors.name ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
+              style={{ 
+                backgroundColor: theme?.contactFormBg || 'color-mix(in srgb, var(--color-text) 6%, transparent)',
+                color: theme?.text, 
+                borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' 
+              }}
             />
             <AnimatePresence>
               {errors.name && (
@@ -183,7 +187,11 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
               onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t.formEmailPlaceholder || "e.g. jp@example.com"}
               className={`w-full border ${errors.email ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors`}
-              style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
+              style={{ 
+                backgroundColor: theme?.contactFormBg || 'color-mix(in srgb, var(--color-text) 6%, transparent)',
+                color: theme?.text, 
+                borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' 
+              }}
             />
             <AnimatePresence>
               {errors.email && (
@@ -213,7 +221,11 @@ export default function ContactForm({ currentLang, theme }: ContactFormProps) {
             onChange={(e) => handleMessageChange(e.target.value)}
             placeholder={t.formMessagePlaceholder || "..."}
             className={`w-full border ${errors.message ? 'border-rose-500/50 focus:border-rose-500/70' : 'focus:border-white/40'} focus:ring-0 rounded-sm px-4 py-3 text-sm transition-colors resize-none`}
-            style={{ color: theme?.text, borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' }}
+            style={{ 
+              backgroundColor: theme?.contactFormBg || 'color-mix(in srgb, var(--color-text) 6%, transparent)',
+              color: theme?.text, 
+              borderColor: 'color-mix(in srgb, var(--color-text) 20%, transparent)' 
+            }}
           />
           <AnimatePresence>
             {errors.message && (

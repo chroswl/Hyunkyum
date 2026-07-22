@@ -125,9 +125,16 @@ export function AppearancePanel({ isOpen, onClose }: AppearancePanelProps) {
                 <div className="text-xs text-neutral-500 italic py-2">Settings coming soon</div>
               </PropertyAccordion>
 
-              {/* Components */}
-              <PropertyAccordion title="Components">
-                <div className="text-xs text-neutral-500 italic py-2">Settings coming soon</div>
+              {/* Components / Contact Form */}
+              <PropertyAccordion title="Contact Form" defaultOpen={true}>
+                <div className="space-y-4">
+                  <ColorRow 
+                    label="Input Background" 
+                    value={theme.contactFormBg} 
+                    fallback="transparent" 
+                    onChange={(v) => updateField('contactFormBg', v)} 
+                  />
+                </div>
               </PropertyAccordion>
 
               {/* Advanced */}

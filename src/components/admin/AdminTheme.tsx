@@ -129,6 +129,16 @@ export default function AdminTheme({
         </div>
       </PropertyAccordion>
 
+      <PropertyAccordion title="Contact Form" defaultOpen={false}>
+        <div className="space-y-4">
+          <PropertyColorPicker 
+            label="Input Background" 
+            value={theme.contactFormBg || ''} 
+            onChange={(v) => updateField('contactFormBg', v)} 
+          />
+        </div>
+      </PropertyAccordion>
+
       {/* STEP 3: Fonts */}
       <PropertyAccordion title="Fonts" defaultOpen={false}>
         <div className="space-y-4">
