@@ -4,21 +4,6 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
-const getRequestBody = (req: any): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', (chunk: any) => {
-      body += chunk;
-    });
-    req.on('end', () => {
-      resolve(body);
-    });
-    req.on('error', (err: any) => {
-      reject(err);
-    });
-  });
-};
-
 export default defineConfig(() => {
   return {
     resolve: {
@@ -35,81 +20,6 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
-      {
-        name: 'api-middleware',
-        configureServer(server) {
-          server.middlewares.use(async (req, res, next) => {
-            console.log(`[Middleware] Incoming request: ${req.url}`);
-            
-            // Patch res for API routes
-            if (req.url?.startsWith('/api/')) {
-              const originalRes = res as any;
-              if (!originalRes.status) {
-                originalRes.status = function(code: number) {
-                  this.statusCode = code;
-                  return this;
-                };
-              }
-              if (!originalRes.json) {
-                originalRes.json = function(data: any) {
-                  this.setHeader('Content-Type', 'application/json');
-                  this.end(JSON.stringify(data));
-                };
-              }
-            }
-
-            if (req.url?.startsWith('/api/upload-multipart')) {
-              try {
-                const { default: handler } = await import('./api/upload-multipart.ts');
-                await handler(req, res);
-              } catch (e: any) {
-                res.statusCode = 500;
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ error: 'Dev server upload-multipart handler error', message: e.message }));
-              }
-              return;
-            }
-
-            if (req.url?.startsWith('/api/upload')) {
-            try {
-              const { default: handler } = await import('./api/upload.ts');
-              await handler(req, res);
-            } catch (e: any) {
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ error: 'Dev server upload handler error', message: e.message }));
-            }
-            return;
-          }
-          
-          if (req.url?.startsWith('/api/delete')) {
-            try {
-              const { default: handler } = await import('./api/delete.ts');
-              await handler(req, res);
-            } catch (e: any) {
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ error: 'Dev server delete handler error', message: e.message }));
-            }
-            return;
-          }
-          
-          if (req.url?.startsWith('/api/contact')) {
-            try {
-              const { default: handler } = await import('./api/contact.ts');
-              await handler(req, res);
-            } catch (e: any) {
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ error: 'Dev server contact handler error', message: e.message }));
-            }
-            return;
-          }
-          
-          next();
-        });
-      },
-    }
     ],
   };
 });

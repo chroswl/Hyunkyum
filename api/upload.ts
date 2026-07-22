@@ -1,8 +1,14 @@
+export const config = { api: { bodyParser: false } };
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client.ts";
+import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client";
 import { URL } from 'url';
 
 const getRequestBody = (req: any): Promise<Buffer> => {
+  if (req.body) {
+    if (Buffer.isBuffer(req.body)) return Promise.resolve(req.body);
+    if (typeof req.body === 'string') return Promise.resolve(Buffer.from(req.body));
+    if (typeof req.body === 'object') return Promise.resolve(Buffer.from(JSON.stringify(req.body)));
+  }
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => {

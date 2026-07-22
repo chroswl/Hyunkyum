@@ -1,12 +1,18 @@
+export const config = { api: { bodyParser: false } };
 import { 
   CreateMultipartUploadCommand, 
   UploadPartCommand, 
   CompleteMultipartUploadCommand 
 } from "@aws-sdk/client-s3";
-import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client.ts";
+import { getR2Client, getR2BucketName, getR2PublicUrl } from "./_r2-client";
 import { URL } from 'url';
 
 const getRequestBody = (req: any): Promise<Buffer> => {
+  if (req.body) {
+    if (Buffer.isBuffer(req.body)) return Promise.resolve(req.body);
+    if (typeof req.body === 'string') return Promise.resolve(Buffer.from(req.body));
+    if (typeof req.body === 'object') return Promise.resolve(Buffer.from(JSON.stringify(req.body)));
+  }
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => {
@@ -84,7 +90,7 @@ export default async function handler(req: any, res: any) {
     
     else if (action === 'complete') {
       const bodyStr = (await getRequestBody(req)).toString('utf-8');
-      const { uploadId, key, parts } = JSON.parse(bodyStr);
+      console.log("bodyStr:", bodyStr); console.log("req.body:", req.body); const { uploadId, key, parts } = JSON.parse(bodyStr);
 
       if (!uploadId || !key || !parts) {
         return res.status(400).json({ error: "Missing complete parameters" });
