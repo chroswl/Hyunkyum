@@ -539,7 +539,7 @@ export default function PortfolioGallery({
             )}
             renderItem={(item, index) => (
               <div 
-                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer border rounded-sm group"
+                className="relative overflow-hidden w-full h-full aspect-square cursor-pointer rounded-sm group"
                 onClick={() => setSelectedItemIndex(index)}
                 onContextMenu={(e) => e.preventDefault()}
               >

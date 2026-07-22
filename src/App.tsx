@@ -75,7 +75,7 @@ const getInitialLang = (): Language => {
       }
     }
   } catch (e) {
-    // Ignore navigator or language array access errors
+     // Ignore navigator or language array access errors
   }
 
   try {
@@ -97,9 +97,8 @@ export default function App() {
  
  useEffect(() => {
    if (window.location.pathname === "/admin") {
-     loginWithGoogle().then(() => {
+     
        window.history.replaceState(null, "", "/");
-     });
    }
  }, []);
 
@@ -107,7 +106,7 @@ export default function App() {
  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'impressum' | 'privacy' }>({ isOpen: false, type: 'impressum' });
 
- // Database States
+  // Database States
  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
  const [videoItems, setVideoItems] = useState<VideoItem[]>([]);
@@ -116,7 +115,7 @@ export default function App() {
  const [slides, setSlides] = useState<PerformanceSlide[]>([]);
  const [activeEditSection, setActiveEditSection] = useState<'none' | 'hero' | 'slides' | 'biography' | 'press' | 'gallery' | 'videos' | 'schedule'>('none');
 
- // Dynamic CMS States with default placeholders
+  // Dynamic CMS States with default placeholders
  const [theme, setTheme] = useState<ThemeSettings>({ bg: '#000000', text: '#ffffff' });
   const initialThemeRef = useRef<ThemeSettings | null>(null);
  const [isEditingHeroText, setIsEditingHeroText] = useState(false);
@@ -158,7 +157,7 @@ export default function App() {
  const t = translations[currentLang];
 
  useEffect(() => {
- // Listen for Auth changes
+  // Listen for Auth changes
  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
  if (firebaseUser && firebaseUser.email !== 'chroswl@gmail.com') {
  auth.signOut();
@@ -168,10 +167,10 @@ export default function App() {
  }
  });
 
- // Load initial Firestore data
+  // Load initial Firestore data
  loadAllData();
 
- // Event listeners for admin settings changes
+  // Event listeners for admin settings changes
  const handleThemeChange = (e: any) => {
  if (e.detail) setTheme(e.detail);
  };
@@ -198,7 +197,7 @@ export default function App() {
   const video = heroVideoRef.current;
   if (!video) return;
 
-  // Force muted on mount/update
+   // Force muted on mount/update
   video.muted = true;
   video.defaultMuted = true;
 
@@ -212,10 +211,10 @@ export default function App() {
       });
   };
 
-  // Try playing immediately
+   // Try playing immediately
   playVideo();
 
-  // Re-try on any user interaction with the window/document
+   // Re-try on any user interaction with the window/document
   const handleInteraction = () => {
     if (video.paused) {
       video.play()
@@ -287,7 +286,7 @@ export default function App() {
 
 
  const handleEditSchedule = (item: ScheduleItem) => {
- // Editing will be handled inline or via overlay later
+  // Editing will be handled inline or via overlay later
  };
 
  const scrollToSection = (id: string) => {
@@ -303,7 +302,7 @@ export default function App() {
  }
  };
 
- // Hero text helpers
+  // Hero text helpers
  const getHeroTitle = () => {
    if (currentLang === 'KO' && theme.heroTitleKO) return theme.heroTitleKO;
    if (currentLang === 'DE' && theme.heroTitleDE) return theme.heroTitleDE;
@@ -329,7 +328,7 @@ export default function App() {
    return t.discoverBtn;
  };
 
- // Google Font Import String generator
+  // Google Font Import String generator
  const getGoogleFontImport = () => {
    const fontsToLoad = [
      theme.websiteFont
@@ -345,10 +344,10 @@ export default function App() {
      .map(f => `family=${f.replace(/\s+/g, '+')}:wght@300;400;500;600;700`)
      .join('&');
    
-   return `@import url('https://fonts.googleapis.com/css2?${fontParams}&display=swap');`;
+   return `@import url('https:fonts.googleapis.com/css2?${fontParams}&display=swap');`;
  };
 
- // Timeline category definitions
+  // Timeline category definitions
  
 
  
@@ -378,15 +377,15 @@ export default function App() {
         Object.assign(newContact, value);
         hasContactUpdates = true;
       } else if (key.startsWith('theme.')) {
-        const path = key.substring(6); // Remove 'theme.'
+        const path = key.substring(6);
         set(newTheme, path, value);
         hasThemeUpdates = true;
       } else if (key.startsWith('bio.')) {
-        const path = key.substring(4); // Remove 'bio.'
+        const path = key.substring(4);
         set(newBio, path, value);
         hasBioUpdates = true;
       } else if (key.startsWith('contact.')) {
-        const path = key.substring(8); // Remove 'contact.'
+        const path = key.substring(8);
         set(newContact, path, value);
         hasContactUpdates = true;
       }
@@ -408,7 +407,7 @@ export default function App() {
 
     const base = baseState || {};
 
-    // Portfolio Items Save
+     // Portfolio Items Save
     if (state['portfolioItems']) {
       const initial = base['portfolioItems'] || [];
       const current = state['portfolioItems'];
@@ -428,7 +427,7 @@ export default function App() {
       promises.push(batch.commit());
     }
 
-    // Schedule Items Save
+     // Schedule Items Save
     if (state['scheduleItems']) {
       const initial = base['scheduleItems'] || [];
       const current = state['scheduleItems'];
@@ -448,7 +447,7 @@ export default function App() {
       promises.push(batch.commit());
     }
 
-    // Video Items Save
+     // Video Items Save
     if (state['videoItems']) {
       const initial = base['videoItems'] || [];
       const current = state['videoItems'];
@@ -468,7 +467,7 @@ export default function App() {
       promises.push(batch.commit());
     }
 
-    // Press Items Save
+     // Press Items Save
     if (state['pressItems']) {
       const initial = base['pressItems'] || [];
       const current = state['pressItems'];
@@ -488,7 +487,7 @@ export default function App() {
       promises.push(batch.commit());
     }
 
-    // Selected Performances Slides Save
+     // Selected Performances Slides Save
     if (state['slides']) {
       const initial = base['slides'] || [];
       const current = state['slides'];

@@ -5,6 +5,7 @@ import { useEditable } from '../../contexts/EditingContext';
 import { ThemeSettings } from '../../types';
 import PropertyAccordion from './PropertyAccordion';
 import { ColorRow } from './ColorRow';
+import { PropertySlider } from './PropertyFields';
 
 interface AppearancePanelProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface AppearancePanelProps {
 export function AppearancePanel({ isOpen, onClose }: AppearancePanelProps) {
   const [theme, setTheme] = useEditable<Partial<ThemeSettings>>('theme', {});
 
-  const updateField = (key: keyof ThemeSettings, val: string) => {
+  const updateField = (key: keyof ThemeSettings, val: any) => {
     setTheme({ ...theme, [key]: val });
   };
 
@@ -107,8 +108,16 @@ export function AppearancePanel({ isOpen, onClose }: AppearancePanelProps) {
               </PropertyAccordion>
 
               {/* Typography */}
-              <PropertyAccordion title="Typography">
-                <div className="text-xs text-neutral-500 italic py-2">Settings coming soon</div>
+              <PropertyAccordion title="Typography" defaultOpen={true}>
+                <div className="space-y-4">
+                  <PropertySlider 
+                    label="Press Text Size" 
+                    value={theme.pressFontSize ?? 24} 
+                    min={12} 
+                    max={64} 
+                    onChange={(v) => updateField('pressFontSize', v)} 
+                  />
+                </div>
               </PropertyAccordion>
 
               {/* Layout */}

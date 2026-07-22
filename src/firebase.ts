@@ -65,6 +65,10 @@ onAuthStateChanged(auth, (user) => {
 
 // Standard login
 export const loginWithGoogle = async () => {
+  if (window.self !== window.top) {
+    alert("Note: Google Login may be blocked inside this preview window. If login fails, please open the app in a new tab using the ↗ icon at the top right.");
+  }
+  
   try {
     const result = await signInWithPopup(auth, googleProvider);
     if (result.user.email !== 'chroswl@gmail.com') {
@@ -74,8 +78,13 @@ export const loginWithGoogle = async () => {
     const credential = GoogleAuthProvider.credentialFromResult(result);
     cachedAccessToken = credential?.accessToken || null;
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Auth error:", error);
+    if (error.code === 'auth/popup-blocked') {
+      alert("Login popup was blocked by your browser. If you are in the AI Studio preview, please click the 'Open in new tab' icon (↗) at the top right and try again.");
+    } else if (error.code !== 'auth/popup-closed-by-user') {
+      alert(`Login failed: ${error.message || error}\n\nIf you are in the AI Studio preview, try opening the app in a new tab.`);
+    }
     throw error;
   }
 };
