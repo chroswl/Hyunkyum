@@ -1,5 +1,5 @@
 import { set, cloneDeep } from "lodash";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
  ChevronDown, ChevronUp, MapPin, Calendar, Mail, Phone, Instagram, Youtube, 
@@ -351,31 +351,13 @@ export default function App() {
  // Timeline category definitions
  
 
- if (isLoading) {
-  return (
-   <div 
-    id="loading-container" 
-    className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white font-sans"
-    style={{ backgroundColor: theme.bg || "#000000", color: theme.text || "#ffffff" }}
-   >
-    <div className="relative flex flex-col items-center">
-     <div className="w-16 h-16 border-2 border-[var(--color-text)] border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: theme.text || "#ffffff", borderTopColor: "transparent" }} />
-     <div className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
-      HYUNKYUM KIM
-     </div>
-     <p className="text-xs tracking-wider opacity-60 uppercase font-mono">
-      Loading...
-     </p>
-    </div>
-   </div>
-  );
- }
+ 
 
 
 
 
 
-  const handleSave = async (state: Record<string, any>, baseState?: Record<string, any>) => {
+  const handleSave = useCallback(async (state: Record<string, any>, baseState?: Record<string, any>) => {
     const newTheme = cloneDeep(theme) || {} as ThemeSettings;
     let hasThemeUpdates = false;
 
@@ -527,7 +509,27 @@ export default function App() {
     }
 
     await Promise.all(promises);
-  };
+  }, [theme, bio, contact, setTheme, setBio, setContact]);
+
+  if (isLoading) {
+   return (
+    <div 
+     id="loading-container" 
+     className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white font-sans"
+     style={{ backgroundColor: theme.bg || "#000000", color: theme.text || "#ffffff" }}
+    >
+     <div className="relative flex flex-col items-center">
+      <div className="w-16 h-16 border-2 border-[var(--color-text)] border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: theme.text || "#ffffff", borderTopColor: "transparent" }} />
+      <div className="text-lg tracking-widest uppercase font-light animate-pulse mb-1">
+       HYUNKYUM KIM
+      </div>
+      <p className="text-xs tracking-wider opacity-60 uppercase font-mono">
+       Loading...
+      </p>
+     </div>
+    </div>
+   );
+  }
 
   return (
     <EditingProvider

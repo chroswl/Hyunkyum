@@ -721,15 +721,29 @@ export default function SelectedPerformances({
                 <div className="flex items-center space-x-6">
                   <div className="flex space-x-2.5">
                     {slides.map((s, idx) => (
-                      <button key={`slider-tick-${s.id || 'slide'}-${idx}`} onClick={() => setCurrentIdx(idx)} className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${currentIdx === idx ? 'w-8 bg-white' : 'w-2 bg-[var(--color-bg)] hover:bg-[var(--color-bg)]'}`} aria-label={`Go to slide ${idx + 1}`} />
+                      <button 
+                        key={`slider-tick-${s.id || 'slide'}-${idx}`} 
+                        onClick={() => setCurrentIdx(idx)} 
+                        className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${currentIdx === idx ? 'w-8' : 'w-2 opacity-30 hover:opacity-60'}`} 
+                        style={{ backgroundColor: theme?.heroTextColor || theme?.text || '#ffffff' }}
+                        aria-label={`Go to slide ${idx + 1}`} 
+                      />
                     ))}
                   </div>
-                  <div className="h-6 w-[1px] bg-[var(--color-bg)]" />
+                  <div className="h-6 w-[1px]" style={{ backgroundColor: theme?.heroTextColor || theme?.text || '#ffffff', opacity: 0.2 }} />
                   <div className="flex space-x-2">
-                    <button onClick={handlePrev} className="w-10 h-10 rounded-full border text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
+                    <button 
+                      onClick={handlePrev} 
+                      className="w-10 h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100"
+                      style={{ borderColor: theme?.heroTextColor || theme?.text || '#ffffff', color: theme?.heroTextColor || theme?.text || '#ffffff' }}
+                    >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <button onClick={handleNext} className="w-10 h-10 rounded-full border text-neutral-400 hover:text-[var(--color-text)] flex items-center justify-center transition-all cursor-pointer">
+                    <button 
+                      onClick={handleNext} 
+                      className="w-10 h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100"
+                      style={{ borderColor: theme?.heroTextColor || theme?.text || '#ffffff', color: theme?.heroTextColor || theme?.text || '#ffffff' }}
+                    >
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>

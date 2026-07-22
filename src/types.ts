@@ -132,6 +132,7 @@ export interface ThemeSettings {
   perfSectionTitle?: string;
   heroCopyright?: string;
   heroCopyrightUrl?: string;
+  heroTextColor?: string;
   // Footer Customization
   footerBrandName?: string;
   footerCopyrightText?: string;

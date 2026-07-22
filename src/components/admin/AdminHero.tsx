@@ -4,6 +4,7 @@ import { fetchThemeSettings, saveThemeSettings } from '../../firebase';
 import AdminLayout from './AdminLayout';
 import PropertyAccordion from './PropertyAccordion';
 import { PropertyInput, PropertySlider, PropertySelect } from './PropertyFields';
+import { ColorRow } from './ColorRow';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import HeroSection from '../HeroSection';
 import { translations } from '../../translations';
@@ -107,6 +108,15 @@ export default function AdminHero({
         <PropertyInput label="Main Title" value={currentLang === 'KO' ? theme.heroTitleKO || '' : currentLang === 'DE' ? theme.heroTitleDE || '' : theme.heroTitle || ''} onChange={(v) => updateField(currentLang === 'KO' ? 'heroTitleKO' : currentLang === 'DE' ? 'heroTitleDE' : 'heroTitle', v)} />
         <PropertyInput label="Description" value={currentLang === 'KO' ? theme.heroDescriptionKO || '' : currentLang === 'DE' ? theme.heroDescriptionDE || '' : theme.heroDescription || ''} onChange={(v) => updateField(currentLang === 'KO' ? 'heroDescriptionKO' : currentLang === 'DE' ? 'heroDescriptionDE' : 'heroDescription', v)} />
         <PropertyInput label="Button Text" value={currentLang === 'KO' ? theme.heroDiscoverKO || '' : currentLang === 'DE' ? theme.heroDiscoverDE || '' : theme.heroDiscover || ''} onChange={(v) => updateField(currentLang === 'KO' ? 'heroDiscoverKO' : currentLang === 'DE' ? 'heroDiscoverDE' : 'heroDiscover', v)} />
+      </PropertyAccordion>
+
+      <PropertyAccordion title="Hero Colors">
+        <ColorRow 
+          label="Hero Text Color" 
+          value={theme.heroTextColor} 
+          fallback={theme.text || "#ffffff"} 
+          onChange={(v) => updateField('heroTextColor', v)} 
+        />
       </PropertyAccordion>
 
       <PropertyAccordion title="Typography & Position">

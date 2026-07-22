@@ -145,6 +145,7 @@ export default function WebsiteContent(props: any) {
         #app-container, #app-container * {
           color: var(--color-text) !important;
         }
+
         #app-container .page-section {
           background-color: var(--color-bg) !important;
           padding-top: 0px !important;
@@ -216,6 +217,26 @@ export default function WebsiteContent(props: any) {
         #desktop-menu button:hover, .nav-link:hover { opacity: 1 !important; }
         #desktop-menu button[id^="nav-link-"].text-white, .nav-link.text-white {
           opacity: 1 !important; font-weight: 700 !important;
+        }
+
+        /* Hero Text Color Overrides for Hero Content & Selected Performances Slider */
+        #app-container #hero-content,
+        #app-container #hero-content *,
+        #app-container #discover-button,
+        #app-container #discover-button *,
+        #app-container #performances-slider-root,
+        #app-container #performances-slider-root * {
+          color: ${theme?.heroTextColor || theme?.text || '#ffffff'} !important;
+        }
+
+        #app-container #discover-button,
+        #app-container #performances-slider-root button {
+          border-color: ${theme?.heroTextColor || theme?.text || '#ffffff'} !important;
+        }
+
+        #app-container #performances-slider-root button.h-1,
+        #app-container #performances-slider-root .w-\\[1px\\] {
+          background-color: ${theme?.heroTextColor || theme?.text || '#ffffff'} !important;
         }
 
         ${theme?.websiteFont ? `

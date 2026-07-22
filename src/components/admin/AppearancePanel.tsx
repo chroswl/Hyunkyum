@@ -94,6 +94,18 @@ export function AppearancePanel({ isOpen, onClose }: AppearancePanelProps) {
                 </div>
               </PropertyAccordion>
 
+              {/* Hero Section */}
+              <PropertyAccordion title="Hero Section" defaultOpen={true}>
+                <div className="space-y-4">
+                  <ColorRow 
+                    label="Hero Text Color" 
+                    value={theme.heroTextColor} 
+                    fallback={theme.text || "#ffffff"} 
+                    onChange={(v) => updateField('heroTextColor', v)} 
+                  />
+                </div>
+              </PropertyAccordion>
+
               {/* Typography */}
               <PropertyAccordion title="Typography">
                 <div className="text-xs text-neutral-500 italic py-2">Settings coming soon</div>

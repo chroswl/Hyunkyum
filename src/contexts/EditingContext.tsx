@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import cloneDeep from 'lodash/cloneDeep';
+import get from 'lodash/get';
 
 export type EditingStatus = 'idle' | 'editing' | 'unsaved' | 'saving' | 'saved' | 'error';
 
@@ -298,6 +299,30 @@ export function EditingProvider({
     if (stateRef.current[key] !== undefined) {
       return stateRef.current[key];
     }
+    if (key.startsWith('theme.')) {
+      const path = key.substring(6);
+      const themeObj = stateRef.current['theme'];
+      if (themeObj && typeof themeObj === 'object') {
+        const val = get(themeObj, path);
+        if (val !== undefined) return val;
+      }
+    }
+    if (key.startsWith('bio.')) {
+      const path = key.substring(4);
+      const bioObj = stateRef.current['bio'];
+      if (bioObj && typeof bioObj === 'object') {
+        const val = get(bioObj, path);
+        if (val !== undefined) return val;
+      }
+    }
+    if (key.startsWith('contact.')) {
+      const path = key.substring(8);
+      const contactObj = stateRef.current['contact'];
+      if (contactObj && typeof contactObj === 'object') {
+        const val = get(contactObj, path);
+        if (val !== undefined) return val;
+      }
+    }
     return defaultValue;
   }, []);
 
@@ -497,7 +522,9 @@ export function useEditing() {
 
 export function useEditable<T>(key: string, initialValue: T): [T, (val: T, commit?: boolean) => void, boolean] {
   const context = useEditing();
-  const [value, setLocalValue] = useState<T>(() => context.getValue(key, initialValue));
+  const { getValue, setValue: contextSetValue, isDirty, subscribe } = context;
+
+  const [value, setLocalValue] = useState<T>(() => getValue(key, initialValue));
   const [dirty, setDirty] = useState(false);
   
   const initialValueRef = useRef(initialValue);
@@ -506,24 +533,25 @@ export function useEditable<T>(key: string, initialValue: T): [T, (val: T, commi
   }, [initialValue]);
 
   useEffect(() => {
-    // Make sure initial value is set without pushing to history
-    if (context.getValue(key, undefined) === undefined) {
-      context.setValue(key, initialValueRef.current, false);
+    // Make sure initial value is set without pushing to history if not set
+    if (getValue(key, undefined) === undefined) {
+      contextSetValue(key, initialValueRef.current, false);
     }
     
     const checkState = () => {
-      setLocalValue(context.getValue(key, initialValueRef.current));
-      setDirty(context.isDirty(key));
+      const currentVal = getValue(key, initialValueRef.current);
+      const currentDirty = isDirty(key);
+      setLocalValue(prev => (prev !== currentVal ? currentVal : prev));
+      setDirty(prev => (prev !== currentDirty ? currentDirty : prev));
     };
     
     checkState();
-    return context.subscribe(key, checkState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, context]);
+    return subscribe(key, checkState);
+  }, [key, getValue, contextSetValue, isDirty, subscribe]);
 
   const setValue = useCallback((newValue: T, commitToHistory = true) => {
-    context.setValue(key, newValue, commitToHistory);
-  }, [key, context]);
+    contextSetValue(key, newValue, commitToHistory);
+  }, [key, contextSetValue]);
 
   return [value, setValue, dirty];
 }

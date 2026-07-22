@@ -212,7 +212,7 @@ export default function HeroSection({
           theme.heroAlign === 'right' ? 'text-right items-end ml-auto' :
           'text-center items-center mx-auto'
         }`}
-        style={{ transform: `translate(${theme.heroContentOffsetX ?? 0}px, ${theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0}px)`, '--hero-title-size': theme.heroTitleSize ? `${theme.heroTitleSize}px` : '64px', '--hero-btn-size': theme.heroButtonSize ? `${theme.heroButtonSize}px` : '11px', '--hero-subtitle-size': theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined, '--hero-desc-size': theme.heroDescSize ? `${theme.heroDescSize}px` : undefined } as React.CSSProperties}
+        style={{ color: theme.heroTextColor || theme.text || "#ffffff", transform: `translate(${theme.heroContentOffsetX ?? 0}px, ${theme.heroContentOffsetY ?? theme.heroOffsetY ?? 0}px)`, '--hero-title-size': theme.heroTitleSize ? `${theme.heroTitleSize}px` : '64px', '--hero-btn-size': theme.heroButtonSize ? `${theme.heroButtonSize}px` : '11px', '--hero-subtitle-size': theme.heroSubtitleSize ? `${theme.heroSubtitleSize}px` : undefined, '--hero-desc-size': theme.heroDescSize ? `${theme.heroDescSize}px` : undefined } as React.CSSProperties}
       >
 
 
@@ -312,7 +312,7 @@ export default function HeroSection({
                 else e.preventDefault();
               }}
               className="group px-8 py-3.5 border font-sans text-[length:min(var(--hero-btn-size,11px),15px)] lg:text-[length:max(var(--hero-btn-size,11px),15px)] tracking-[0.25em] uppercase rounded-sm transition-all duration-250 flex items-center space-x-2 mx-auto cursor-pointer"
-              style={{ color: theme.text || "#ffffff" }}
+              style={{ color: theme.heroTextColor || theme.text || "#ffffff", borderColor: theme.heroTextColor || theme.text || "#ffffff" }}
             >
               <InlineEditor 
                 key={`heroDiscover-${currentLang}`}
