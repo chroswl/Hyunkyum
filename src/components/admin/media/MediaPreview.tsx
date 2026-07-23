@@ -20,6 +20,7 @@ interface MediaPreviewProps {
   controls?: boolean;
   showPlayIcon?: boolean;
   onEnded?: () => void;
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 /**
@@ -42,7 +43,7 @@ export function MediaPreview({
   autoPlay,
   controls,
   showPlayIcon,
-  onEnded,
+  onEnded, fetchPriority,
 }: MediaPreviewProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -74,6 +75,8 @@ export function MediaPreview({
             loop={loop !== undefined ? loop : true}
             autoPlay={autoPlay !== undefined ? autoPlay : true}
             playsInline
+            preload="metadata"
+            fetchPriority={fetchPriority as any}
             controls={controls !== undefined ? controls : isLightbox}
             onLoadedData={onLoadedData}
             onEnded={onEnded}
@@ -133,7 +136,8 @@ export function MediaPreview({
             alt={altText}
             className={finalImageClass}
             referrerPolicy="no-referrer"
-            loading="lazy"
+            loading={fetchPriority === 'high' ? undefined : "lazy"}
+            fetchPriority={fetchPriority as any}
           />
         );
     }

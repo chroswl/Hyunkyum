@@ -26,6 +26,8 @@ import { writeBatch, doc } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 import WebsiteContent from "./components/WebsiteContent";
+import { useSEO } from "./hooks/useSEO";
+
 // Component Imports
 import Navbar from './components/Navbar';
 import PortfolioGallery from './components/PortfolioGallery';
@@ -83,17 +85,7 @@ const getInitialLang = (): Language => {
   } catch (e) {}
   return 'EN';
 };
-
-export default function App() {
- const [currentLang, setLangState] = useState<Language>(getInitialLang);
-
- const setLang = (lang: Language) => {
-   setLangState(lang);
-   try {
-     localStorage.setItem('preferredLang', lang);
-   } catch (e) {}
- };
- const [user, setUser] = useState<User | null>(null);
+export default function App() { const [currentLang, setLangState] = useState<Language>(getInitialLang); const setLang = (lang: Language) => { setLangState(lang); try { localStorage.setItem("preferredLang", lang); } catch(e) {} }; useSEO(currentLang); const [user, setUser] = useState<User | null>(null);
  
  useEffect(() => {
    if (window.location.pathname === "/admin") {
@@ -554,6 +546,7 @@ export default function App() {
       slides={slides}
       setSlides={setSlides}
     >
+      
       <WebsiteContent
         currentLang={currentLang} setLang={setLang} user={user}
         scheduleItems={scheduleItems} setScheduleItems={setScheduleItems} portfolioItems={portfolioItems} setPortfolioItems={setPortfolioItems}

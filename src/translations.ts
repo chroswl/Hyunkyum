@@ -117,7 +117,15 @@ export const translations = {
     impressumAddressCountry: "Germany",
     impressumContactTitle: "Contact",
     impressumEmailLabel: "Email",
-    impressumResponsibleTitle: "Responsible for content pursuant to § 18 MStV"
+    impressumResponsibleTitle: "Responsible for content pursuant to § 18 MStV",
+    impressumCreditsTitle: "Image & Video Credits",
+    impressumPhotographyTitle: "Photography",
+    impressumHeroVideoTitle: "Hero Video",
+    impressumHeroVideoText1: "Footage courtesy of Pfalztheater Kaiserslautern.",
+    impressumHeroVideoText2: "Filmed and produced by Siegerbusch Film.",
+    impressumCopyrightTitle: "Copyright Notice",
+    impressumCopyrightText1: "Unless otherwise stated, all texts, designs, and original content on this website are the intellectual property of Hyunkyum Kim.",
+    impressumCopyrightText2: "Photographs and video material remain the copyright of their respective creators or rights holders and are used with permission."
   },
   DE: {
     navHome: "STARTSEITE",
@@ -236,7 +244,15 @@ export const translations = {
     impressumAddressCountry: "Deutschland",
     impressumContactTitle: "Kontakt",
     impressumEmailLabel: "E-Mail",
-    impressumResponsibleTitle: "Verantwortlich für den Inhalt nach § 18 MStV"
+    impressumResponsibleTitle: "Verantwortlich für den Inhalt nach § 18 MStV",
+    impressumCreditsTitle: "Bildnachweise",
+    impressumPhotographyTitle: "Fotografien",
+    impressumHeroVideoTitle: "Hero-Video",
+    impressumHeroVideoText1: "Videomaterial mit freundlicher Genehmigung des Pfalztheaters Kaiserslautern.",
+    impressumHeroVideoText2: "Produktion: Siegerbusch Film.",
+    impressumCopyrightTitle: "Urheberrecht",
+    impressumCopyrightText1: "Soweit nicht anders angegeben, unterliegen sämtliche auf dieser Website veröffentlichten Inhalte, insbesondere Texte, Gestaltungselemente und eigene Werke, dem Urheberrecht von Hyunkyum Kim.",
+    impressumCopyrightText2: "Die Bild- und Videoaufnahmen unterliegen dem Urheberrecht der jeweiligen Fotografen bzw. Rechteinhaber und werden mit freundlicher Genehmigung verwendet."
   },
   KO: {
     navHome: "홈",
@@ -355,7 +371,15 @@ export const translations = {
     impressumAddressCountry: "독일 (Germany)",
     impressumContactTitle: "연락처",
     impressumEmailLabel: "이메일",
-    impressumResponsibleTitle: "독일 미디어 국가조약(MStV) 제18조에 따른 콘텐츠 책임자"
+    impressumResponsibleTitle: "독일 미디어 국가조약(MStV) 제18조에 따른 콘텐츠 책임자",
+    impressumCreditsTitle: "이미지 및 영상 출처",
+    impressumPhotographyTitle: "사진",
+    impressumHeroVideoTitle: "히어로 영상",
+    impressumHeroVideoText1: "Pfalztheater Kaiserslautern의 제공으로 사용된 영상 자료입니다.",
+    impressumHeroVideoText2: "제작: Siegerbusch Film",
+    impressumCopyrightTitle: "저작권 고지",
+    impressumCopyrightText1: "별도로 명시되지 않은 한, 본 웹사이트에 게재된 모든 텍스트, 디자인 및 제작물은 저작권법의 보호를 받으며 김현겸(Hyunkyum Kim)에게 저작권이 있습니다.",
+    impressumCopyrightText2: "사진 및 영상 자료는 해당 사진작가 및 저작권자의 지적재산권에 속하며, 사전 허가를 받아 사용되었습니다."
   }
 };
 export type TranslationKey = keyof typeof translations.EN;

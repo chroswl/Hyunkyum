@@ -155,6 +155,7 @@ export default function HeroSection({
                 loop={true}
                 autoPlay={true}
                 controls={false}
+                fetchPriority="high"
                 showPlayIcon={false}
               />
               <AnimatePresence>
@@ -181,6 +182,7 @@ export default function HeroSection({
                 loop={true}
                 autoPlay={true}
                 controls={false}
+                fetchPriority="high"
                 showPlayIcon={false}
               />
               <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
@@ -194,6 +196,7 @@ export default function HeroSection({
                 explicitType={theme.homeBgType as any}
                 className="absolute inset-0 pointer-events-none select-none"
                 imageClassName="animate-kenburns pointer-events-none"
+                fetchPriority="high"
                 showPlayIcon={false}
               />
             </div>

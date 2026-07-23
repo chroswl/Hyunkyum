@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "./lib/indexNow";
 import { initializeApp } from 'firebase/app';
 import { 
   initializeFirestore, 
@@ -99,6 +100,8 @@ export const logout = async () => {
 // Firestore is the ONLY source of truth. All fallback / seed data and automatic initialization logic has been removed.
 
 // Helper to fetch schedule from Firestore
+const notifySearchEngines = () => submitToIndexNow().catch(() => {});
+
 export const fetchSchedule = async (): Promise<ScheduleItem[]> => {
   try {
     const q = query(collection(db, "schedule"));
@@ -124,6 +127,7 @@ export const fetchSchedule = async (): Promise<ScheduleItem[]> => {
 export const saveScheduleItem = async (item: Omit<ScheduleItem, 'id'> & { id?: string }) => {
   if (item.id) {
     await setDoc(doc(db, "schedule", item.id), item);
+    notifySearchEngines();
     return item as ScheduleItem;
   } else {
     const docRef = await addDoc(collection(db, "schedule"), item);
@@ -170,6 +174,7 @@ export const verifyAuthAndDelete = async (collectionName: string, id: string): P
 // Helper to delete schedule item
 export const deleteScheduleItem = async (id: string) => {
   await verifyAuthAndDelete("schedule", id);
+  notifySearchEngines();
 };
 
 // Helper to fetch portfolio
@@ -192,6 +197,7 @@ export const fetchPortfolio = async (): Promise<PortfolioItem[]> => {
 export const savePortfolioItem = async (item: Omit<PortfolioItem, 'id'> & { id?: string }) => {
   if (item.id) {
     await setDoc(doc(db, "portfolio", item.id), item);
+    notifySearchEngines();
     return item as PortfolioItem;
   } else {
     const docRef = await addDoc(collection(db, "portfolio"), item);
@@ -280,6 +286,7 @@ export const deletePortfolioItem = async (id: string) => {
     console.warn("Could not retrieve portfolio item for storage cleanup:", err);
   }
   await verifyAuthAndDelete("portfolio", id);
+  notifySearchEngines();
 };
 
 // Helper to delete contact message
@@ -311,6 +318,7 @@ export const fetchVideos = async (): Promise<VideoItem[]> => {
 export const saveVideoItem = async (item: Omit<VideoItem, 'id'> & { id?: string }) => {
   if (item.id) {
     await setDoc(doc(db, "videos", item.id), item);
+    notifySearchEngines();
     return item as VideoItem;
   } else {
     const docRef = await addDoc(collection(db, "videos"), item);
@@ -333,6 +341,7 @@ export const deleteVideoItem = async (id: string) => {
     console.warn("Could not retrieve video item for R2 cleanup:", err);
   }
   await verifyAuthAndDelete("videos", id);
+  notifySearchEngines();
 };
 
 // --- PRESS REVIEWS DATABASE CMS ---
@@ -359,6 +368,7 @@ export const fetchPress = async (): Promise<PressItem[]> => {
 export const savePressItem = async (item: Omit<PressItem, 'id'> & { id?: string }) => {
   if (item.id) {
     await setDoc(doc(db, "press", item.id), item);
+    notifySearchEngines();
     return item as PressItem;
   } else {
     const docRef = await addDoc(collection(db, "press"), item);
@@ -380,6 +390,7 @@ export const deletePressItem = async (id: string) => {
     console.warn("Could not retrieve press item for R2 cleanup:", err);
   }
   await verifyAuthAndDelete("press", id);
+  notifySearchEngines();
 };
 
 // --- SETTINGS: THEME, BIOGRAPHY & CONTACTS CMS ---
@@ -468,6 +479,7 @@ export const saveBiographySettings = async (settings: BiographySettings) => {
     sanitized.timelineTitles = {};
   }
   await setDoc(doc(db, "settings", "biography"), sanitized);
+  notifySearchEngines();
 };
 
 // Contact Settings helpers
@@ -516,6 +528,7 @@ export const fetchSelectedPerformances = async (): Promise<PerformanceSlide[]> =
 export const saveSelectedPerformance = async (item: Omit<PerformanceSlide, 'id'> & { id?: string }) => {
   if (item.id) {
     await setDoc(doc(db, "selected_performances", item.id), item);
+    notifySearchEngines();
     return item as PerformanceSlide;
   } else {
     const docRef = await addDoc(collection(db, "selected_performances"), item);
@@ -537,6 +550,7 @@ export const deleteSelectedPerformance = async (id: string) => {
     console.warn("Could not retrieve selected performance item for R2 cleanup:", err);
   }
   await verifyAuthAndDelete("selected_performances", id);
+  notifySearchEngines();
 };
 
 

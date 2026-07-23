@@ -205,7 +205,25 @@ export default function ScheduleSection({
 
   return (
     <div id="schedule-section-root" className="w-full relative min-h-[400px]" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
-      
+      {items.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(items.map(item => ({
+            "@context": "https://schema.org",
+            "@type": "MusicEvent",
+            "name": item.title?.EN || "Performance",
+            "startDate": new Date(item.date || new Date()).toISOString(),
+            "location": {
+              "@type": "Place",
+              "name": "Pfalztheater Kaiserslautern",
+              "address": "Kaiserslautern, Germany"
+            },
+            "performer": {
+              "@type": "Person",
+              "name": "Hyunkyum Kim"
+            },
+            "description": "Performance"
+          })))}} />
+      )}
+            
       {/* Toast notifications */}
       <AnimatePresence>
         {notification && (
@@ -224,6 +242,7 @@ export default function ScheduleSection({
           </motion.div>
         )}
       </AnimatePresence>
+
 
       {user ? (
         <div className="max-w-4xl mx-auto px-6 py-12">

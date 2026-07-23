@@ -90,6 +90,51 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type, c
             <div>{renderEditableText('impressumAddressCountry', t.impressumAddressCountry || "Germany")}</div>
           </div>
         </div>
+
+        {/* Image & Video Credits */}
+        <div className="space-y-4 pt-4 border-t border-neutral-900">
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('impressumCreditsTitle', t.impressumCreditsTitle || "Image & Video Credits")}
+          </h4>
+          <div className="space-y-5 text-sm text-neutral-400">
+            <div>
+              <div className="font-serif text-xs text-neutral-300 uppercase tracking-widest mb-2 font-medium">
+                {renderEditableText('impressumPhotographyTitle', t.impressumPhotographyTitle || "Photography")}
+              </div>
+              <ul className="space-y-1 text-neutral-400 pl-0.5">
+                <li>• Klaudia Taday</li>
+                <li>• Andreas J. Etter</li>
+                <li>• Thomas Brenner</li>
+                <li>• Felix Grünschloß</li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="font-serif text-xs text-neutral-300 uppercase tracking-widest mb-2 font-medium">
+                {renderEditableText('impressumHeroVideoTitle', t.impressumHeroVideoTitle || "Hero Video")}
+              </div>
+              <div className="space-y-1 text-neutral-400">
+                <div>{renderEditableText('impressumHeroVideoText1', t.impressumHeroVideoText1 || "Footage courtesy of Pfalztheater Kaiserslautern.")}</div>
+                <div>{renderEditableText('impressumHeroVideoText2', t.impressumHeroVideoText2 || "Filmed and produced by Siegerbusch Film.")}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright Notice */}
+        <div className="space-y-3 pt-4 border-t border-neutral-900">
+          <h4 className="font-serif text-sm tracking-wider text-white uppercase">
+            {renderEditableText('impressumCopyrightTitle', t.impressumCopyrightTitle || "Copyright Notice")}
+          </h4>
+          <div className="space-y-2 text-sm text-neutral-400 leading-relaxed">
+            <div>
+              {renderEditableText('impressumCopyrightText1', t.impressumCopyrightText1 || "Unless otherwise stated, all texts, designs, and original content on this website are the intellectual property of Hyunkyum Kim.")}
+            </div>
+            <div>
+              {renderEditableText('impressumCopyrightText2', t.impressumCopyrightText2 || "Photographs and video material remain the copyright of their respective creators or rights holders and are used with permission.")}
+            </div>
+          </div>
+        </div>
       </div>
     );
   };

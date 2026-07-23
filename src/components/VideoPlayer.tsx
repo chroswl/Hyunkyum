@@ -133,7 +133,7 @@ export default function VideoPlayer({
     const parsedItem = {
       ...item,
       title: item.title || { EN: '', DE: '', KO: '' },
-      role: item.role || { EN: '', DE: '', KO: '' }
+      role: { EN: '', DE: '', KO: '' }
     };
     setEditingItem(parsedItem);
     originalItemRef.current = JSON.parse(JSON.stringify(parsedItem));
@@ -213,6 +213,18 @@ export default function VideoPlayer({
 
   return (
     <div id="video-player-section-wrapper" className="w-full relative min-h-[400px]" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
+      {items.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(items.map(item => ({
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
+            "name": item.title?.EN || "Video",
+            "description": item.title?.EN || "Video",
+            "thumbnailUrl": item.youtubeId.length === 11 ? `https://img.youtube.com/vi/${item.youtubeId}/maxresdefault.jpg` : "https://hyunkyumkim.com/og-image.jpg",
+            "uploadDate": "2024-01-01T08:00:00+08:00",
+            "embedUrl": item.youtubeId.length === 11 ? `https://www.youtube.com/embed/${item.youtubeId}` : item.youtubeId
+          })))}} />
+      )}
+
       
       {/* Toast notifications */}
       <AnimatePresence>
