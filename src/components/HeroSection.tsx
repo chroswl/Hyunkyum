@@ -255,7 +255,7 @@ export default function HeroSection({
           id="hero-title" adminMode={adminMode} selectedBlock={selectedBlock}
           onSelect={(id) => onBlockSelect && onBlockSelect('hero', id)}
         >
-          <motion.h1
+            <motion.h1
             initial={{ opacity: 0, scale: 0.98, y: 0 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.2 }}
