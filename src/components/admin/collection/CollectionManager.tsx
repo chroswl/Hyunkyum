@@ -19,6 +19,7 @@ import { Plus } from 'lucide-react';
 import { CollectionItem } from './CollectionItem';
 import { HoverOverlay } from './HoverOverlay';
 import { FloatingEditor } from '../FloatingEditor';
+import { UniversalDeleteDialog } from '../../../lib/editing/UniversalDeleteDialog';
 
 interface CollectionManagerProps<T extends { id: string }> {
   items: T[];
@@ -63,6 +64,7 @@ export function CollectionManager<T extends { id: string }>({
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -185,7 +187,7 @@ export function CollectionManager<T extends { id: string }>({
                           setIsCreating(false);
                         }}
                         onDelete={() => {
-                          onDelete(item.id);
+                          setDeleteTargetId(item.id);
                         }}
                       />
                     </CollectionItem>
@@ -198,31 +200,48 @@ export function CollectionManager<T extends { id: string }>({
       )}
 
       {/* "+ Add Item" Button (Always appears AFTER the final item) */}
-      <div className="mt-4 flex justify-end">
+      <div className="mt-6 flex justify-end">
         {strategy === 'rect' ? (
           <button
+            type="button"
             onClick={handleStartAdd}
-            className="group flex flex-col items-center justify-center min-h-[160px] w-full border border-dashed border-white/20 hover:border-[#C9A227] bg-white/5 hover:bg-[#C9A227]/5 rounded-sm transition-all duration-300"
+            className="group flex flex-col items-center justify-center min-h-[140px] w-full border border-dashed border-white/20 hover:border-[#C9A227] bg-white/5 hover:bg-[#C9A227]/5 rounded-sm transition-all duration-300 cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-[#C9A227]/20 flex items-center justify-center transition-colors mb-2">
-              <Plus className="w-5 h-5 text-white/50 group-hover:text-[#C9A227]" />
+            <div className="w-9 h-9 rounded-full bg-white/10 group-hover:bg-[#C9A227]/20 flex items-center justify-center transition-colors mb-2">
+              <Plus className="w-4 h-4 text-white/50 group-hover:text-[#C9A227]" />
             </div>
             <span className="text-[10px] uppercase tracking-widest text-white/50 group-hover:text-[#C9A227] font-sans">
-              Add {title}
+              Add New {title}
             </span>
           </button>
         ) : (
           <button
+            type="button"
             onClick={handleStartAdd}
-            className="group flex items-center justify-center gap-2 py-3 w-full border border-dashed border-white/20 hover:border-[#C9A227] bg-white/5 hover:bg-[#C9A227]/5 rounded-sm transition-all duration-300"
+            className="group flex items-center justify-center gap-2 py-3 w-full border border-dashed border-white/20 hover:border-[#C9A227] bg-white/5 hover:bg-[#C9A227]/5 rounded-sm transition-all duration-300 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white/50 group-hover:text-[#C9A227] transition-colors" />
             <span className="text-[10px] uppercase tracking-widest text-white/50 group-hover:text-[#C9A227] font-sans transition-colors">
-              Add {title}
+              Add New {title}
             </span>
           </button>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <UniversalDeleteDialog
+        isOpen={deleteTargetId !== null}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={() => {
+          if (deleteTargetId) {
+            onDelete(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={`Delete ${title}`}
+        description="Are you sure you want to delete"
+        itemName={title}
+      />
 
       {/* Floating Editor Panel */}
       <FloatingEditor
@@ -241,3 +260,4 @@ export function CollectionManager<T extends { id: string }>({
     </div>
   );
 }
+
