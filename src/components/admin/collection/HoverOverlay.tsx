@@ -15,51 +15,38 @@ export function HoverOverlay({ onEdit, onDelete, className = '', isDragHandleOnl
   if (isDragging) return null;
 
   return (
-    <div className={`absolute top-2 right-2 z-30 pointer-events-auto flex items-center ${className}`}>
-      <div className="flex items-center space-x-1 bg-black/85 backdrop-blur-md border border-white/20 rounded-full p-1 shadow-xl opacity-90 group-hover:opacity-100 hover:opacity-100 transition-all">
-        <div 
-          className="p-1.5 hover:bg-white/20 rounded-full text-neutral-300 hover:text-white transition-colors cursor-grab active:cursor-grabbing touch-none"
-          title="Drag to reorder / 드래그하여 순서 변경"
-          onMouseDown={(e) => {
-            e.stopPropagation();
-          }}
-          {...attributes} 
-          {...listeners}
+    <div className={`absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 md:gap-4 z-20 ${className}`}>
+      {onEdit && (
+        <button 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+          className="p-2.5 md:p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors border border-white/20"
+          title="Edit"
         >
-          <GripVertical className="w-3.5 h-3.5" />
-        </div>
-
-        {!isDragHandleOnly && onEdit && (
-          <button 
-            type="button"
-            onClick={(e) => { 
-              e.preventDefault(); 
-              e.stopPropagation(); 
-              onEdit(); 
-            }}
-            className="p-1.5 hover:bg-[#C9A227] hover:text-black rounded-full text-neutral-300 transition-colors cursor-pointer"
-            title="Edit / 수정"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-          </button>
-        )}
-        
-        {!isDragHandleOnly && onDelete && (
-          <button 
-            type="button"
-            onClick={(e) => { 
-              e.preventDefault(); 
-              e.stopPropagation(); 
-              onDelete(); 
-            }}
-            className="p-1.5 hover:bg-red-500 hover:text-white rounded-full text-neutral-300 transition-colors cursor-pointer"
-            title="Delete / 삭제"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        )}
+          <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+      )}
+      
+      {onDelete && (
+        <button 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+          className="p-2.5 md:p-3 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-md transition-colors border border-white/20"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+      )}
+      
+      <div 
+        className="p-2.5 md:p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors cursor-grab touch-none border border-white/20"
+        title="Drag to reorder"
+        onMouseDown={(e) => {
+          // Prevent drag from firing click events underneath
+        }}
+        {...attributes} 
+        {...listeners}
+      >
+        <GripVertical className="w-4 h-4 md:w-5 md:h-5" />
       </div>
     </div>
   );
 }
-
