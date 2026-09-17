@@ -22,7 +22,8 @@ import {
   User
 } from 'firebase/auth';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
-import { ScheduleItem, PortfolioItem, VideoItem, ContactMessage, PressItem, ThemeSettings, BiographySettings, ContactSettings, PerformanceSlide } from './types';
+import { ScheduleItem, Production, PortfolioItem, VideoItem, ContactMessage, PressItem, ThemeSettings, BiographySettings, ContactSettings, PerformanceSlide } from './types';
+import { normalizeProduction } from './lib/scheduleUtils';
 import { deleteFromR2 } from './r2';
 
 const firebaseConfig = {
@@ -80,15 +81,18 @@ export const loginWithGoogle = async () => {
     cachedAccessToken = credential?.accessToken || null;
     return result.user;
   } catch (error: any) {
-    console.error("Auth error:", error);
+    if (error.code !== 'auth/popup-closed-by-user') {
+      console.error("Auth error:", error);
+    }
     if (error.code === 'auth/popup-blocked') {
       alert("Login popup was blocked by your browser. If you are in the AI Studio preview, please click the 'Open in new tab' icon (↗) at the top right and try again.");
     } else if (error.code === 'auth/unauthorized-domain') {
       alert(`로그인 실패: 이 도메인이 Firebase에 승인되지 않았습니다.\n\n[해결 방법]\n1. Firebase Console에 접속합니다.\n2. Authentication > Settings (설정) > Authorized domains (승인된 도메인)으로 이동합니다.\n3. 'Add domain'을 누르고 다음 도메인을 추가하세요:\n\n${window.location.hostname}\n\n4. 저장 후 다시 시도해주세요.`);
     } else if (error.code !== 'auth/popup-closed-by-user') {
       alert(`로그인 실패: ${error.message || error}\n\n에러가 계속되면 새 탭에서 열어서(우측 상단 ↗ 아이콘) 시도해주세요.`);
+      throw error;
     }
-    throw error;
+    return null;
   }
 };
 
@@ -108,14 +112,16 @@ export const fetchSchedule = async (): Promise<ScheduleItem[]> => {
     const querySnapshot = await getDocs(q);
     const items: ScheduleItem[] = [];
     querySnapshot.forEach((doc) => {
-      items.push({ ...doc.data(), id: doc.id } as ScheduleItem);
+      items.push(normalizeProduction({ ...doc.data(), id: doc.id }));
     });
-    // Sort by custom order first, then by date ascending
+    // Sort by custom order first, then by nearest date ascending
     return items.sort((a, b) => {
       if (a.order !== undefined && b.order !== undefined) {
         return a.order - b.order;
       }
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+      const dateA = a.performances?.[0]?.date || a.date || '';
+      const dateB = b.performances?.[0]?.date || b.date || '';
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
     });
   } catch (error) {
     console.error("Error fetching schedule:", error);
@@ -125,13 +131,15 @@ export const fetchSchedule = async (): Promise<ScheduleItem[]> => {
 
 // Helper to save schedule item
 export const saveScheduleItem = async (item: Omit<ScheduleItem, 'id'> & { id?: string }) => {
-  if (item.id) {
-    await setDoc(doc(db, "schedule", item.id), item);
+  const normalized = normalizeProduction(item);
+  if (normalized.id && !normalized.id.startsWith('temp-')) {
+    await setDoc(doc(db, "schedule", normalized.id), normalized);
     notifySearchEngines();
-    return item as ScheduleItem;
+    return normalized as ScheduleItem;
   } else {
-    const docRef = await addDoc(collection(db, "schedule"), item);
-    return { ...item, id: docRef.id } as ScheduleItem;
+    const { id, ...dataToSave } = normalized;
+    const docRef = await addDoc(collection(db, "schedule"), dataToSave);
+    return { ...normalized, id: docRef.id } as ScheduleItem;
   }
 };
 

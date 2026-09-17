@@ -1,9 +1,20 @@
 export type Language = 'EN' | 'DE' | 'KO';
 
-export interface ScheduleItem {
+export interface Performance {
+  id: string;
+  date: string; // YYYY-MM-DD
+  startTime?: string; // HH:MM
+  venue?: string;
+  city?: string;
+  ticketUrl?: string;
+  ticketStatus?: 'available' | 'sold_out' | 'few_tickets' | 'no_ticket' | 'free' | 'cancelled' | string;
+  isPremiere?: boolean;
+  notes?: string;
+}
+
+export interface Production {
   id: string;
   order?: number;
-  date: string; // YYYY-MM-DD
   title: {
     EN: string;
     DE: string;
@@ -21,7 +32,13 @@ export interface ScheduleItem {
   };
   category: 'Opera' | 'Concert' | 'Recital' | 'Gala';
   link?: string;
+  generalLink?: string;
+  season?: string;
+  performances: Performance[];
+  date?: string; // Legacy fallback field
 }
+
+export type ScheduleItem = Production;
 
 export interface PortfolioItem {
   id: string;
