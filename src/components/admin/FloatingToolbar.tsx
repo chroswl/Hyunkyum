@@ -38,6 +38,20 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     }
   };
 
+  const restoreSelection = (): Range | null => {
+    const sel = window.getSelection();
+    if (!sel) return null;
+    if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
+      return sel.getRangeAt(0);
+    }
+    if (savedRangeRef.current && !savedRangeRef.current.collapsed) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+      return savedRangeRef.current;
+    }
+    return null;
+  };
+
   const detectCurrentFontSize = (): string | null => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
@@ -52,72 +66,122 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     return null;
   };
 
-  const applyFontSize = (sizeValue: string) => {
-    let range: Range | null = null;
-    const sel = window.getSelection();
+  // Keep savedRangeRef continuously in sync whenever user selects text
+  useEffect(() => {
+    if (!isOpen) return;
 
-    if (sel && sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
-      range = sel.getRangeAt(0);
-    } else if (savedRangeRef.current && !savedRangeRef.current.collapsed) {
-      range = savedRangeRef.current;
-      if (sel) {
-        sel.removeAllRanges();
-        sel.addRange(range);
+    const handleSelectionChange = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const range = sel.getRangeAt(0);
+      
+      if (targetRef.current && targetRef.current.contains(range.commonAncestorContainer)) {
+        if (!range.collapsed) {
+          savedRangeRef.current = range.cloneRange();
+          const detected = detectCurrentFontSize();
+          if (detected) {
+            setActiveFontSize(detected);
+          }
+        }
       }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [isOpen, targetRef]);
+
+  const executeCommand = (command: string, value: string | undefined = undefined) => {
+    if (targetRef.current && document.activeElement !== targetRef.current) {
+      targetRef.current.focus();
     }
+    restoreSelection();
+    document.execCommand(command, false, value);
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+
+  const applyFontSize = (sizeValue: string) => {
+    if (targetRef.current && document.activeElement !== targetRef.current) {
+      targetRef.current.focus();
+    }
+    const range = restoreSelection();
 
     if (!range || range.collapsed) {
       setIsFontSizeOpen(false);
       return;
     }
 
-    if (targetRef.current) {
-      targetRef.current.focus();
-    }
-
     if (sizeValue === 'inherit') {
-      const fragment = range.cloneContents();
-      const tempDiv = document.createElement('div');
-      tempDiv.appendChild(fragment);
-
-      tempDiv.querySelectorAll('*').forEach((el: any) => {
-        if (el.style && el.style.fontSize) {
-          el.style.fontSize = '';
-          if (!el.getAttribute('style') || el.getAttribute('style').trim() === '') {
-            el.removeAttribute('style');
+      const success = document.execCommand('fontSize', false, '7');
+      if (success && targetRef.current) {
+        const fontTags = targetRef.current.querySelectorAll('font[size="7"]');
+        fontTags.forEach((fontEl) => {
+          const parent = fontEl.parentNode;
+          if (parent) {
+            while (fontEl.firstChild) {
+              const child = fontEl.firstChild;
+              if (child.nodeType === Node.ELEMENT_NODE && (child as HTMLElement).style?.fontSize) {
+                (child as HTMLElement).style.fontSize = '';
+              }
+              parent.insertBefore(child, fontEl);
+            }
+            parent.removeChild(fontEl);
+          }
+        });
+        if (range.commonAncestorContainer) {
+          const ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE 
+            ? (range.commonAncestorContainer as HTMLElement) 
+            : range.commonAncestorContainer.parentElement;
+          const styledParent = ancestor?.closest('[style*="font-size"]') as HTMLElement | null;
+          if (styledParent && targetRef.current.contains(styledParent)) {
+            styledParent.style.fontSize = '';
           }
         }
-      });
-
-      const commonAncestor = range.commonAncestorContainer;
-      const parentSpan = (commonAncestor.nodeType === Node.ELEMENT_NODE 
-        ? (commonAncestor as HTMLElement) 
-        : commonAncestor.parentElement)?.closest('[style*="font-size"]') as HTMLElement | null;
-
-      let htmlToInsert: string;
-      if (parentSpan) {
-        htmlToInsert = `<span style="font-size: inherit;">${tempDiv.innerHTML}</span>`;
       } else {
-        htmlToInsert = tempDiv.innerHTML;
+        const fragment = range.cloneContents();
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(fragment);
+        tempDiv.querySelectorAll('*').forEach((el: any) => {
+          if (el.style && el.style.fontSize) {
+            el.style.fontSize = '';
+          }
+        });
+        document.execCommand('insertHTML', false, tempDiv.innerHTML);
+      }
+    } else {
+      const success = document.execCommand('fontSize', false, '7');
+      let applied = false;
+      if (success && targetRef.current) {
+        const fontTags = targetRef.current.querySelectorAll('font[size="7"]');
+        if (fontTags.length > 0) {
+          fontTags.forEach((fontEl) => {
+            const span = document.createElement('span');
+            span.style.fontSize = sizeValue;
+            fontEl.querySelectorAll('[style*="font-size"]').forEach((inner: any) => {
+              inner.style.fontSize = '';
+            });
+            while (fontEl.firstChild) {
+              span.appendChild(fontEl.firstChild);
+            }
+            fontEl.parentNode?.replaceChild(span, fontEl);
+          });
+          applied = true;
+        }
       }
 
-      document.execCommand('insertHTML', false, htmlToInsert);
-    } else {
-      const fragment = range.cloneContents();
-      const tempDiv = document.createElement('div');
-      tempDiv.appendChild(fragment);
-
-      tempDiv.querySelectorAll('*').forEach((el: any) => {
-        if (el.style && el.style.fontSize) {
-          el.style.fontSize = '';
-          if (!el.getAttribute('style') || el.getAttribute('style').trim() === '') {
-            el.removeAttribute('style');
-          }
-        }
-      });
-
-      const htmlToInsert = `<span style="font-size: ${sizeValue};">${tempDiv.innerHTML}</span>`;
-      document.execCommand('insertHTML', false, htmlToInsert);
+      if (!applied) {
+        const fragment = range.cloneContents();
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(fragment);
+        tempDiv.querySelectorAll('[style*="font-size"]').forEach((inner: any) => {
+          inner.style.fontSize = '';
+        });
+        const htmlToInsert = `<span style="font-size: ${sizeValue};">${tempDiv.innerHTML}</span>`;
+        document.execCommand('insertHTML', false, htmlToInsert);
+      }
     }
 
     if (targetRef.current) {
@@ -148,10 +212,23 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
 
   const updatePosition = () => {
     if (!targetRef.current || !isOpen) return;
-    const rect = targetRef.current.getBoundingClientRect();
+
+    // Check if selection is inside targetRef to anchor toolbar above caret/selection
+    const sel = window.getSelection();
+    let rect = targetRef.current.getBoundingClientRect();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (targetRef.current.contains(range.commonAncestorContainer)) {
+        const rangeRect = range.getBoundingClientRect();
+        if (rangeRect.width > 0 || rangeRect.height > 0) {
+          rect = rangeRect;
+        }
+      }
+    }
+
     const toolbarEl = toolbarRef.current;
     
-    let toolbarWidth = 200; // Default estimate
+    let toolbarWidth = 220; // Default estimate
     let toolbarHeight = 40;
     if (toolbarEl) {
       toolbarWidth = toolbarEl.offsetWidth;
@@ -179,10 +256,10 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     let xOffset = 0;
     
     if (viewLeft < minViewLeft) {
-      xOffset = viewLeft - minViewLeft; // How much we had to shift right (negative value)
+      xOffset = viewLeft - minViewLeft;
       viewLeft = minViewLeft;
     } else if (viewLeft > maxViewLeft) {
-      xOffset = viewLeft - maxViewLeft; // How much we had to shift left (positive value)
+      xOffset = viewLeft - maxViewLeft;
       viewLeft = maxViewLeft;
     }
 
@@ -195,7 +272,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     if (xOffset < -maxOffset) xOffset = -maxOffset;
 
     setPosition((prev) => {
-      // Prevent unnecessary state updates if values are close enough (subpixel differences)
       if (prev && 
           Math.abs(prev.top - top) < 1 && 
           Math.abs(prev.left - left) < 1 && 
@@ -313,9 +389,17 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
         return (
           <button 
             key={`bold-${index}`}
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20"
-            onPointerDown={(e) => { e.preventDefault();
-                            e.stopPropagation(); document.execCommand('bold', false, undefined); }}
+            type="button"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              executeCommand('bold');
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             title="Bold"
             aria-label="Bold"
           >
@@ -326,9 +410,17 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
         return (
           <button 
             key={`italic-${index}`}
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20"
-            onPointerDown={(e) => { e.preventDefault();
-                            e.stopPropagation(); document.execCommand('italic', false, undefined); }}
+            type="button"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              executeCommand('italic');
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             title="Italic"
             aria-label="Italic"
           >
@@ -352,13 +444,18 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                 className={`flex items-center space-x-1 px-2 py-1 rounded text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer ${
                   isFontSizeOpen ? 'bg-neutral-800 text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80'
                 }`}
-                onPointerDown={(e) => {
+                onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   saveSelection();
-                  setActiveFontSize(detectCurrentFontSize());
+                  const currentSize = detectCurrentFontSize();
+                  if (currentSize) setActiveFontSize(currentSize);
                   setIsFontSizeOpen(!isFontSizeOpen);
                   setIsDropdownOpen(false);
+                }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 }}
                 title="Font Size"
                 aria-label="Font Size"
@@ -379,7 +476,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                     transition={{ duration: 0.12 }}
                     className={`absolute left-0 ${
                       isOpeningUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-                    } bg-neutral-900 border border-neutral-700/80 rounded-lg shadow-2xl py-1.5 min-w-[130px] max-h-[250px] overflow-y-auto z-50 text-neutral-200 backdrop-blur-md`}
+                    } bg-neutral-900 border border-neutral-700/80 rounded-lg shadow-2xl py-1.5 min-w-[130px] max-h-[250px] overflow-y-auto z-50 text-neutral-200 backdrop-blur-md floating-toolbar-dropdown`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -399,10 +500,14 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                               ? 'bg-[#C9A227]/20 text-[#C9A227] font-semibold' 
                               : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
                           }`}
-                          onPointerDown={(e) => {
+                          onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             applyFontSize(item.value);
+                          }}
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                           }}
                         >
                           <span className="flex items-center">
@@ -429,14 +534,27 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           <React.Fragment key={`link-group-${index}`}>
             {index > 0 && tools[index - 1] !== 'separator' && <div className="w-px h-5 bg-neutral-700 mx-1 self-center" />}
             <button 
-              className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20"
-              onPointerDown={(e) => { 
+              className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer"
+              type="button"
+              onMouseDown={(e) => { 
                 e.preventDefault();
-                            e.stopPropagation(); 
+                e.stopPropagation(); 
+                saveSelection();
                 const url = prompt('Enter link URL:');
                 if (url) {
+                  if (targetRef.current && document.activeElement !== targetRef.current) {
+                    targetRef.current.focus();
+                  }
+                  restoreSelection();
                   document.execCommand('createLink', false, url);
+                  if (targetRef.current) {
+                    targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+                  }
                 }
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
               }}
               title="Link"
               aria-label="Link"
@@ -465,7 +583,7 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: position.placement === 'top' ? 10 : -10, scale: 0.95 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
-          className="absolute z-[9999] bg-neutral-900 border border-neutral-700/50 rounded-md shadow-xl flex items-center px-1 py-1"
+          className="absolute z-[9999] bg-neutral-900 border border-neutral-700/50 rounded-md shadow-xl flex items-center px-1 py-1 floating-toolbar-portal"
           onMouseDown={(e) => e.preventDefault()}
           style={{
             top: `${position.top}px`,

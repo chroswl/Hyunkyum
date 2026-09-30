@@ -15,6 +15,7 @@ interface InlineEditorProps {
   toolbarTools?: string[];
   displayValue?: (value: string) => string;
   contextName?: string;
+  singleLine?: boolean;
 }
 
 export function InlineEditor({
@@ -27,7 +28,8 @@ export function InlineEditor({
   readonly = false,
   toolbarTools = ['bold', 'italic', 'fontSize', 'separator', 'link'],
   displayValue,
-  contextName
+  contextName,
+  singleLine = false
 }: InlineEditorProps) {
   const [value, setValue, dirty] = useEditable<string>(id, initialValue);
   const [isEditing, setIsEditing] = useState(false);
@@ -36,13 +38,19 @@ export function InlineEditor({
   const lastCommittedValue = useRef<string>(value);
   const lastSeenValueRef = useRef<string>(value);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isInternalInput = useRef(false);
 
-  // Keep the DOM synchronized when value changes from outside (e.g. undo/redo)
+  // Keep the DOM synchronized when value changes from outside (e.g. language switch, undo/redo)
   useEffect(() => {
     if (elementRef.current) {
+      if (isInternalInput.current) {
+        isInternalInput.current = false;
+        return;
+      }
       if (value !== lastSeenValueRef.current) {
         elementRef.current.innerHTML = value || '';
-        lastSeenValueRef.current = value;
+        lastSeenValueRef.current = value || '';
+        lastCommittedValue.current = value || '';
       }
     }
   }, [value]);
@@ -65,20 +73,16 @@ export function InlineEditor({
     return 'Text';
   })();
 
-  const startEditing = () => {
+  const handleFocus = () => {
     if (readonly) return;
     setIsEditing(true);
     lastCommittedValue.current = value;
-    lastSeenValueRef.current = value;
-    if (elementRef.current) {
-      elementRef.current.innerHTML = value || '';
-    }
-    // Focus happens automatically if we use click, but we can ensure caret is placed
-    setTimeout(() => {
-      if (elementRef.current) {
-        elementRef.current.focus();
+    // Clear placeholder text if previously empty
+    if (elementRef.current && (!value || value.trim() === '')) {
+      if (elementRef.current.innerHTML === placeholder) {
+        elementRef.current.innerHTML = '';
       }
-    }, 0);
+    }
   };
 
   const finishEditing = () => {
@@ -91,23 +95,103 @@ export function InlineEditor({
         lastSeenValueRef.current = text;
         lastCommittedValue.current = text;
       }
+      if (!text || text.trim() === '' || text === '<br>') {
+        elementRef.current.innerHTML = placeholder || '';
+      }
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // If blur was caused by clicking into the toolbar or its dropdowns, ignore
+    const related = e.relatedTarget as HTMLElement | null;
+    if (related && (
+      related.closest('[role="toolbar"]') ||
+      related.closest('.floating-toolbar-portal') ||
+      related.closest('.floating-toolbar-dropdown')
+    )) {
+      return;
+    }
+    finishEditing();
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
     if (elementRef.current) {
       elementRef.current.innerHTML = lastCommittedValue.current || '';
+      lastSeenValueRef.current = lastCommittedValue.current;
+    }
+  };
+
+  const handleInput = () => {
+    if (elementRef.current) {
+      const text = elementRef.current.innerHTML;
+      lastSeenValueRef.current = text;
+      isInternalInput.current = true;
+
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+      debounceTimeout.current = setTimeout(() => {
+        if (text !== lastCommittedValue.current) {
+          setValue(text, true);
+          lastCommittedValue.current = text;
+        }
+      }, 500);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      finishEditing();
-    } else if (e.key === 'Escape') {
+    if (e.key === 'Escape') {
       e.preventDefault();
       cancelEditing();
+      elementRef.current?.blur();
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      if (singleLine) {
+        e.preventDefault();
+        finishEditing();
+        elementRef.current?.blur();
+        return;
+      }
+      // For multiline (Biography, paragraphs, etc.):
+      // DO NOT preventDefault! Let browser insert paragraph/line break natively at cursor position.
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData('text/plain');
+    if (text) {
+      e.preventDefault();
+      // Insert plain text at the current caret position, preserving line breaks
+      const success = document.execCommand('insertText', false, text);
+      if (!success) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          const lines = text.split(/\r\n|\r|\n/);
+          const frag = document.createDocumentFragment();
+          lines.forEach((line, idx) => {
+            if (idx > 0) {
+              frag.appendChild(document.createElement('br'));
+            }
+            if (line) {
+              frag.appendChild(document.createTextNode(line));
+            }
+          });
+          const lastNode = frag.lastChild;
+          range.insertNode(frag);
+          if (lastNode) {
+            range.setStartAfter(lastNode);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      }
+      handleInput();
     }
   };
 
@@ -124,42 +208,27 @@ export function InlineEditor({
       }`}
       onMouseEnter={() => !readonly && !isEditing && setIsHovered(true)}
       onMouseLeave={() => !readonly && !isEditing && setIsHovered(false)}
-      onClick={(e) => {
-        if (!readonly && !isEditing) {
-          e.stopPropagation();
-          startEditing();
-        }
-      }}
     >
       <Component
         ref={elementRef}
-        contentEditable={!readonly && isEditing}
+        contentEditable={!readonly}
         suppressContentEditableWarning
-        onBlur={finishEditing}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        onInput={() => {
-          if (elementRef.current) {
-            const text = elementRef.current.innerHTML;
-            lastSeenValueRef.current = text;
-
-            if (debounceTimeout.current) {
-              clearTimeout(debounceTimeout.current);
-            }
-            debounceTimeout.current = setTimeout(() => {
-              if (text !== lastCommittedValue.current) {
-                setValue(text, true);
-                lastCommittedValue.current = text;
-              }
-            }, 500);
-          }
-        }}
+        onInput={handleInput}
+        onPaste={handlePaste}
         className={`outline-none min-w-[20px] min-h-[1em] ${className} ${isEmpty && !readonly ? 'text-neutral-500 italic opacity-50' : ''}`}
-        style={{ cursor: readonly ? 'default' : (isEditing ? 'text' : 'pointer') }}
-        dangerouslySetInnerHTML={{
-          __html: isEditing 
-            ? lastSeenValueRef.current 
-            : (isEmpty ? placeholder : (displayValue ? displayValue(value || '') : (value || '')))
-        }}
+        style={{ cursor: readonly ? 'default' : 'text' }}
+        dangerouslySetInnerHTML={
+          !isEditing
+            ? {
+                __html: isEmpty 
+                  ? (placeholder || '') 
+                  : (displayValue ? displayValue(value || '') : (value || ''))
+              }
+            : undefined
+        }
       />
 
       {/* Floating Toolbar */}
@@ -172,7 +241,16 @@ export function InlineEditor({
 
       {/* Hover Edit Icon */}
       {!readonly && !isEditing && isHovered && (
-        <div className="absolute -top-3 -right-3 p-1 bg-neutral-800 border border-neutral-700 rounded-full shadow-lg z-10">
+        <div 
+          className="absolute -top-3 -right-3 p-1 bg-neutral-800 border border-neutral-700 rounded-full shadow-lg z-10 cursor-pointer pointer-events-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (elementRef.current) {
+              elementRef.current.focus();
+            }
+          }}
+          title="Click to edit"
+        >
           <Edit3 className="w-3 h-3 text-neutral-400" />
         </div>
       )}

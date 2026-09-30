@@ -283,6 +283,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         placeholder="Short Intro"
                         toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}
                         wrapperClassName="block"
+                        as="div"
                       />
                     </div>
                     <div className="whitespace-pre-line">
