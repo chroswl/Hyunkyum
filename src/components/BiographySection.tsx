@@ -277,8 +277,9 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     <meta itemProp="jobTitle" content="South Korean Baritone, Opera Singer" />
                     <div itemProp="description" className="font-medium text-base md:text-lg leading-relaxed">
                       <InlineEditor 
+                        key={`bio.bioIntro.${currentLang}`}
                         id={`bio.bioIntro.${currentLang}`} 
-                        initialValue={activeBio.bioIntro[currentLang] || t.bioIntro} 
+                        initialValue={activeBio?.bioIntro?.[currentLang] || t.bioIntro || ''} 
                         readonly={!user} 
                         placeholder="Short Intro"
                         toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}
@@ -288,8 +289,9 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                     </div>
                     <div className="whitespace-pre-line">
                       <InlineEditor 
+                        key={`bio.bioLong.${currentLang}`}
                         id={`bio.bioLong.${currentLang}`} 
-                        initialValue={activeBio.bioLong[currentLang] || t.bioLong} 
+                        initialValue={activeBio?.bioLong?.[currentLang] || t.bioLong || ''} 
                         readonly={!user} 
                         placeholder="Main Biography"
                         toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}

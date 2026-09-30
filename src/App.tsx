@@ -20,6 +20,7 @@ import {
  fetchContactSettings,
  fetchSelectedPerformances,
  saveThemeSettings, saveBiographySettings, saveContactSettings,
+ DEFAULT_BIOGRAPHY,
  db
 } from './firebase';
 import { writeBatch, doc } from 'firebase/firestore';
@@ -136,10 +137,7 @@ export default function App() { const [currentLang, setLangState] = useState<Lan
    });
  };
 
- const [bio, setBio] = useState<BiographySettings>({
- bioIntro: { EN: '', DE: '', KO: '' },
- bioLong: { EN: '', DE: '', KO: '' }
- });
+  const [bio, setBio] = useState<BiographySettings>(DEFAULT_BIOGRAPHY);
  const [contact, setContact] = useState<ContactSettings>({
  email: 'contact@hyunkyumkim.com',
  phone: '+49 (0) 30 1234 5678',
@@ -362,17 +360,23 @@ export default function App() { const [currentLang, setLangState] = useState<Lan
     const newContact = cloneDeep(contact) || {} as ContactSettings;
     let hasContactUpdates = false;
 
+    // 1. Apply base composite objects first
+    if (state['theme']) {
+      Object.assign(newTheme, state['theme']);
+      hasThemeUpdates = true;
+    }
+    if (state['bio']) {
+      Object.assign(newBio, state['bio']);
+      hasBioUpdates = true;
+    }
+    if (state['contact']) {
+      Object.assign(newContact, state['contact']);
+      hasContactUpdates = true;
+    }
+
+    // 2. Apply granular dot-notation paths so specific edits always take precedence
     for (const [key, value] of Object.entries(state)) {
-      if (key === 'theme') {
-        Object.assign(newTheme, value);
-        hasThemeUpdates = true;
-      } else if (key === 'bio') {
-        Object.assign(newBio, value);
-        hasBioUpdates = true;
-      } else if (key === 'contact') {
-        Object.assign(newContact, value);
-        hasContactUpdates = true;
-      } else if (key.startsWith('theme.')) {
+      if (key.startsWith('theme.')) {
         const path = key.substring(6);
         set(newTheme, path, value);
         hasThemeUpdates = true;
@@ -394,7 +398,10 @@ export default function App() { const [currentLang, setLangState] = useState<Lan
     }
 
     if (hasBioUpdates) {
-      promises.push(saveBiographySettings(newBio).then(() => setBio(newBio)));
+      promises.push(saveBiographySettings(newBio).then(() => {
+        setBio(newBio);
+        window.dispatchEvent(new CustomEvent('bioChanged', { detail: newBio }));
+      }));
     }
 
     if (hasContactUpdates) {

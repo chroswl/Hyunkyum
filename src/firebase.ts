@@ -422,7 +422,7 @@ export const saveThemeSettings = async (settings: ThemeSettings) => {
   await setDoc(doc(db, "settings", "theme"), settings);
 };
 
-const DEFAULT_BIOGRAPHY: BiographySettings = {
+export const DEFAULT_BIOGRAPHY: BiographySettings = {
   bioIntro: {
     EN: "Hyunkyum Kim is a Korean baritone based in Germany. His repertoire ranges from Mozart to Verdi, performing both opera and concert works throughout Europe.",
     DE: "Hyunkyum Kim ist ein koreanischer Bariton, der in Deutschland lebt und arbeitet. Sein Repertoire reicht von Mozart bis Verdi und umfasst sowohl Opern- als auch Konzertwerke in ganz Europa.",
@@ -467,8 +467,16 @@ export const fetchBiographySettings = async (): Promise<BiographySettings> => {
     }
     const data = bioDoc.data() as BiographySettings;
     return {
-      bioIntro: data.bioIntro || DEFAULT_BIOGRAPHY.bioIntro,
-      bioLong: data.bioLong || DEFAULT_BIOGRAPHY.bioLong,
+      bioIntro: {
+        EN: data.bioIntro?.EN ?? DEFAULT_BIOGRAPHY.bioIntro.EN,
+        DE: data.bioIntro?.DE ?? DEFAULT_BIOGRAPHY.bioIntro.DE,
+        KO: data.bioIntro?.KO ?? DEFAULT_BIOGRAPHY.bioIntro.KO,
+      },
+      bioLong: {
+        EN: data.bioLong?.EN ?? DEFAULT_BIOGRAPHY.bioLong.EN,
+        DE: data.bioLong?.DE ?? DEFAULT_BIOGRAPHY.bioLong.DE,
+        KO: data.bioLong?.KO ?? DEFAULT_BIOGRAPHY.bioLong.KO,
+      },
       bioImage: data.bioImage || DEFAULT_BIOGRAPHY.bioImage,
       photoCredit: data.photoCredit || "",
       photoCreditLink: data.photoCreditLink || "",
@@ -483,8 +491,28 @@ export const fetchBiographySettings = async (): Promise<BiographySettings> => {
 
 export const saveBiographySettings = async (settings: BiographySettings) => {
   const sanitized = JSON.parse(JSON.stringify(settings));
+  if (!sanitized.bioIntro) sanitized.bioIntro = {};
+  sanitized.bioIntro.EN = sanitized.bioIntro.EN ?? settings.bioIntro?.EN ?? '';
+  sanitized.bioIntro.DE = sanitized.bioIntro.DE ?? settings.bioIntro?.DE ?? '';
+  sanitized.bioIntro.KO = sanitized.bioIntro.KO ?? settings.bioIntro?.KO ?? '';
+
+  if (!sanitized.bioLong) sanitized.bioLong = {};
+  sanitized.bioLong.EN = sanitized.bioLong.EN ?? settings.bioLong?.EN ?? '';
+  sanitized.bioLong.DE = sanitized.bioLong.DE ?? settings.bioLong?.DE ?? '';
+  sanitized.bioLong.KO = sanitized.bioLong.KO ?? settings.bioLong?.KO ?? '';
+
   if (!sanitized.timelineTitles) {
     sanitized.timelineTitles = {};
+  }
+  if (sanitized.timeline) {
+    Object.keys(sanitized.timeline).forEach(tabKey => {
+      if (Array.isArray(sanitized.timeline[tabKey])) {
+        sanitized.timeline[tabKey] = sanitized.timeline[tabKey].map((item: any, idx: number) => ({
+          ...item,
+          id: item.id || `bio-item-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`
+        }));
+      }
+    });
   }
   await setDoc(doc(db, "settings", "biography"), sanitized);
   notifySearchEngines();

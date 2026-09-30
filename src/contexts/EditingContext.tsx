@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 import get from 'lodash/get';
+import set from 'lodash/set';
 
 export type EditingStatus = 'idle' | 'editing' | 'unsaved' | 'saving' | 'saved' | 'error';
 
@@ -86,14 +87,33 @@ export function EditingProvider({
   const [canRedo, setCanRedo] = useState(false);
 
   const isUndoingOrRedoing = useRef(false);
+  const isSavingRef = useRef(false);
 
   const notifySubscribers = useCallback((key?: string) => {
-    if (key) {
-      subscribers.current.get(key)?.forEach(cb => cb());
-      subscribers.current.get('__GLOBAL__')?.forEach(cb => cb());
-    } else {
+    if (!key) {
       subscribers.current.forEach(set => set.forEach(cb => cb()));
+      return;
     }
+
+    // 1. Notify exact key
+    subscribers.current.get(key)?.forEach(cb => cb());
+
+    // 2. If key is a parent (e.g. 'bio', 'theme', 'contact'), notify all child keys (e.g. 'bio.bioIntro.EN')
+    const prefix = key + '.';
+    subscribers.current.forEach((set, subKey) => {
+      if (subKey.startsWith(prefix)) {
+        set.forEach(cb => cb());
+      }
+    });
+
+    // 3. If key is a child (e.g. 'bio.bioIntro.EN'), notify parent ('bio')
+    const dotIndex = key.indexOf('.');
+    if (dotIndex > 0) {
+      const parentKey = key.substring(0, dotIndex);
+      subscribers.current.get(parentKey)?.forEach(cb => cb());
+    }
+
+    subscribers.current.get('__GLOBAL__')?.forEach(cb => cb());
   }, []);
 
   const updateHistoryState = useCallback(() => {
@@ -139,8 +159,11 @@ export function EditingProvider({
     if (theme && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['theme'];
       if (JSON.stringify(prevVal) !== JSON.stringify(theme)) {
-        if (!('theme' in baseStateRef.current)) {
+        if (!('theme' in baseStateRef.current) || isSavingRef.current) {
           baseStateRef.current['theme'] = cloneDeep(theme);
+          stateRef.current['theme'] = cloneDeep(theme);
+          notifySubscribers('theme');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['theme'] = cloneDeep(theme);
@@ -159,8 +182,12 @@ export function EditingProvider({
     if (bio && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['bio'];
       if (JSON.stringify(prevVal) !== JSON.stringify(bio)) {
-        if (!('bio' in baseStateRef.current)) {
+        // If not initialized in baseState, or if incoming update is from save/initial fetch
+        if (!('bio' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['bio'] = cloneDeep(bio);
+          stateRef.current['bio'] = cloneDeep(bio);
+          notifySubscribers('bio');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['bio'] = cloneDeep(bio);
@@ -179,8 +206,11 @@ export function EditingProvider({
     if (contact && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['contact'];
       if (JSON.stringify(prevVal) !== JSON.stringify(contact)) {
-        if (!('contact' in baseStateRef.current)) {
+        if (!('contact' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['contact'] = cloneDeep(contact);
+          stateRef.current['contact'] = cloneDeep(contact);
+          notifySubscribers('contact');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['contact'] = cloneDeep(contact);
@@ -199,8 +229,11 @@ export function EditingProvider({
     if (portfolioItems && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['portfolioItems'];
       if (JSON.stringify(prevVal) !== JSON.stringify(portfolioItems)) {
-        if (!('portfolioItems' in baseStateRef.current)) {
+        if (!('portfolioItems' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['portfolioItems'] = cloneDeep(portfolioItems);
+          stateRef.current['portfolioItems'] = cloneDeep(portfolioItems);
+          notifySubscribers('portfolioItems');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['portfolioItems'] = cloneDeep(portfolioItems);
@@ -219,8 +252,11 @@ export function EditingProvider({
     if (scheduleItems && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['scheduleItems'];
       if (JSON.stringify(prevVal) !== JSON.stringify(scheduleItems)) {
-        if (!('scheduleItems' in baseStateRef.current)) {
+        if (!('scheduleItems' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['scheduleItems'] = cloneDeep(scheduleItems);
+          stateRef.current['scheduleItems'] = cloneDeep(scheduleItems);
+          notifySubscribers('scheduleItems');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['scheduleItems'] = cloneDeep(scheduleItems);
@@ -239,8 +275,11 @@ export function EditingProvider({
     if (videoItems && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['videoItems'];
       if (JSON.stringify(prevVal) !== JSON.stringify(videoItems)) {
-        if (!('videoItems' in baseStateRef.current)) {
+        if (!('videoItems' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['videoItems'] = cloneDeep(videoItems);
+          stateRef.current['videoItems'] = cloneDeep(videoItems);
+          notifySubscribers('videoItems');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['videoItems'] = cloneDeep(videoItems);
@@ -259,8 +298,11 @@ export function EditingProvider({
     if (pressItems && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['pressItems'];
       if (JSON.stringify(prevVal) !== JSON.stringify(pressItems)) {
-        if (!('pressItems' in baseStateRef.current)) {
+        if (!('pressItems' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['pressItems'] = cloneDeep(pressItems);
+          stateRef.current['pressItems'] = cloneDeep(pressItems);
+          notifySubscribers('pressItems');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['pressItems'] = cloneDeep(pressItems);
@@ -279,8 +321,11 @@ export function EditingProvider({
     if (slides && !isUndoingOrRedoing.current) {
       const prevVal = stateRef.current['slides'];
       if (JSON.stringify(prevVal) !== JSON.stringify(slides)) {
-        if (!('slides' in baseStateRef.current)) {
+        if (!('slides' in baseStateRef.current) || isSavingRef.current || !prevVal) {
           baseStateRef.current['slides'] = cloneDeep(slides);
+          stateRef.current['slides'] = cloneDeep(slides);
+          notifySubscribers('slides');
+          return;
         }
         const oldState = cloneDeep(stateRef.current);
         stateRef.current['slides'] = cloneDeep(slides);
@@ -327,20 +372,42 @@ export function EditingProvider({
   }, []);
 
   const setValue = useCallback(<T,>(key: string, value: T, commitToHistory = true) => {
-    // If not initialized in base state, initialize it so we know when it's dirty
+    // If not initialized in base state, initialize it with current resolved value
     if (!(key in baseStateRef.current)) {
-       baseStateRef.current[key] = cloneDeep(stateRef.current[key] !== undefined ? stateRef.current[key] : value);
+       baseStateRef.current[key] = cloneDeep(getValue(key, value));
     }
 
     const oldState = cloneDeep(stateRef.current);
     stateRef.current[key] = value;
+
+    // Keep parent composite objects in sync so save always captures subfield changes
+    if (key.startsWith('bio.')) {
+      const path = key.substring(4);
+      if (!stateRef.current['bio'] || typeof stateRef.current['bio'] !== 'object') {
+        stateRef.current['bio'] = {};
+      }
+      set(stateRef.current['bio'], path, value);
+    } else if (key.startsWith('theme.')) {
+      const path = key.substring(6);
+      if (!stateRef.current['theme'] || typeof stateRef.current['theme'] !== 'object') {
+        stateRef.current['theme'] = {};
+      }
+      set(stateRef.current['theme'], path, value);
+    } else if (key.startsWith('contact.')) {
+      const path = key.substring(8);
+      if (!stateRef.current['contact'] || typeof stateRef.current['contact'] !== 'object') {
+        stateRef.current['contact'] = {};
+      }
+      set(stateRef.current['contact'], path, value);
+    }
+
     notifySubscribers(key);
 
     if (commitToHistory) {
       pushHistory(oldState);
       setStatus('unsaved');
     }
-  }, [notifySubscribers, pushHistory]);
+  }, [notifySubscribers, pushHistory, getValue]);
 
   const isDirty = useCallback((key: string): boolean => {
     if (!(key in baseStateRef.current)) return false;
@@ -374,7 +441,13 @@ export function EditingProvider({
   }, []);
 
   const saveChanges = useCallback(async () => {
+    // If an editable element is currently focused, blur it to ensure in-flight changes are committed
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     setStatus('saving');
+    isSavingRef.current = true;
     
     try {
       if (onSave) {
@@ -390,6 +463,8 @@ export function EditingProvider({
     } catch (err) {
       console.error('Failed to save changes:', err);
       setStatus('error');
+    } finally {
+      isSavingRef.current = false;
     }
   }, [onSave, updateHistoryState]);
 
@@ -526,6 +601,15 @@ export function useEditable<T>(key: string, initialValue: T): [T, (val: T, commi
 
   const [value, setLocalValue] = useState<T>(() => getValue(key, initialValue));
   const [dirty, setDirty] = useState(false);
+  const prevKeyRef = useRef(key);
+
+  // Synchronize state when the target key changes (e.g. language switch EN -> DE -> KO)
+  if (prevKeyRef.current !== key) {
+    prevKeyRef.current = key;
+    const currentVal = getValue(key, initialValue);
+    setLocalValue(currentVal);
+    setDirty(isDirty(key));
+  }
   
   const initialValueRef = useRef(initialValue);
   useEffect(() => {
