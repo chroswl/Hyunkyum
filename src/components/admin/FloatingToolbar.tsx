@@ -22,6 +22,22 @@ const FONT_SIZES = [
   { label: '32px', value: '32px', sub: '3XL' },
 ];
 
+function isRangeInsideTarget(range: Range | null | undefined, target: HTMLElement | null | undefined): boolean {
+  if (!target || !range) return false;
+  try {
+    const ancestor = range.commonAncestorContainer;
+    if (ancestor === target || target.contains(ancestor)) {
+      return true;
+    }
+    if (target.contains(range.startContainer) && target.contains(range.endContainer)) {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+  return false;
+}
+
 export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 'link'], contextName }: FloatingToolbarProps) {
   const [position, setPosition] = useState<{ top: number; left: number; placement: 'top' | 'bottom'; xOffset: number } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -31,31 +47,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
   const fontSizeContainerRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
 
-  const saveSelection = () => {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
-    }
-  };
-
-  const restoreSelection = (): Range | null => {
-    const sel = window.getSelection();
-    if (!sel) return null;
-    if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
-      return sel.getRangeAt(0);
-    }
-    if (savedRangeRef.current && !savedRangeRef.current.collapsed) {
-      sel.removeAllRanges();
-      sel.addRange(savedRangeRef.current);
-      return savedRangeRef.current;
-    }
-    return null;
-  };
-
   const detectCurrentFontSize = (): string | null => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
-    const node = sel.anchorNode;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
     if (!node) return null;
     const el = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement;
     if (!el) return null;
@@ -64,6 +60,75 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       return styledEl.style.fontSize;
     }
     return null;
+  };
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (targetRef.current && isRangeInsideTarget(range, targetRef.current)) {
+      savedRangeRef.current = range.cloneRange();
+    }
+  };
+
+  const restoreSelection = (): Range | null => {
+    if (!targetRef.current) return null;
+    const sel = window.getSelection();
+    if (!sel) return null;
+
+    // Check if active selection in window is already inside targetRef
+    if (sel.rangeCount > 0) {
+      const currentRange = sel.getRangeAt(0);
+      if (isRangeInsideTarget(currentRange, targetRef.current)) {
+        if (!currentRange.collapsed || !savedRangeRef.current || savedRangeRef.current.collapsed) {
+          savedRangeRef.current = currentRange.cloneRange();
+          return currentRange;
+        }
+      }
+    }
+
+    // Otherwise restore from savedRangeRef
+    if (savedRangeRef.current && isRangeInsideTarget(savedRangeRef.current, targetRef.current)) {
+      try {
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+        return savedRangeRef.current;
+      } catch (err) {
+        console.warn('Could not restore selection range:', err);
+      }
+    }
+
+    return null;
+  };
+
+  const prepareExecution = (): Range | null => {
+    if (!targetRef.current) return null;
+
+    // 1. Ensure targetRef is active/focused without disrupting range
+    if (document.activeElement !== targetRef.current && !targetRef.current.contains(document.activeElement)) {
+      try {
+        targetRef.current.focus({ preventScroll: true });
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // 2. Restore range
+    const range = restoreSelection();
+    if (!range) return null;
+
+    // 3. Ensure window.getSelection has this range
+    const sel = window.getSelection();
+    if (sel) {
+      try {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return range;
   };
 
   // Keep savedRangeRef continuously in sync whenever user selects text
@@ -75,12 +140,17 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       if (!sel || sel.rangeCount === 0) return;
       const range = sel.getRangeAt(0);
       
-      if (targetRef.current && targetRef.current.contains(range.commonAncestorContainer)) {
+      if (targetRef.current && isRangeInsideTarget(range, targetRef.current)) {
         if (!range.collapsed) {
           savedRangeRef.current = range.cloneRange();
           const detected = detectCurrentFontSize();
           if (detected) {
             setActiveFontSize(detected);
+          }
+        } else {
+          // If range is collapsed (caret), only overwrite if savedRange was already collapsed or null
+          if (!savedRangeRef.current || savedRangeRef.current.collapsed) {
+            savedRangeRef.current = range.cloneRange();
           }
         }
       }
@@ -92,24 +162,44 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     };
   }, [isOpen, targetRef]);
 
-  const executeCommand = (command: string, value: string | undefined = undefined) => {
-    if (targetRef.current && document.activeElement !== targetRef.current) {
-      targetRef.current.focus();
+  // Clean up selection when toolbar closes
+  useEffect(() => {
+    if (!isOpen) {
+      savedRangeRef.current = null;
+      setIsDropdownOpen(false);
+      setIsFontSizeOpen(false);
+      setActiveFontSize(null);
     }
-    restoreSelection();
+  }, [isOpen]);
+
+  const executeCommand = (command: string, value: string | undefined = undefined) => {
+    const range = prepareExecution();
+    if (!range) return;
+
     document.execCommand(command, false, value);
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (targetRef.current && isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
+
     if (targetRef.current) {
       targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
 
   const applyFontSize = (sizeValue: string) => {
-    if (targetRef.current && document.activeElement !== targetRef.current) {
-      targetRef.current.focus();
-    }
-    const range = restoreSelection();
+    const range = prepareExecution();
 
-    if (!range || range.collapsed) {
+    if (!range || !targetRef.current || !isRangeInsideTarget(range, targetRef.current)) {
+      setIsFontSizeOpen(false);
+      return;
+    }
+
+    if (range.collapsed) {
       setIsFontSizeOpen(false);
       return;
     }
@@ -121,9 +211,12 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
         fontTags.forEach((fontEl) => {
           const parent = fontEl.parentNode;
           if (parent) {
+            fontEl.querySelectorAll('[style*="font-size"]').forEach((el: any) => {
+              el.style.fontSize = '';
+            });
             while (fontEl.firstChild) {
               const child = fontEl.firstChild;
-              if (child.nodeType === Node.ELEMENT_NODE && (child as HTMLElement).style?.fontSize) {
+              if (child.nodeType === Node.ELEMENT_NODE && (child as HTMLElement).style) {
                 (child as HTMLElement).style.fontSize = '';
               }
               parent.insertBefore(child, fontEl);
@@ -131,14 +224,14 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
             parent.removeChild(fontEl);
           }
         });
-        if (range.commonAncestorContainer) {
-          const ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE 
-            ? (range.commonAncestorContainer as HTMLElement) 
-            : range.commonAncestorContainer.parentElement;
-          const styledParent = ancestor?.closest('[style*="font-size"]') as HTMLElement | null;
-          if (styledParent && targetRef.current.contains(styledParent)) {
-            styledParent.style.fontSize = '';
+
+        let ancestor: Node | null = range.commonAncestorContainer;
+        if (ancestor.nodeType === Node.TEXT_NODE) ancestor = ancestor.parentNode;
+        while (ancestor && ancestor !== targetRef.current) {
+          if (ancestor.nodeType === Node.ELEMENT_NODE && (ancestor as HTMLElement).style?.fontSize) {
+            (ancestor as HTMLElement).style.fontSize = '';
           }
+          ancestor = ancestor.parentNode;
         }
       } else {
         const fragment = range.cloneContents();
@@ -188,9 +281,86 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
+
     setActiveFontSize(sizeValue === 'inherit' ? null : sizeValue);
-    savedRangeRef.current = null;
     setIsFontSizeOpen(false);
+  };
+
+  const applyRole = (role: string) => {
+    const range = prepareExecution();
+    if (!range || !targetRef.current || !isRangeInsideTarget(range, targetRef.current)) {
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    if (range.collapsed) {
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    const fragment = range.cloneContents();
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(fragment);
+
+    // Remove any existing typography-* classes inside to prevent clutter
+    tempDiv.querySelectorAll('[class*="typography-"]').forEach((el: any) => {
+      el.className = el.className.replace(/\btypography-\S+/g, '').trim();
+    });
+
+    const html = `<span class="typography-${role}">${tempDiv.innerHTML}</span>`;
+    document.execCommand('insertHTML', false, html);
+
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
+
+    setIsDropdownOpen(false);
+  };
+
+  const applyLink = () => {
+    saveSelection();
+    const currentRange = savedRangeRef.current;
+    if (!currentRange || !targetRef.current || !isRangeInsideTarget(currentRange, targetRef.current)) {
+      return;
+    }
+
+    const url = prompt('Enter link URL:');
+    if (!url) {
+      prepareExecution();
+      return;
+    }
+
+    const range = prepareExecution();
+    if (!range) return;
+
+    document.execCommand('createLink', false, url);
+
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
   };
 
   // Close font size dropdown when clicking outside
@@ -216,13 +386,18 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     // Check if selection is inside targetRef to anchor toolbar above caret/selection
     const sel = window.getSelection();
     let rect = targetRef.current.getBoundingClientRect();
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
-      if (targetRef.current.contains(range.commonAncestorContainer)) {
-        const rangeRect = range.getBoundingClientRect();
-        if (rangeRect.width > 0 || rangeRect.height > 0) {
-          rect = rangeRect;
-        }
+    let activeRange: Range | null = null;
+
+    if (sel && sel.rangeCount > 0 && isRangeInsideTarget(sel.getRangeAt(0), targetRef.current)) {
+      activeRange = sel.getRangeAt(0);
+    } else if (savedRangeRef.current && isRangeInsideTarget(savedRangeRef.current, targetRef.current)) {
+      activeRange = savedRangeRef.current;
+    }
+
+    if (activeRange) {
+      const rangeRect = activeRange.getBoundingClientRect();
+      if (rangeRect.width > 0 || rangeRect.height > 0) {
+        rect = rangeRect;
       }
     }
 
@@ -286,7 +461,7 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
   useEffect(() => {
     if (!isOpen || !targetRef.current) {
       setPosition(null);
-      setIsDropdownOpen(false); // Close dropdown when toolbar closes
+      setIsDropdownOpen(false);
       return;
     }
 
@@ -330,17 +505,26 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
               className="relative flex items-center group cursor-pointer"
               onMouseEnter={() => setIsDropdownOpen(true)}
               onMouseLeave={() => setIsDropdownOpen(false)}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                            e.stopPropagation();
-                setIsDropdownOpen(!isDropdownOpen);
-              }}
             >
-              <Type className="w-3.5 h-3.5 text-neutral-400 ml-2 group-hover:text-white transition-colors" />
-              <div className="flex items-center text-[11px] font-sans pl-1.5 pr-2 py-1.5 uppercase tracking-wider text-neutral-300 group-hover:text-white transition-colors">
-                ROLE
-                <ChevronDown className="w-3 h-3 text-neutral-500 ml-1 group-hover:text-white transition-colors" />
-              </div>
+              <button
+                type="button"
+                className="flex items-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-white/20 rounded"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  saveSelection();
+                  setIsDropdownOpen(!isDropdownOpen);
+                  setIsFontSizeOpen(false);
+                }}
+                title="Typography Role"
+                aria-label="Role"
+              >
+                <Type className="w-3.5 h-3.5 text-neutral-400 ml-2 group-hover:text-white transition-colors" />
+                <div className="flex items-center text-[11px] font-sans pl-1.5 pr-2 py-1.5 uppercase tracking-wider text-neutral-300 group-hover:text-white transition-colors">
+                  ROLE
+                  <ChevronDown className="w-3 h-3 text-neutral-500 ml-1 group-hover:text-white transition-colors" />
+                </div>
+              </button>
               
               <AnimatePresence>
                 {isDropdownOpen && (
@@ -354,30 +538,18 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                     }`}
                   >
                      {['display', 'heading', 'body', 'small'].map(role => (
-                       <div 
+                       <button 
                          key={role}
-                         className="px-3 py-2 text-[10px] uppercase tracking-wider text-neutral-300 hover:bg-neutral-700 hover:text-white cursor-pointer transition-colors"
-                         onPointerDown={(e) => {
+                         type="button"
+                         className="px-3 py-2 text-[10px] text-left uppercase tracking-wider text-neutral-300 hover:bg-neutral-700 hover:text-white cursor-pointer transition-colors"
+                         onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            
-                            const selection = window.getSelection();
-                            if (!selection || selection.rangeCount === 0) return;
-                            
-                            const range = selection.getRangeAt(0);
-                            if (range.collapsed) return;
-                            
-                            const div = document.createElement('div');
-                            div.appendChild(range.cloneContents());
-                            
-                            const html = `<span class="typography-${role}">${div.innerHTML}</span>`;
-                            document.execCommand('insertHTML', false, html);
-                            
-                            setIsDropdownOpen(false);
+                            applyRole(role);
                          }}
                        >
                          {role}
-                       </div>
+                       </button>
                      ))}
                   </motion.div>
                 )}
@@ -396,10 +568,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
               e.stopPropagation();
               executeCommand('bold');
             }}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
             title="Bold"
             aria-label="Bold"
           >
@@ -416,10 +584,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
               e.preventDefault();
               e.stopPropagation();
               executeCommand('italic');
-            }}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
             }}
             title="Italic"
             aria-label="Italic"
@@ -453,10 +617,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                   setIsFontSizeOpen(!isFontSizeOpen);
                   setIsDropdownOpen(false);
                 }}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
                 title="Font Size"
                 aria-label="Font Size"
               >
@@ -481,10 +641,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                       e.preventDefault();
                       e.stopPropagation();
                     }}
-                    onPointerDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
                   >
                     <div className="px-2.5 py-1 text-[9px] uppercase tracking-wider text-neutral-500 font-semibold border-b border-neutral-800 mb-1">
                       Font Size
@@ -504,10 +660,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
                             e.preventDefault();
                             e.stopPropagation();
                             applyFontSize(item.value);
-                          }}
-                          onPointerDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
                           }}
                         >
                           <span className="flex items-center">
@@ -539,22 +691,7 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
               onMouseDown={(e) => { 
                 e.preventDefault();
                 e.stopPropagation(); 
-                saveSelection();
-                const url = prompt('Enter link URL:');
-                if (url) {
-                  if (targetRef.current && document.activeElement !== targetRef.current) {
-                    targetRef.current.focus();
-                  }
-                  restoreSelection();
-                  document.execCommand('createLink', false, url);
-                  if (targetRef.current) {
-                    targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
-                  }
-                }
-              }}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+                applyLink();
               }}
               title="Link"
               aria-label="Link"
@@ -584,7 +721,10 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           exit={{ opacity: 0, y: position.placement === 'top' ? 10 : -10, scale: 0.95 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
           className="absolute z-[9999] bg-neutral-900 border border-neutral-700/50 rounded-md shadow-xl flex items-center px-1 py-1 floating-toolbar-portal"
-          onMouseDown={(e) => e.preventDefault()}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           style={{
             top: `${position.top}px`,
             left: `${position.left}px`,
@@ -623,3 +763,4 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     document.body
   );
 }
+
