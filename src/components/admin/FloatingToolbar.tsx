@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Bold, Italic, Link2, ChevronDown, Type } from 'lucide-react';
+import { Bold, Italic, Link2, ChevronDown, Type, ALargeSmall } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface FloatingToolbarProps {
@@ -10,10 +10,141 @@ interface FloatingToolbarProps {
   contextName?: string;
 }
 
+const FONT_SIZES = [
+  { label: 'Default', value: 'inherit', sub: 'Reset' },
+  { label: '12px', value: '12px', sub: 'Small' },
+  { label: '14px', value: '14px', sub: 'Compact' },
+  { label: '16px', value: '16px', sub: 'Body' },
+  { label: '18px', value: '18px', sub: 'Medium' },
+  { label: '20px', value: '20px', sub: 'Large' },
+  { label: '24px', value: '24px', sub: 'XL' },
+  { label: '28px', value: '28px', sub: '2XL' },
+  { label: '32px', value: '32px', sub: '3XL' },
+];
+
 export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 'link'], contextName }: FloatingToolbarProps) {
   const [position, setPosition] = useState<{ top: number; left: number; placement: 'top' | 'bottom'; xOffset: number } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
+  const [activeFontSize, setActiveFontSize] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const fontSizeContainerRef = useRef<HTMLDivElement>(null);
+  const savedRangeRef = useRef<Range | null>(null);
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  const detectCurrentFontSize = (): string | null => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const node = sel.anchorNode;
+    if (!node) return null;
+    const el = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement;
+    if (!el) return null;
+    const styledEl = el.closest('[style*="font-size"]') as HTMLElement | null;
+    if (styledEl && styledEl.style.fontSize) {
+      return styledEl.style.fontSize;
+    }
+    return null;
+  };
+
+  const applyFontSize = (sizeValue: string) => {
+    let range: Range | null = null;
+    const sel = window.getSelection();
+
+    if (sel && sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
+      range = sel.getRangeAt(0);
+    } else if (savedRangeRef.current && !savedRangeRef.current.collapsed) {
+      range = savedRangeRef.current;
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    if (!range || range.collapsed) {
+      setIsFontSizeOpen(false);
+      return;
+    }
+
+    if (targetRef.current) {
+      targetRef.current.focus();
+    }
+
+    if (sizeValue === 'inherit') {
+      const fragment = range.cloneContents();
+      const tempDiv = document.createElement('div');
+      tempDiv.appendChild(fragment);
+
+      tempDiv.querySelectorAll('*').forEach((el: any) => {
+        if (el.style && el.style.fontSize) {
+          el.style.fontSize = '';
+          if (!el.getAttribute('style') || el.getAttribute('style').trim() === '') {
+            el.removeAttribute('style');
+          }
+        }
+      });
+
+      const commonAncestor = range.commonAncestorContainer;
+      const parentSpan = (commonAncestor.nodeType === Node.ELEMENT_NODE 
+        ? (commonAncestor as HTMLElement) 
+        : commonAncestor.parentElement)?.closest('[style*="font-size"]') as HTMLElement | null;
+
+      let htmlToInsert: string;
+      if (parentSpan) {
+        htmlToInsert = `<span style="font-size: inherit;">${tempDiv.innerHTML}</span>`;
+      } else {
+        htmlToInsert = tempDiv.innerHTML;
+      }
+
+      document.execCommand('insertHTML', false, htmlToInsert);
+    } else {
+      const fragment = range.cloneContents();
+      const tempDiv = document.createElement('div');
+      tempDiv.appendChild(fragment);
+
+      tempDiv.querySelectorAll('*').forEach((el: any) => {
+        if (el.style && el.style.fontSize) {
+          el.style.fontSize = '';
+          if (!el.getAttribute('style') || el.getAttribute('style').trim() === '') {
+            el.removeAttribute('style');
+          }
+        }
+      });
+
+      const htmlToInsert = `<span style="font-size: ${sizeValue};">${tempDiv.innerHTML}</span>`;
+      document.execCommand('insertHTML', false, htmlToInsert);
+    }
+
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    setActiveFontSize(sizeValue === 'inherit' ? null : sizeValue);
+    savedRangeRef.current = null;
+    setIsFontSizeOpen(false);
+  };
+
+  // Close font size dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (fontSizeContainerRef.current && !fontSizeContainerRef.current.contains(e.target as Node)) {
+        setIsFontSizeOpen(false);
+      }
+    };
+    if (isFontSizeOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('touchstart', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [isFontSizeOpen]);
 
   const updatePosition = () => {
     if (!targetRef.current || !isOpen) return;
@@ -204,6 +335,95 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
             <Italic className="w-4 h-4" />
           </button>
         );
+      case 'fontSize':
+      case 'fontsize': {
+        const isOpeningUpward = position && (
+          position.placement === 'top' || (toolbarRef.current && (window.innerHeight - toolbarRef.current.getBoundingClientRect().bottom < 250))
+        );
+        return (
+          <React.Fragment key={`fontSize-group-${index}`}>
+            {index > 0 && tools[index - 1] !== 'separator' && <div className="w-px h-5 bg-neutral-700/60 mx-1 self-center" />}
+            <div 
+              ref={fontSizeContainerRef}
+              className="relative flex items-center"
+            >
+              <button 
+                type="button"
+                className={`flex items-center space-x-1 px-2 py-1 rounded text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer ${
+                  isFontSizeOpen ? 'bg-neutral-800 text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80'
+                }`}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  saveSelection();
+                  setActiveFontSize(detectCurrentFontSize());
+                  setIsFontSizeOpen(!isFontSizeOpen);
+                  setIsDropdownOpen(false);
+                }}
+                title="Font Size"
+                aria-label="Font Size"
+              >
+                <ALargeSmall className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                <span className="text-[11px] font-mono tracking-tight font-medium">
+                  {activeFontSize || 'Size'}
+                </span>
+                <ChevronDown className={`w-3 h-3 text-neutral-500 transition-transform duration-150 ${isFontSizeOpen ? 'rotate-180 text-white' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isFontSizeOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: isOpeningUpward ? 5 : -5, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: isOpeningUpward ? 5 : -5, scale: 0.95 }}
+                    transition={{ duration: 0.12 }}
+                    className={`absolute left-0 ${
+                      isOpeningUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                    } bg-neutral-900 border border-neutral-700/80 rounded-lg shadow-2xl py-1.5 min-w-[130px] max-h-[250px] overflow-y-auto z-50 text-neutral-200 backdrop-blur-md`}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <div className="px-2.5 py-1 text-[9px] uppercase tracking-wider text-neutral-500 font-semibold border-b border-neutral-800 mb-1">
+                      Font Size
+                    </div>
+                    {FONT_SIZES.map(item => {
+                      const isSelected = (activeFontSize === item.value) || (!activeFontSize && item.value === 'inherit');
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          className={`w-full px-2.5 py-1.5 text-left text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                            isSelected 
+                              ? 'bg-[#C9A227]/20 text-[#C9A227] font-semibold' 
+                              : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                          }`}
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            applyFontSize(item.value);
+                          }}
+                        >
+                          <span className="flex items-center">
+                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227] mr-1.5" />}
+                            <span style={{ fontSize: item.value === 'inherit' ? '12px' : item.value }}>
+                              {item.label}
+                            </span>
+                          </span>
+                          <span className="text-[10px] text-neutral-500 font-mono ml-2">
+                            {item.sub}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </React.Fragment>
+        );
+      }
       case 'link':
         return (
           <React.Fragment key={`link-group-${index}`}>

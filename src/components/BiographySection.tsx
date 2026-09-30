@@ -281,7 +281,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         initialValue={activeBio.bioIntro[currentLang] || t.bioIntro} 
                         readonly={!user} 
                         placeholder="Short Intro"
-                        toolbarTools={["bold", "italic", "link"]}
+                        toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}
                         wrapperClassName="block"
                       />
                     </div>
@@ -291,7 +291,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
                         initialValue={activeBio.bioLong[currentLang] || t.bioLong} 
                         readonly={!user} 
                         placeholder="Main Biography"
-                        toolbarTools={["bold", "italic", "link"]}
+                        toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}
                         wrapperClassName="block"
                         as="div"
                       />

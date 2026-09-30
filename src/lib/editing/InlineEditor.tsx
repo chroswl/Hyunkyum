@@ -25,7 +25,7 @@ export function InlineEditor({
   wrapperClassName = 'inline-block',
   placeholder = 'Add text...',
   readonly = false,
-  toolbarTools = ['bold', 'italic', 'separator', 'link'],
+  toolbarTools = ['bold', 'italic', 'fontSize', 'separator', 'link'],
   displayValue,
   contextName
 }: InlineEditorProps) {

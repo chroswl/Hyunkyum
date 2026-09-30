@@ -2,6 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          if (!desc || !desc.set) {
+            var _curFetch = window.fetch;
+            Object.defineProperty(window, 'fetch', {
+              get: function() { return _curFetch; },
+              set: function(fn) { _curFetch = fn; },
+              configurable: true,
+              enumerable: true
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hyunkyum Kim (바리톤 김현겸) | Baritone & Opera Singer</title>
     <meta name="description" content="Official website of Hyunkyum Kim (바리톤 김현겸), a South Korean baritone and opera singer based in Germany and ensemble member of Pfalztheater Kaiserslautern. Explore his biography, repertoire, performances, gallery, videos and latest schedule." />
