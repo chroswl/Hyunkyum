@@ -38,14 +38,97 @@ function isRangeInsideTarget(range: Range | null | undefined, target: HTMLElemen
   return false;
 }
 
+function expandRangeToWord(range: Range): Range {
+  const node = range.startContainer;
+  const offset = range.startOffset;
+  if (node && node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent || '';
+    if (text.length > 0) {
+      let start = Math.min(offset, text.length);
+      let end = Math.min(offset, text.length);
+
+      // If at end of word or whitespace, adjust if preceding character is non-whitespace
+      if (start > 0 && (start === text.length || /\s/.test(text[start]))) {
+        if (!/\s/.test(text[start - 1])) {
+          start--;
+          end = start;
+        }
+      }
+
+      while (start > 0 && !/\s/.test(text[start - 1])) {
+        start--;
+      }
+      while (end < text.length && !/\s/.test(text[end])) {
+        end++;
+      }
+
+      if (end > start) {
+        const expanded = document.createRange();
+        expanded.setStart(node, start);
+        expanded.setEnd(node, end);
+        return expanded;
+      }
+    }
+  }
+  return range;
+}
+
 export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 'link'], contextName }: FloatingToolbarProps) {
   const [position, setPosition] = useState<{ top: number; left: number; placement: 'top' | 'bottom'; xOffset: number } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
   const [activeFontSize, setActiveFontSize] = useState<string | null>(null);
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const fontSizeContainerRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
+
+  const detectIsBold = (): boolean => {
+    try {
+      if (document.queryCommandState('bold')) return true;
+    } catch (e) {}
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = sel.getRangeAt(0);
+    let node: Node | null = range.commonAncestorContainer;
+    if (node && node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+    while (node && targetRef.current && node !== targetRef.current) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'b' || tag === 'strong') return true;
+        const styleWeight = el.style.fontWeight;
+        if (styleWeight === 'bold' || styleWeight === '700' || styleWeight === '800' || styleWeight === '900') return true;
+      }
+      node = node.parentNode;
+    }
+    return false;
+  };
+
+  const detectIsItalic = (): boolean => {
+    try {
+      if (document.queryCommandState('italic')) return true;
+    } catch (e) {}
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = sel.getRangeAt(0);
+    let node: Node | null = range.commonAncestorContainer;
+    if (node && node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+    while (node && targetRef.current && node !== targetRef.current) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'i' || tag === 'em') return true;
+        const styleStyle = el.style.fontStyle;
+        if (styleStyle === 'italic') return true;
+      }
+      node = node.parentNode;
+    }
+    return false;
+  };
 
   const detectCurrentFontSize = (): string | null => {
     const sel = window.getSelection();
@@ -153,6 +236,8 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
             savedRangeRef.current = range.cloneRange();
           }
         }
+        setIsBold(detectIsBold());
+        setIsItalic(detectIsItalic());
       }
     };
 
@@ -169,10 +254,93 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       setIsDropdownOpen(false);
       setIsFontSizeOpen(false);
       setActiveFontSize(null);
+      setIsBold(false);
+      setIsItalic(false);
     }
   }, [isOpen]);
 
+  const toggleBold = () => {
+    const range = prepareExecution();
+    if (!range || !targetRef.current) return;
+
+    let activeRange = range;
+    if (activeRange.collapsed) {
+      const expanded = expandRangeToWord(activeRange);
+      if (expanded && !expanded.collapsed) {
+        activeRange = expanded;
+        const sel = window.getSelection();
+        if (sel) {
+          try {
+            sel.removeAllRanges();
+            sel.addRange(activeRange);
+          } catch (e) {}
+        }
+      }
+    }
+
+    document.execCommand('bold', false, undefined);
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (targetRef.current && isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
+
+    setIsBold(detectIsBold());
+
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+
+  const toggleItalic = () => {
+    const range = prepareExecution();
+    if (!range || !targetRef.current) return;
+
+    let activeRange = range;
+    if (activeRange.collapsed) {
+      const expanded = expandRangeToWord(activeRange);
+      if (expanded && !expanded.collapsed) {
+        activeRange = expanded;
+        const sel = window.getSelection();
+        if (sel) {
+          try {
+            sel.removeAllRanges();
+            sel.addRange(activeRange);
+          } catch (e) {}
+        }
+      }
+    }
+
+    document.execCommand('italic', false, undefined);
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const newRange = sel.getRangeAt(0);
+      if (targetRef.current && isRangeInsideTarget(newRange, targetRef.current)) {
+        savedRangeRef.current = newRange.cloneRange();
+      }
+    }
+
+    setIsItalic(detectIsItalic());
+
+    if (targetRef.current) {
+      targetRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+
   const executeCommand = (command: string, value: string | undefined = undefined) => {
+    if (command === 'bold') {
+      toggleBold();
+      return;
+    }
+    if (command === 'italic') {
+      toggleItalic();
+      return;
+    }
+
     const range = prepareExecution();
     if (!range) return;
 
@@ -562,14 +730,21 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           <button 
             key={`bold-${index}`}
             type="button"
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer"
+            className={`p-1.5 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer ${
+              isBold ? 'text-white bg-white/20 ring-1 ring-white/30' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+            }`}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              executeCommand('bold');
+              toggleBold();
             }}
             title="Bold"
             aria-label="Bold"
+            aria-pressed={isBold}
           >
             <Bold className="w-4 h-4" />
           </button>
@@ -579,14 +754,21 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           <button 
             key={`italic-${index}`}
             type="button"
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer"
+            className={`p-1.5 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer ${
+              isItalic ? 'text-white bg-white/20 ring-1 ring-white/30' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+            }`}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              executeCommand('italic');
+              toggleItalic();
             }}
             title="Italic"
             aria-label="Italic"
+            aria-pressed={isItalic}
           >
             <Italic className="w-4 h-4" />
           </button>
@@ -721,6 +903,10 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
           exit={{ opacity: 0, y: position.placement === 'top' ? 10 : -10, scale: 0.95 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
           className="absolute z-[9999] bg-neutral-900 border border-neutral-700/50 rounded-md shadow-xl flex items-center px-1 py-1 floating-toolbar-portal"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
