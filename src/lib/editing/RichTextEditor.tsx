@@ -82,9 +82,13 @@ export function RichTextEditor({
   };
 
   const executeCommand = (command: string, arg?: string) => {
+    try {
+      document.execCommand('styleWithCSS', false, 'false');
+    } catch (e) {}
     document.execCommand(command, false, arg);
     if (elementRef.current) {
       elementRef.current.focus();
+      elementRef.current.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
 
@@ -112,24 +116,31 @@ export function RichTextEditor({
       {isEditing && (
         <div className="absolute -top-12 left-0 flex items-center space-x-1 bg-neutral-800 border border-neutral-700 p-1 rounded shadow-xl z-20">
           <button 
-            onMouseDown={(e) => { e.preventDefault(); executeCommand('bold'); }}
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded"
+            type="button"
+            onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeCommand('bold'); }}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded cursor-pointer"
           >
             <Bold className="w-4 h-4" />
           </button>
           <button 
-            onMouseDown={(e) => { e.preventDefault(); executeCommand('italic'); }}
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded"
+            type="button"
+            onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeCommand('italic'); }}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded cursor-pointer"
           >
             <Italic className="w-4 h-4" />
           </button>
           <button 
-            onMouseDown={(e) => { 
+            type="button"
+            onPointerDown={(e) => { 
               e.preventDefault(); 
+              e.stopPropagation(); 
               const url = prompt('Enter URL:');
               if (url) executeCommand('createLink', url);
             }}
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded"
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded cursor-pointer"
           >
             <LinkIcon className="w-4 h-4" />
           </button>

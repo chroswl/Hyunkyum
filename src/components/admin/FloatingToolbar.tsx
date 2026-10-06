@@ -39,13 +39,34 @@ function isRangeInsideTarget(range: Range | null | undefined, target: HTMLElemen
 }
 
 function expandRangeToWord(range: Range): Range {
-  const node = range.startContainer;
-  const offset = range.startOffset;
+  let node: Node | null = range.startContainer;
+  let offset = range.startOffset;
+
+  // If node is an element node, find the relevant text child node
+  if (node && node.nodeType === Node.ELEMENT_NODE) {
+    const el = node as HTMLElement;
+    if (el.childNodes.length > 0) {
+      if (offset < el.childNodes.length && el.childNodes[offset].nodeType === Node.TEXT_NODE) {
+        node = el.childNodes[offset];
+        offset = 0;
+      } else if (offset > 0 && el.childNodes[offset - 1].nodeType === Node.TEXT_NODE) {
+        node = el.childNodes[offset - 1];
+        offset = (node.textContent || '').length;
+      } else {
+        const textChild = document.createTreeWalker(el, NodeFilter.SHOW_TEXT).nextNode();
+        if (textChild) {
+          node = textChild;
+          offset = 0;
+        }
+      }
+    }
+  }
+
   if (node && node.nodeType === Node.TEXT_NODE) {
     const text = node.textContent || '';
     if (text.length > 0) {
-      let start = Math.min(offset, text.length);
-      let end = Math.min(offset, text.length);
+      let start = Math.min(Math.max(offset, 0), text.length);
+      let end = Math.min(Math.max(offset, 0), text.length);
 
       // If at end of word or whitespace, adjust if preceding character is non-whitespace
       if (start > 0 && (start === text.length || /\s/.test(text[start]))) {
@@ -85,48 +106,85 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
   const savedRangeRef = useRef<Range | null>(null);
 
   const detectIsBold = (): boolean => {
-    try {
-      if (document.queryCommandState('bold')) return true;
-    } catch (e) {}
-
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return false;
+    if (!sel || sel.rangeCount === 0 || !targetRef.current) return false;
     const range = sel.getRangeAt(0);
+    if (!isRangeInsideTarget(range, targetRef.current)) return false;
+
+    // 1. Check if common ancestor or node within targetRef is explicitly inside <b>, <strong>, or has bold style
     let node: Node | null = range.commonAncestorContainer;
     if (node && node.nodeType === Node.TEXT_NODE) node = node.parentNode;
-    while (node && targetRef.current && node !== targetRef.current) {
+
+    while (node && node !== targetRef.current && targetRef.current.contains(node)) {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as HTMLElement;
         const tag = el.tagName.toLowerCase();
         if (tag === 'b' || tag === 'strong') return true;
         const styleWeight = el.style.fontWeight;
         if (styleWeight === 'bold' || styleWeight === '700' || styleWeight === '800' || styleWeight === '900') return true;
+        if (styleWeight === 'normal' || styleWeight === '400' || styleWeight === '300') return false;
       }
       node = node.parentNode;
     }
+
+    // 2. If range is not collapsed, check if any bold elements exist within range contents
+    if (!range.collapsed) {
+      try {
+        const fragment = range.cloneContents();
+        if (fragment.querySelector('b, strong, [style*="font-weight: bold"], [style*="font-weight:bold"], [style*="font-weight: 700"], [style*="font-weight:700"]')) {
+          return true;
+        }
+      } catch (e) {}
+    }
+
+    // 3. Fallback to queryCommandState only if targetRef itself is not inherently styled with semibold/bold
+    try {
+      if (document.queryCommandState('bold')) {
+        const targetComputed = window.getComputedStyle(targetRef.current).fontWeight;
+        const targetWeightNum = parseInt(targetComputed, 10) || 400;
+        if (targetWeightNum < 600) {
+          return true;
+        }
+      }
+    } catch (e) {}
+
     return false;
   };
 
   const detectIsItalic = (): boolean => {
-    try {
-      if (document.queryCommandState('italic')) return true;
-    } catch (e) {}
-
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return false;
+    if (!sel || sel.rangeCount === 0 || !targetRef.current) return false;
     const range = sel.getRangeAt(0);
+    if (!isRangeInsideTarget(range, targetRef.current)) return false;
+
     let node: Node | null = range.commonAncestorContainer;
     if (node && node.nodeType === Node.TEXT_NODE) node = node.parentNode;
-    while (node && targetRef.current && node !== targetRef.current) {
+
+    while (node && node !== targetRef.current && targetRef.current.contains(node)) {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as HTMLElement;
         const tag = el.tagName.toLowerCase();
         if (tag === 'i' || tag === 'em') return true;
         const styleStyle = el.style.fontStyle;
         if (styleStyle === 'italic') return true;
+        if (styleStyle === 'normal') return false;
       }
       node = node.parentNode;
     }
+
+    if (!range.collapsed) {
+      try {
+        const fragment = range.cloneContents();
+        if (fragment.querySelector('i, em, [style*="font-style: italic"], [style*="font-style:italic"]')) {
+          return true;
+        }
+      } catch (e) {}
+    }
+
+    try {
+      if (document.queryCommandState('italic')) return true;
+    } catch (e) {}
+
     return false;
   };
 
@@ -163,10 +221,8 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
     if (sel.rangeCount > 0) {
       const currentRange = sel.getRangeAt(0);
       if (isRangeInsideTarget(currentRange, targetRef.current)) {
-        if (!currentRange.collapsed || !savedRangeRef.current || savedRangeRef.current.collapsed) {
-          savedRangeRef.current = currentRange.cloneRange();
-          return currentRange;
-        }
+        savedRangeRef.current = currentRange.cloneRange();
+        return currentRange;
       }
     }
 
@@ -187,7 +243,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
   const prepareExecution = (): Range | null => {
     if (!targetRef.current) return null;
 
-    // 1. Ensure targetRef is active/focused without disrupting range
+    // 1. Restore range first so we maintain the exact selection
+    const range = restoreSelection();
+    if (!range) return null;
+
+    // 2. Ensure targetRef is focused without resetting selection
     if (document.activeElement !== targetRef.current && !targetRef.current.contains(document.activeElement)) {
       try {
         targetRef.current.focus({ preventScroll: true });
@@ -195,10 +255,6 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
         // ignore
       }
     }
-
-    // 2. Restore range
-    const range = restoreSelection();
-    if (!range) return null;
 
     // 3. Ensure window.getSelection has this range
     const sel = window.getSelection();
@@ -224,16 +280,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       const range = sel.getRangeAt(0);
       
       if (targetRef.current && isRangeInsideTarget(range, targetRef.current)) {
+        savedRangeRef.current = range.cloneRange();
         if (!range.collapsed) {
-          savedRangeRef.current = range.cloneRange();
           const detected = detectCurrentFontSize();
           if (detected) {
             setActiveFontSize(detected);
-          }
-        } else {
-          // If range is collapsed (caret), only overwrite if savedRange was already collapsed or null
-          if (!savedRangeRef.current || savedRangeRef.current.collapsed) {
-            savedRangeRef.current = range.cloneRange();
           }
         }
         setIsBold(detectIsBold());
@@ -278,7 +329,67 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       }
     }
 
-    document.execCommand('bold', false, undefined);
+    const wasBold = detectIsBold();
+    const targetEl = targetRef.current;
+
+    try {
+      document.execCommand('styleWithCSS', false, 'false');
+    } catch (e) {}
+
+    try {
+      document.execCommand('bold', false, undefined);
+    } catch (e) {}
+
+    const nowBold = detectIsBold();
+
+    // Direct DOM fallback if execCommand failed to toggle state cleanly
+    if (wasBold && nowBold && targetEl) {
+      // Unbold fallback: remove b or strong tags in selection or ancestor
+      try {
+        let ancestor: Node | null = activeRange.commonAncestorContainer;
+        if (ancestor.nodeType === Node.TEXT_NODE) ancestor = ancestor.parentNode;
+        while (ancestor && ancestor !== targetEl && targetEl.contains(ancestor)) {
+          if (ancestor.nodeType === Node.ELEMENT_NODE) {
+            const el = ancestor as HTMLElement;
+            const tag = el.tagName.toLowerCase();
+            if (tag === 'b' || tag === 'strong') {
+              const parent = el.parentNode;
+              if (parent) {
+                while (el.firstChild) {
+                  parent.insertBefore(el.firstChild, el);
+                }
+                parent.removeChild(el);
+              }
+              break;
+            } else if (el.style.fontWeight) {
+              el.style.fontWeight = '';
+            }
+          }
+          ancestor = ancestor.parentNode;
+        }
+      } catch (e) {
+        console.warn('Fallback unbold error:', e);
+      }
+    } else if (!wasBold && !nowBold && targetEl && !activeRange.collapsed) {
+      // Bold fallback: wrap in <b>
+      try {
+        const b = document.createElement('b');
+        b.style.fontWeight = '700';
+        const fragment = activeRange.extractContents();
+        b.appendChild(fragment);
+        activeRange.insertNode(b);
+        const newRange = document.createRange();
+        newRange.selectNodeContents(b);
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+        }
+        activeRange = newRange;
+      } catch (e) {
+        console.warn('Fallback bold error:', e);
+      }
+    }
 
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
@@ -314,7 +425,63 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
       }
     }
 
-    document.execCommand('italic', false, undefined);
+    const wasItalic = detectIsItalic();
+    const targetEl = targetRef.current;
+
+    try {
+      document.execCommand('styleWithCSS', false, 'false');
+    } catch (e) {}
+
+    try {
+      document.execCommand('italic', false, undefined);
+    } catch (e) {}
+
+    const nowItalic = detectIsItalic();
+
+    if (wasItalic && nowItalic && targetEl) {
+      try {
+        let ancestor: Node | null = activeRange.commonAncestorContainer;
+        if (ancestor.nodeType === Node.TEXT_NODE) ancestor = ancestor.parentNode;
+        while (ancestor && ancestor !== targetEl && targetEl.contains(ancestor)) {
+          if (ancestor.nodeType === Node.ELEMENT_NODE) {
+            const el = ancestor as HTMLElement;
+            const tag = el.tagName.toLowerCase();
+            if (tag === 'i' || tag === 'em') {
+              const parent = el.parentNode;
+              if (parent) {
+                while (el.firstChild) {
+                  parent.insertBefore(el.firstChild, el);
+                }
+                parent.removeChild(el);
+              }
+              break;
+            } else if (el.style.fontStyle) {
+              el.style.fontStyle = '';
+            }
+          }
+          ancestor = ancestor.parentNode;
+        }
+      } catch (e) {
+        console.warn('Fallback un-italic error:', e);
+      }
+    } else if (!wasItalic && !nowItalic && targetEl && !activeRange.collapsed) {
+      try {
+        const i = document.createElement('i');
+        const fragment = activeRange.extractContents();
+        i.appendChild(fragment);
+        activeRange.insertNode(i);
+        const newRange = document.createRange();
+        newRange.selectNodeContents(i);
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+        }
+        activeRange = newRange;
+      } catch (e) {
+        console.warn('Fallback italic error:', e);
+      }
+    }
 
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
@@ -736,11 +903,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
             onPointerDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              toggleBold();
             }}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggleBold();
             }}
             title="Bold"
             aria-label="Bold"
@@ -760,11 +927,11 @@ export function FloatingToolbar({ isOpen, targetRef, tools = ['bold', 'italic', 
             onPointerDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              toggleItalic();
             }}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggleItalic();
             }}
             title="Italic"
             aria-label="Italic"

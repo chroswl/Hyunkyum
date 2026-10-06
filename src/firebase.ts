@@ -49,7 +49,9 @@ export const storage = getStorage(app);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 let cachedAccessToken: string | null = null;
 
@@ -67,15 +69,11 @@ onAuthStateChanged(auth, (user) => {
 
 // Standard login
 export const loginWithGoogle = async () => {
-  if (window.self !== window.top) {
-    alert("Note: Google Login may be blocked inside this preview window. If login fails, please open the app in a new tab using the ↗ icon at the top right.");
-  }
-  
   try {
     const result = await signInWithPopup(auth, googleProvider);
     if (result.user.email !== 'chroswl@gmail.com') {
       await signOut(auth);
-      throw new Error('Unauthorized email address');
+      throw new Error('Unauthorized email address: Only chroswl@gmail.com has admin access.');
     }
     const credential = GoogleAuthProvider.credentialFromResult(result);
     cachedAccessToken = credential?.accessToken || null;
@@ -84,15 +82,7 @@ export const loginWithGoogle = async () => {
     if (error.code !== 'auth/popup-closed-by-user') {
       console.error("Auth error:", error);
     }
-    if (error.code === 'auth/popup-blocked') {
-      alert("Login popup was blocked by your browser. If you are in the AI Studio preview, please click the 'Open in new tab' icon (↗) at the top right and try again.");
-    } else if (error.code === 'auth/unauthorized-domain') {
-      alert(`로그인 실패: 이 도메인이 Firebase에 승인되지 않았습니다.\n\n[해결 방법]\n1. Firebase Console에 접속합니다.\n2. Authentication > Settings (설정) > Authorized domains (승인된 도메인)으로 이동합니다.\n3. 'Add domain'을 누르고 다음 도메인을 추가하세요:\n\n${window.location.hostname}\n\n4. 저장 후 다시 시도해주세요.`);
-    } else if (error.code !== 'auth/popup-closed-by-user') {
-      alert(`로그인 실패: ${error.message || error}\n\n에러가 계속되면 새 탭에서 열어서(우측 상단 ↗ 아이콘) 시도해주세요.`);
-      throw error;
-    }
-    return null;
+    throw error;
   }
 };
 

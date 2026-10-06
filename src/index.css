@@ -163,3 +163,22 @@ img {
   font-weight: 400;
   letter-spacing: 0.05em;
 }
+
+/* Portfolio Category Tabs Interactive Hover Effects (Matching Press button minimalist style) */
+#portfolio-tabs button {
+  box-shadow: none !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#portfolio-tabs button:hover {
+  border-color: var(--color-text) !important;
+  background-color: color-mix(in srgb, var(--color-text) 5%, transparent) !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#portfolio-tabs button:active {
+  transform: scale(0.96) !important;
+  box-shadow: none !important;
+}

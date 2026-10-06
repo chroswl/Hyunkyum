@@ -160,7 +160,7 @@ export const translations = {
     allCat: "Alle",
     portraitCat: "Portrait",
     stageCat: "Bühne",
-    backstageCat: "Hinter der Bühne",
+    backstageCat: "Backstage",
     clickZoom: "Klicken, um das Bild zu vergrößern",
     
     videosTitle: "VIDEOS",

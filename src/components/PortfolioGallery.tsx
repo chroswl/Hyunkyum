@@ -266,29 +266,33 @@ export default function PortfolioGallery({
         {/* Category Tabs */}
         <div 
           id="portfolio-tabs" 
-          className="flex flex-wrap justify-center gap-2 sm:gap-4 transition-all duration-500 mb-8 px-4"
+          className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto mb-8 px-1 sm:px-4"
         >
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              id={`portfolio-tab-${cat.toLowerCase()}`}
-              onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
-              className={`px-3 sm:px-5 py-2 text-[10px] sm:text-xs tracking-wider sm:tracking-[0.2em] uppercase transition-all border rounded-full duration-300 whitespace-nowrap ${
-                activeCategory === cat ? 'font-semibold shadow-sm' : 'font-normal'
-              }`}
-              style={{
-                backgroundColor: activeCategory === cat 
-                  ? 'color-mix(in srgb, var(--color-text) 15%, transparent)' 
-                  : 'transparent',
-                borderColor: activeCategory === cat 
-                  ? 'var(--color-text)' 
-                  : 'color-mix(in srgb, var(--color-text) 25.098039%, transparent)',
-                color: 'var(--color-text)'
-              }}
-            >
-              {cat === 'Portrait' ? t.portraitCat : cat === 'Stage' ? t.stageCat : t.backstageCat}
-            </button>
-          ))}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-3 w-full">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                id={`portfolio-tab-${cat.toLowerCase()}`}
+                onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
+                className={`group relative w-full px-1.5 sm:px-4 py-2 sm:py-2.5 text-[10px] min-[360px]:text-[11px] sm:text-xs uppercase transition-all duration-300 border rounded-full cursor-pointer active:scale-95 flex items-center justify-center text-center ${
+                  activeCategory === cat ? 'font-semibold opacity-100' : 'font-normal opacity-85 hover:opacity-100'
+                }`}
+                style={{
+                  backgroundColor: activeCategory === cat 
+                    ? 'color-mix(in srgb, var(--color-text) 14%, transparent)' 
+                    : 'transparent',
+                  borderColor: activeCategory === cat 
+                    ? 'var(--color-text)' 
+                    : 'color-mix(in srgb, var(--color-text) 28%, transparent)',
+                  color: 'var(--color-text)'
+                }}
+              >
+                <span className="tab-label truncate tracking-tight min-[380px]:tracking-normal sm:tracking-[0.16em]">
+                  {cat === 'Portrait' ? t.portraitCat : cat === 'Stage' ? t.stageCat : t.backstageCat}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Grid Container & CollectionManager */}

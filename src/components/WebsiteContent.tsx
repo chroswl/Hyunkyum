@@ -92,7 +92,8 @@ export default function WebsiteContent(props: any) {
   const getGoogleFontImport = () => {
     if (!theme) return '';
     const fontsToLoad = [
-      theme.websiteFont
+      theme.websiteFont || 'Inter',
+      'Noto Sans KR'
     ].filter(Boolean) as string[];
     const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'serif', 'sans-serif', 'monospace', 'system-ui', 'inherit'];
     const uniqueGoogleFonts = Array.from(new Set(fontsToLoad)).filter(f => f && !systemFonts.includes(f));
@@ -239,11 +240,9 @@ export default function WebsiteContent(props: any) {
           background-color: ${theme?.heroTextColor || theme?.text || '#ffffff'} !important;
         }
 
-        ${theme?.websiteFont ? `
-          #app-container, #app-container * {
-            font-family: "${theme.websiteFont}", sans-serif !important;
-          }
-        ` : ''}
+        #app-container, #app-container * {
+          font-family: "${theme?.websiteFont || 'Inter'}", "Noto Sans KR", sans-serif !important;
+        }
       `}</style>
 
       {/* VISUAL CMS SANDBOX (Admin Mode Only) */}

@@ -250,6 +250,13 @@ export function InlineEditor({
       return;
     }
 
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'b' || e.key === 'B' || e.key === 'i' || e.key === 'I')) {
+      // Allow native browser formatting shortcut and immediately sync internal input state
+      setTimeout(() => {
+        handleInput();
+      }, 10);
+    }
+
     if (e.key === 'Enter') {
       if (singleLine) {
         e.preventDefault();
