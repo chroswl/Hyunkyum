@@ -234,3 +234,219 @@ export function mergePerformancesIntoProduction(
 
   return { production: merged, addedCount };
 }
+
+/**
+ * Detects the IANA timezone for a venue based on venue name, city, and location strings.
+ */
+function getVenueTimeZone(venueStr: string, cityStr: string, locObj?: { EN?: string; DE?: string; KO?: string }): string {
+  const combined = `${venueStr} ${cityStr} ${locObj?.EN || ''} ${locObj?.DE || ''} ${locObj?.KO || ''}`.toLowerCase();
+  if (combined.includes('korea') || combined.includes('seoul') || combined.includes('한국') || combined.includes('서울') || combined.includes('daegu') || combined.includes('busan')) {
+    return 'Asia/Seoul';
+  }
+  if (combined.includes('wien') || combined.includes('vienna') || combined.includes('austria') || combined.includes('österreich') || combined.includes('salzburg')) {
+    return 'Europe/Vienna';
+  }
+  if (combined.includes('zürich') || combined.includes('zurich') || combined.includes('switzerland') || combined.includes('schweiz') || combined.includes('basel') || combined.includes('geneva') || combined.includes('genf')) {
+    return 'Europe/Zurich';
+  }
+  if (combined.includes('london') || combined.includes('uk') || combined.includes('united kingdom')) {
+    return 'Europe/London';
+  }
+  if (combined.includes('paris') || combined.includes('france')) {
+    return 'Europe/Paris';
+  }
+  if (combined.includes('italy') || combined.includes('italia') || combined.includes('roma') || combined.includes('milano')) {
+    return 'Europe/Rome';
+  }
+  // Default for Hyunkyum Kim (Ensemble member at Pfalztheater Kaiserslautern, Germany)
+  return 'Europe/Berlin';
+}
+
+/**
+ * Calculates the exact ISO 8601 UTC offset (e.g. "+02:00" or "+01:00") for a specific date and time in the given IANA timezone.
+ */
+function getTimeZoneOffset(year: string, month: string, day: string, hh: string, mm: string, timeZone: string): string {
+  try {
+    const dt = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hh), Number(mm)));
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      timeZoneName: 'longOffset'
+    });
+    const parts = formatter.formatToParts(dt);
+    const tz = parts.find(p => p.type === 'timeZoneName')?.value || '';
+    const match = tz.match(/GMT([+-]\d{2}):(\d{2})/);
+    if (match) {
+      return `${match[1]}:${match[2]}`;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return '+01:00';
+}
+
+/**
+ * Formats a performance start date in ISO 8601 without shifting the calendar day.
+ * If startTime is provided, returns "YYYY-MM-DDTHH:MM:00+TZ:00".
+ * If startTime is not available, returns "YYYY-MM-DD" (date-only) to prevent any timezone shifts.
+ */
+function formatPerformanceStartDate(dateStr: string, startTimeStr?: string, timeZone: string = 'Europe/Berlin'): string {
+  let cleanDate = (dateStr || '').trim();
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(cleanDate)) {
+    const [d, m, y] = cleanDate.split('.');
+    cleanDate = `${y}-${m}-${d}`;
+  }
+  const dateMatch = cleanDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!dateMatch) {
+    return cleanDate;
+  }
+  const [_, year, month, day] = dateMatch;
+
+  const timeMatch = startTimeStr ? startTimeStr.match(/(\d{1,2}):(\d{2})/) : null;
+  if (!timeMatch) {
+    // When no start time is specified, date-only string is valid ISO 8601 and avoids timezone shift
+    return `${year}-${month}-${day}`;
+  }
+
+  const hh = timeMatch[1].padStart(2, '0');
+  const mm = timeMatch[2];
+  const offset = getTimeZoneOffset(year, month, day, hh, mm, timeZone);
+  return `${year}-${month}-${day}T${hh}:${mm}:00${offset}`;
+}
+
+/**
+ * Generates accurate Schema.org Event/MusicEvent/TheaterEvent structured data (JSON-LD)
+ * for each individual performance in the schedule, handling eventStatus, offers,
+ * venue, city, and correct local timezones.
+ */
+export function generateScheduleJsonLd(items: Production[]): object[] {
+  if (!items || items.length === 0) return [];
+
+  const events: object[] = [];
+
+  for (const item of items) {
+    if (!item) continue;
+
+    // Use specific Schema.org Event subtype based on production category
+    const eventType = item.category === 'Opera' ? 'TheaterEvent' : 'MusicEvent';
+    const prodTitle = item.title?.EN || item.title?.DE || item.title?.KO || 'Performance';
+
+    const performances: Performance[] = (Array.isArray(item.performances) && item.performances.length > 0)
+      ? item.performances
+      : (item.date ? [{
+          id: `perf-${item.id}`,
+          date: item.date,
+          startTime: (item as any).startTime || '',
+          venue: '',
+          city: '',
+          ticketUrl: item.link || '',
+          ticketStatus: (item as any).ticketStatus || '',
+          isPremiere: true,
+          notes: ''
+        }] : []);
+
+    for (const perf of performances) {
+      if (!perf || !perf.date) continue;
+
+      const timeZone = getVenueTimeZone(perf.venue || '', perf.city || '', item.location);
+      const formattedStartDate = formatPerformanceStartDate(perf.date, perf.startTime, timeZone);
+
+      const venueName = perf.venue?.trim() || item.location?.EN?.trim() || item.location?.DE?.trim() || 'Pfalztheater Kaiserslautern';
+      const cityAddress = perf.city?.trim() || item.location?.DE?.trim() || item.location?.EN?.trim() || 'Kaiserslautern, Germany';
+
+      // Schema.org EventStatus
+      // Sold-out is NOT cancelled (sold-out is reflected in offers.availability)
+      const eventStatus = perf.ticketStatus === 'cancelled'
+        ? 'https://schema.org/EventCancelled'
+        : 'https://schema.org/EventScheduled';
+
+      // Description
+      const descParts: string[] = [];
+      if (item.category) descParts.push(item.category);
+      if (item.role?.EN) descParts.push(`Role: ${item.role.EN}`);
+      else if (item.role?.DE) descParts.push(`Rolle: ${item.role.DE}`);
+      else if (item.role?.KO) descParts.push(`역할: ${item.role.KO}`);
+      if (perf.isPremiere) descParts.push('(Premiere)');
+      if (perf.notes?.trim()) descParts.push(perf.notes.trim());
+      const description = descParts.join(' - ');
+
+      const eventObj: Record<string, any> = {
+        '@context': 'https://schema.org',
+        '@type': eventType,
+        'name': prodTitle,
+        'startDate': formattedStartDate,
+        'eventStatus': eventStatus,
+        'location': {
+          '@type': 'Place',
+          'name': venueName,
+          'address': cityAddress
+        },
+        'performer': {
+          '@type': 'Person',
+          'name': 'Hyunkyum Kim',
+          'jobTitle': 'Baritone',
+          'url': 'https://hyunkyumkim.com/'
+        },
+        'description': description || prodTitle
+      };
+
+      // 1. image: only if reliably available on perf or item
+      const imageUrl = (perf as any).image || (item as any).image || (item as any).imageUrl;
+      if (typeof imageUrl === 'string' && imageUrl.trim().startsWith('http')) {
+        eventObj.image = imageUrl.trim();
+      }
+
+      // 2. organizer: only if reliably available from data
+      const organizer = (perf as any).organizer || (item as any).organizer;
+      if (organizer) {
+        if (typeof organizer === 'string' && organizer.trim()) {
+          eventObj.organizer = {
+            '@type': 'Organization',
+            'name': organizer.trim()
+          };
+        } else if (typeof organizer === 'object' && organizer.name) {
+          eventObj.organizer = {
+            '@type': 'Organization',
+            ...organizer
+          };
+        }
+      }
+
+      // 3. offers: use real ticket URL when available
+      const ticketUrl = perf.ticketUrl?.trim() || item.link?.trim() || item.generalLink?.trim();
+      if (ticketUrl && (ticketUrl.startsWith('http://') || ticketUrl.startsWith('https://'))) {
+        const offer: Record<string, any> = {
+          '@type': 'Offer',
+          'url': ticketUrl
+        };
+        if (perf.ticketStatus === 'sold_out') {
+          offer.availability = 'https://schema.org/SoldOut';
+        } else if (perf.ticketStatus === 'available') {
+          offer.availability = 'https://schema.org/InStock';
+        } else if (perf.ticketStatus === 'few_tickets') {
+          offer.availability = 'https://schema.org/LimitedAvailability';
+        } else if (perf.ticketStatus === 'free') {
+          offer.price = '0';
+          offer.priceCurrency = 'EUR';
+          offer.availability = 'https://schema.org/InStock';
+        }
+        if ((perf as any).price !== undefined && (perf as any).price !== null) {
+          offer.price = String((perf as any).price);
+          if ((perf as any).priceCurrency || (perf as any).currency) {
+            offer.priceCurrency = (perf as any).priceCurrency || (perf as any).currency;
+          }
+        }
+        eventObj.offers = offer;
+      }
+
+      // 4. endDate: only if reliably available from data
+      const endDate = (perf as any).endDate || (perf as any).endTime;
+      if (endDate) {
+        eventObj.endDate = endDate;
+      }
+
+      events.push(eventObj);
+    }
+  }
+
+  return events;
+}

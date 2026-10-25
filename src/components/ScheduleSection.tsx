@@ -13,7 +13,8 @@ import {
   normalizeProduction, 
   createEmptyProduction, 
   getNearestUpcomingPerformance, 
-  isProductionUpcoming 
+  isProductionUpcoming,
+  generateScheduleJsonLd
 } from '../lib/scheduleUtils';
 import SmartImportModal from './admin/SmartImportModal';
 
@@ -167,22 +168,10 @@ export default function ScheduleSection({
   return (
     <div id="schedule-section-root" className="w-full relative min-h-[400px]" style={{ backgroundColor: theme?.bg, color: theme?.text }}>
       {items.length > 0 && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(items.map(item => ({
-            "@context": "https://schema.org",
-            "@type": "MusicEvent",
-            "name": item.title?.EN || "Performance",
-            "startDate": new Date(item.performances?.[0]?.date || item.date || new Date()).toISOString(),
-            "location": {
-              "@type": "Place",
-              "name": item.location?.EN || "Pfalztheater Kaiserslautern",
-              "address": item.location?.DE || "Kaiserslautern, Germany"
-            },
-            "performer": {
-              "@type": "Person",
-              "name": "Hyunkyum Kim"
-            },
-            "description": `${item.category} - ${item.role?.EN || ''}`
-          })))}} />
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateScheduleJsonLd(items)) }} 
+        />
       )}
             
       {/* Toast notifications */}
