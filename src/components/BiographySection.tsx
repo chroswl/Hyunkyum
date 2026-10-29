@@ -12,6 +12,7 @@ import { MediaEngine, useMediaUpload } from '../lib/editing/mediaEngine';
 import { MediaCropWrapper, MediaPreview } from './admin/media';
 import { getMediaSource, ensureAbsoluteUrl } from '../lib/mediaUtils';
 import { BiographyEditorPanel } from './admin/BiographyEditorPanel';
+import PronunciationAudioPlayer from './PronunciationAudioPlayer';
 
 interface BiographySectionProps {
   bio: BiographySettings;
@@ -246,7 +247,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
 
 
         <div className="mx-auto w-full">
-          <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-20 items-start">
+          <div id="bio-grid" className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 lg:gap-14 xl:gap-20 items-start">
           {/* Left: Image */}
           <div id="bio-image-col" className="lg:col-span-5 relative group">
             <Reveal delay={0.15}>
@@ -270,23 +271,29 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
           {/* Right: Text & Timeline */}
           <div id="bio-text-col" className="lg:col-span-7 space-y-10">
             <Reveal delay={0.25}>
-              <div className="space-y-6 font-sans text-sm md:text-base leading-relaxed font-light max-w-xl">
+              <div className="space-y-6 font-sans text-sm md:text-base leading-relaxed font-light w-full">
                 <article itemScope itemType="https://schema.org/Person">
                     <meta itemProp="name" content="Hyunkyum Kim" />
                     <meta itemProp="alternateName" content="바리톤 김현겸" />
                     <meta itemProp="jobTitle" content="South Korean Baritone, Opera Singer" />
-                    <div itemProp="description" className="font-medium text-base md:text-lg leading-relaxed">
-                      <InlineEditor 
-                        key={`bio.bioIntro.${currentLang}`}
-                        id={`bio.bioIntro.${currentLang}`} 
-                        initialValue={activeBio?.bioIntro?.[currentLang] || t.bioIntro || ''} 
-                        readonly={!user} 
-                        placeholder="Short Intro"
-                        toolbarTools={["bold", "italic", "fontSize", "separator", "link"]}
-                        wrapperClassName="block"
-                        as="div"
-                      />
+                    
+                    {/* Name Header with Pronunciation Audio */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-5 pb-3 border-b border-current/10">
+                      <h3 className="font-serif text-2xl md:text-3xl font-light uppercase tracking-[0.12em]" style={{ color: 'var(--color-text)' }}>
+                        HYUNKYUM KIM
+                      </h3>
+                      <span className="font-sans text-sm md:text-base tracking-widest opacity-60 font-normal">
+                        [hjʌn.ɡjʌm]
+                      </span>
+                      {activeBio?.koreanPronunciationAudioUrl && activeBio.koreanPronunciationAudioUrl.trim() !== '' && (
+                        <PronunciationAudioPlayer 
+                          audioUrl={activeBio.koreanPronunciationAudioUrl}
+                          currentLang={currentLang}
+                        />
+                      )}
                     </div>
+
+
                     <div className="whitespace-pre-line">
                       <InlineEditor 
                         key={`bio.bioLong.${currentLang}`}
@@ -304,7 +311,7 @@ export default function BiographySection({ bio: initialBio, currentLang, setLang
             </Reveal>
 
             <Reveal delay={0.35}>
-              <div id="timeline-tabs-container" className="space-y-0 pt-4 w-full max-w-xl">
+              <div id="timeline-tabs-container" className="space-y-0 pt-4 w-full">
                 <div className="grid grid-cols-2 md:grid-cols-4 border-b border-current/10 relative w-full gap-x-1 sm:gap-x-2 md:gap-x-4 px-1 md:px-0">
                   {timelineTabs.map((tab) => {
                     const isActive = activeTimelineTab === tab.id;

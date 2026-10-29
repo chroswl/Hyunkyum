@@ -7,6 +7,7 @@ import { MediaEngine } from '../../lib/editing/mediaEngine';
 import { MediaCropWrapper, MediaPreview } from './media';
 import { GoogleDrivePicker } from './GoogleDrivePicker';
 import { saveBiographySettings } from '../../firebase';
+import PronunciationAudioUpload from './PronunciationAudioUpload';
 
 interface BiographyEditorPanelProps {
   isOpen: boolean;
@@ -171,6 +172,14 @@ export function BiographyEditorPanel({ isOpen, onClose, bio: initialBio, current
               )}
             </div>
           </div>
+        </div>
+
+        {/* Korean Name Pronunciation Audio */}
+        <div className="bg-white/[0.02] border border-white/5 p-4 rounded-sm space-y-4">
+          <PronunciationAudioUpload
+            audioUrl={editedBio.koreanPronunciationAudioUrl || ''}
+            onChange={(url) => setEditedBio({ ...editedBio, koreanPronunciationAudioUrl: url })}
+          />
         </div>
       </div>
 

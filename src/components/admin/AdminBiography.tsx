@@ -12,6 +12,7 @@ import { MediaCropWrapper } from './media';
 import { Upload } from 'lucide-react';
 import { useAppearance } from '../../contexts/AppearanceContext';
 import { useEditing } from '../../contexts/EditingContext';
+import PronunciationAudioUpload from './PronunciationAudioUpload';
 
 export default function AdminBiography({ 
   currentLang, 
@@ -188,6 +189,13 @@ export default function AdminBiography({
            <PropertyInput label="Copyright Credit" value={bio.bioImageCopyright || ''} onChange={v => setBio({...bio, bioImageCopyright: v})} />
            <PropertyInput label="Copyright URL" value={bio.bioImageCopyrightUrl || ''} onChange={v => setBio({...bio, bioImageCopyrightUrl: v})} />
         </div>
+      </PropertyAccordion>
+
+      <PropertyAccordion title="Korean Name Pronunciation Audio" defaultOpen>
+        <PronunciationAudioUpload
+          audioUrl={bio.koreanPronunciationAudioUrl || ''}
+          onChange={(url) => setBio({ ...bio, koreanPronunciationAudioUrl: url })}
+        />
       </PropertyAccordion>
 
       <PropertyAccordion title="Timeline Titles">

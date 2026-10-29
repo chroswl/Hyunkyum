@@ -1,5 +1,6 @@
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getR2Client, getR2BucketName } from "./_r2-client.js";
+import { verifyAdminAuth } from "./_auth.js";
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers
@@ -13,6 +14,14 @@ export default async function handler(req: any, res: any) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed. Use POST." });
+  }
+
+  const authCheck = await verifyAdminAuth(req);
+  if (!authCheck.authorized) {
+    return res.status(401).json({
+      error: "Unauthorized",
+      message: authCheck.error || "Administrator permissions required. Only chroswl@gmail.com is authorized."
+    });
   }
 
   try {

@@ -207,6 +207,7 @@ export interface BiographySettings {
   photoCreditLink?: string;
   timeline?: TimelineData;
   timelineTitles?: TimelineTitles;
+  koreanPronunciationAudioUrl?: string;
 }
 
 export interface ContactSettings {

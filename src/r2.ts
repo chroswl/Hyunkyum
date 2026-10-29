@@ -1,3 +1,5 @@
+import { auth } from './firebase';
+
 export const isAIStudioPreview = (): boolean => {
   if (typeof window === "undefined") return false;
   const hostname = window.location.hostname;
@@ -10,6 +12,88 @@ export const isAIStudioPreview = (): boolean => {
     hostname === "localhost" ||
     hostname === "127.0.0.1"
   );
+};
+
+export const getAuthHeaders = async (): Promise<Record<string, string>> => {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+  } catch (e) {
+    console.warn("Could not get auth token for upload:", e);
+  }
+  return {};
+};
+
+export const uploadViaServer = (
+  file: Blob | File,
+  filename: string,
+  contentType: string,
+  folder: string,
+  onProgress?: (progress: number) => void,
+  authHeaders?: Record<string, string>
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const queryParams = new URLSearchParams({
+      filename,
+      contentType,
+      folder: folder || "",
+      direct: "1",
+    });
+
+    xhr.open("POST", `/api/upload?${queryParams.toString()}`);
+    xhr.setRequestHeader("Content-Type", contentType);
+    xhr.setRequestHeader("x-direct-upload", "true");
+    xhr.setRequestHeader("x-filename", encodeURIComponent(filename));
+    xhr.setRequestHeader("x-folder", folder || "");
+
+    if (authHeaders) {
+      Object.entries(authHeaders).forEach(([k, v]) => {
+        xhr.setRequestHeader(k, v);
+      });
+    }
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.min(99, Math.round((e.loaded / e.total) * 100)));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.url) {
+            if (onProgress) onProgress(100);
+            resolve(res.url);
+          } else {
+            reject(new Error("Server upload succeeded but did not return a file URL."));
+          }
+        } catch (e) {
+          reject(new Error("Failed to parse server upload response."));
+        }
+      } else {
+        try {
+          const errData = JSON.parse(xhr.responseText);
+          reject(new Error(errData.errorMessage || errData.error || errData.message || `Upload failed with HTTP status ${xhr.status}`));
+        } catch (e) {
+          reject(new Error(`Upload failed with HTTP status ${xhr.status}`));
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network error during file upload to server."));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error("File upload timed out."));
+    };
+
+    xhr.send(file);
+  });
 };
 
 export const uploadToR2 = async (
@@ -48,6 +132,16 @@ export const uploadToR2 = async (
 
   if (onProgress) onProgress(0); // Start progress
 
+  const authHeaders = await getAuthHeaders();
+
+  // Primary: stream directly through backend proxy to Cloudflare R2
+  // This bypasses browser-to-R2 CORS restrictions and works in all sandbox/iframe environments
+  try {
+    return await uploadViaServer(file, filename, contentType, folder || "", onProgress, authHeaders);
+  } catch (serverErr: any) {
+    console.warn("Direct server stream failed, attempting presigned fallback:", serverErr);
+  }
+
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
 
   // For small files <= 5MB: use single presigned PUT upload
@@ -60,6 +154,9 @@ export const uploadToR2 = async (
 
     const initRes = await fetch(`/api/upload?${queryParams.toString()}`, {
       method: "POST",
+      headers: {
+        ...authHeaders,
+      },
     });
 
     if (!initRes.ok) {
@@ -89,7 +186,10 @@ export const uploadToR2 = async (
 
   const startRes = await fetch(`/api/upload-multipart?${startQueryParams.toString()}`, {
     method: "POST",
-    headers: { "x-action": "start" },
+    headers: { 
+      "x-action": "start",
+      ...authHeaders,
+    },
   });
 
   if (!startRes.ok) {
@@ -106,7 +206,8 @@ export const uploadToR2 = async (
     method: "POST",
     headers: { 
       "x-action": "get-part-urls",
-      "Content-Type": "application/json" 
+      "Content-Type": "application/json",
+      ...authHeaders,
     },
     body: JSON.stringify({ uploadId, key, partNumbers }),
   });
@@ -171,6 +272,7 @@ export const uploadToR2 = async (
       headers: {
         "x-action": "complete",
         "Content-Type": "application/json",
+        ...authHeaders,
       },
       body: JSON.stringify({ uploadId, key, parts }),
     });
@@ -193,11 +295,13 @@ export const uploadToR2 = async (
 
 const abortMultipart = async (uploadId: string, key: string) => {
   try {
+    const authHeaders = await getAuthHeaders();
     await fetch("/api/upload-multipart", {
       method: "POST",
       headers: {
         "x-action": "abort",
         "Content-Type": "application/json",
+        ...authHeaders,
       },
       body: JSON.stringify({ uploadId, key }),
     });
@@ -315,10 +419,12 @@ export const deleteFromR2 = async (url: string): Promise<void> => {
       
       if (key) {
         console.log(`Requesting deletion of R2 key: ${key}`);
+        const authHeaders = await getAuthHeaders();
         const response = await fetch("/api/delete", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...authHeaders,
           },
           body: JSON.stringify({ key }),
         });

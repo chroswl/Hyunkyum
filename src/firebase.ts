@@ -444,7 +444,8 @@ export const DEFAULT_BIOGRAPHY: BiographySettings = {
       { id: "concert-1", year: "Verdi Requiem", textEN: "Baritone Soloist, Munich Philharmonic", textDE: "Baritonsolist, Münchner Philharmoniker", textKO: "베르디 레퀴엠 바리톤 솔리스트 (뮌헨 필하모닉 협연)" },
       { id: "concert-2", year: "Handel Messiah", textEN: "Bass Soloist, Berlin Bach Choir", textDE: "Basssolist, Berliner Bach-Chor", textKO: "헨델 메시아 베이스 솔리스트 (베를린 바흐 합창단 협연)" }
     ]
-  }
+  },
+  koreanPronunciationAudioUrl: ""
 };
 
 // Biography Settings helpers
@@ -471,7 +472,8 @@ export const fetchBiographySettings = async (): Promise<BiographySettings> => {
       photoCredit: data.photoCredit || "",
       photoCreditLink: data.photoCreditLink || "",
       timeline: data.timeline || DEFAULT_BIOGRAPHY.timeline,
-      timelineTitles: data.timelineTitles || DEFAULT_BIOGRAPHY.timelineTitles
+      timelineTitles: data.timelineTitles || DEFAULT_BIOGRAPHY.timelineTitles,
+      koreanPronunciationAudioUrl: data.koreanPronunciationAudioUrl || ""
     };
   } catch (error) {
     console.error("Error fetching biography settings:", error);
@@ -490,6 +492,8 @@ export const saveBiographySettings = async (settings: BiographySettings) => {
   sanitized.bioLong.EN = sanitized.bioLong.EN ?? settings.bioLong?.EN ?? '';
   sanitized.bioLong.DE = sanitized.bioLong.DE ?? settings.bioLong?.DE ?? '';
   sanitized.bioLong.KO = sanitized.bioLong.KO ?? settings.bioLong?.KO ?? '';
+
+  sanitized.koreanPronunciationAudioUrl = settings.koreanPronunciationAudioUrl || '';
 
   if (!sanitized.timelineTitles) {
     sanitized.timelineTitles = {};

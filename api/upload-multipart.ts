@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, getR2BucketName, getR2PublicUrl, checkR2EnvVars } from "./_r2-client.js";
+import { verifyAdminAuth } from "./_auth.js";
 import { URL } from 'url';
 
 const parseJsonBody = async (req: any): Promise<any> => {
@@ -39,6 +40,17 @@ export default async function handler(req: any, res: any) {
 
   if (req.method !== "POST" && req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed. Use POST or GET." });
+  }
+
+  // Enforce Administrator Permissions for multipart operations
+  if (req.method === "POST") {
+    const authCheck = await verifyAdminAuth(req);
+    if (!authCheck.authorized) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: authCheck.error || "Administrator permissions required. Only chroswl@gmail.com is authorized."
+      });
+    }
   }
 
   let action = "unknown";

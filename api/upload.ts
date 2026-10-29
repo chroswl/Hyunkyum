@@ -1,6 +1,8 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, getR2BucketName, getR2PublicUrl, checkR2EnvVars } from "./_r2-client.js";
+import { verifyAdminAuth } from "./_auth.js";
 import { URL } from "url";
 
 const parseJsonBody = async (req: any): Promise<any> => {
@@ -27,7 +29,7 @@ export default async function handler(req: any, res: any) {
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-direct-upload, x-upload-mode, x-filename, x-folder");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -37,13 +39,27 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed. Use POST or GET." });
   }
 
-  try {
-    const bodyObj = await parseJsonBody(req);
-    const urlObj = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  // Enforce Administrator Permissions for uploads
+  if (req.method === "POST") {
+    const authCheck = await verifyAdminAuth(req);
+    if (!authCheck.authorized) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: authCheck.error || "Administrator permissions required. Only chroswl@gmail.com is authorized."
+      });
+    }
+  }
 
-    let filename = urlObj.searchParams.get("filename") || bodyObj.filename || "file";
-    let contentType = urlObj.searchParams.get("contentType") || bodyObj.contentType || "application/octet-stream";
-    let folder = urlObj.searchParams.get("folder") || bodyObj.folder || "";
+  try {
+    const urlObj = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+    const isDirect = 
+      req.headers["x-direct-upload"] === "true" || 
+      urlObj.searchParams.get("direct") === "1" ||
+      req.headers["x-upload-mode"] === "direct";
+
+    let filename = urlObj.searchParams.get("filename") || (req.headers["x-filename"] as string) || "file";
+    let contentType = urlObj.searchParams.get("contentType") || (req.headers["content-type"] as string) || "application/octet-stream";
+    let folder = urlObj.searchParams.get("folder") || (req.headers["x-folder"] as string) || "";
 
     const client = getR2Client();
     const bucket = getR2BucketName();
@@ -54,6 +70,33 @@ export default async function handler(req: any, res: any) {
     const key = folder 
       ? `${folder}/${uniqueId}_${sanitizedFilename}`
       : `${uniqueId}_${sanitizedFilename}`;
+
+    if (isDirect) {
+      // Direct stream pipe to Cloudflare R2 avoiding browser CORS restrictions
+      const uploader = new Upload({
+        client,
+        params: {
+          Bucket: bucket,
+          Key: key,
+          Body: req,
+          ContentType: contentType,
+        },
+      });
+
+      await uploader.done();
+      const fileUrl = `${publicUrl.replace(/\/$/, "")}/${key}`;
+
+      return res.status(200).json({
+        success: true,
+        url: fileUrl,
+        key,
+      });
+    }
+
+    const bodyObj = await parseJsonBody(req);
+    filename = urlObj.searchParams.get("filename") || bodyObj.filename || filename;
+    contentType = urlObj.searchParams.get("contentType") || bodyObj.contentType || contentType;
+    folder = urlObj.searchParams.get("folder") || bodyObj.folder || folder;
 
     const command = new PutObjectCommand({
       Bucket: bucket,
